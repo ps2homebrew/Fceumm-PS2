@@ -8,6 +8,8 @@
 #include <stdio.h>
 #include <libpwroff.h>
 #include <sbv_patches.h>
+#include "cdvd_rpc.h"
+#include "cd.h"
 
 #include <gsKit.h>
 #include <dmaKit.h>
@@ -48,6 +50,8 @@ extern void usbd_irx;
 extern int size_usbd_irx;
 extern void usbhdfsd_irx;
 extern int size_usbhdfsd_irx;
+extern void cdvd_irx;
+extern int size_cdvd_irx;
 
 int LoadBasicModules(void)
 {
@@ -112,6 +116,11 @@ void LoadExtraModules(void)
     ret = SifExecModuleBuffer(&usbd_irx, size_usbd_irx,0, NULL, &ret);
     if (ret < 0) {
         printf("Failed to load module: USBD.IRX");
+    }
+    
+    ret = SifExecModuleBuffer(&cdvd_irx, size_cdvd_irx, 0, NULL, &ret);
+    if (ret < 0) {
+        printf("Failed to load module: CDVD.IRX");
     }
 
     ret = SifExecModuleBuffer(&usbhdfsd_irx, size_usbhdfsd_irx,0, NULL, &ret);
@@ -180,7 +189,7 @@ void SetupGSKit(void)
 {
     /* detect and set screentype */
     //gsGlobal = gsKit_init_global(GS_MODE_PAL);
-    gsGlobal = gsKit_init_global_custom(GS_MODE_PAL, GS_RENDER_QUEUE_OS_POOLSIZE+GS_RENDER_QUEUE_OS_POOLSIZE/2, GS_RENDER_QUEUE_PER_POOLSIZE/2);
+    gsGlobal = gsKit_init_global_custom(GS_MODE_PAL, GS_RENDER_QUEUE_OS_POOLSIZE+GS_RENDER_QUEUE_OS_POOLSIZE/2, GS_RENDER_QUEUE_PER_POOLSIZE+GS_RENDER_QUEUE_PER_POOLSIZE/2);
     gsGlobal->Height = 512;
 
     defaultx = gsGlobal->StartX;
@@ -232,6 +241,9 @@ void InitPS2(void)
     LoadHDDModules();
 
     mcInit(MC_TYPE_XMC);
+    cdInit(CDVD_INIT_INIT);
+    CDVD_Init();
+    
 
 #ifdef SOUND_ON
     audsrv_init();
@@ -268,8 +280,8 @@ void init_custom_screen(void)
     }
     else {
         gsGlobal->Mode = GS_MODE_NTSC;
-        gsGlobal->Height = 448;
-        defaulty = 50;
+        gsGlobal->Height = 478; // 448;
+        defaulty = 22; // 50;
     }
     gsGlobal->StartY = defaulty + Settings.offset_y;
 

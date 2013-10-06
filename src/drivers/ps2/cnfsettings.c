@@ -136,6 +136,7 @@ void Load_Global_CNF(char *CNF_path_p)
         else if(!strcmp(name,"Display"))          { Settings.display   = atoi(value); }
         else if(!strcmp(name,"Emulation"))        { Settings.emulation = atoi(value); }
         else if(!strcmp(name,"Interlace"))        { Settings.interlace = atoi(value); }
+        else if(!strcmp(name,"Filter"))           { Settings.filter    = atoi(value); }
         else if(!strcmp(name,"LowPass"))          { Settings.lowpass   = atoi(value); }
         else if(!strcmp(name,"Turbo"))            { Settings.turbo     = atoi(value); }
         else if(!strcmp(name,"Elfpath"))          { strcpy(Settings.elfpath,value);   }
@@ -398,17 +399,21 @@ void Save_Global_CNF(char *CNF_path_p)
     //begin hdd path conversion
     char temp1[1024];
     char temp2[1024];
-    char *temp3;
+    char temp3[1024];
 
+    *temp1 = *temp2 = 0;
+    
     if(needed_path[0] > -1) {
         strcpy(temp1,Settings.savepath);
-        temp3 = strchr(Settings.savepath,'/');
+        strcpy(temp3, strchr(Settings.savepath,'/'));
+        //temp3 = strchr(Settings.savepath,'/');
         sprintf(Settings.savepath,"hdd0:/%s%s",mpartitions[needed_path[0]],temp3);
         printf("Savepath: %s\n", Settings.savepath);
     }
     if(needed_path[1] > -1) {
         strcpy(temp2,Settings.elfpath);
-        temp3 = strchr(Settings.elfpath,'/');
+        strcpy(temp3, strchr(Settings.elfpath,'/'));
+        //temp3 = strchr(Settings.elfpath,'/');
         sprintf(Settings.elfpath,"hdd0:/%s%s",mpartitions[needed_path[1]],temp3);
         printf("Elfpath: %s\n", Settings.elfpath);
     }
@@ -466,8 +471,8 @@ void Save_Global_CNF(char *CNF_path_p)
         Settings.offset_y,
         Settings.display,
         Settings.emulation,
-        Settings.filter,
         Settings.interlace,
+        Settings.filter,
         Settings.lowpass,
         Settings.turbo,
         Settings.elfpath,
@@ -510,8 +515,11 @@ void Save_Global_CNF(char *CNF_path_p)
 abort:
     free(CNF_p);
 
-    strcpy(Settings.savepath, temp1);
-    strcpy(Settings.elfpath, temp2);
+    if(*temp1)
+        strcpy(Settings.savepath, temp1);
+    
+    if(*temp2)    
+        strcpy(Settings.elfpath, temp2);
 }  //Ends Save_CNF
 //---------------------------------------------------------------------------
 
