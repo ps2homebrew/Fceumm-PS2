@@ -8,6 +8,8 @@
 
 #include "ps2fceu.h"
 
+extern vars Settings;
+
 /************************************/
 /* gsKit Variables                  */
 /************************************/
@@ -25,7 +27,7 @@ int selected = 0;
 int selected_dir = 0;
 char path[4096] = "path";
 
-void Browser_Menu(void);
+int Browser_Menu(void);
 
 static inline char* strzncpy(char *d, char *s, int l) { d[0] = 0; return strncat(d, s, l); }
 
@@ -86,9 +88,17 @@ int RomBrowserInput(int files_too, int inside_menu)
         if(new_pad[0] & PAD_UP) {
                 ret[1] = -1;
         }
-        if((paddata[0] & PAD_SELECT) && !inside_menu) {
-            Browser_Menu();
-            oldselect = -1;
+        if((new_pad[0] & PAD_SELECT) && !inside_menu) {
+            ret[0] = Browser_Menu();
+            if (ret[0] == 1) {
+                oldselect = -3;
+            }
+            else if (ret[0] == 2) {
+                oldselect = -2;
+            }
+            else {
+                oldselect = -1;
+            }
         }
         if(new_pad[0] & PAD_CIRCLE) {
             selected = 1;
@@ -183,7 +193,7 @@ char* Browser(int files_too, int inside_menu)
     int n = 0;
 
     oldselect = -1;
-    entries FileEntry[2048];
+    entries *FileEntry = (entries*)malloc(sizeof(entries)*2048);
 
     float fontheight = 10.0f;
 
@@ -202,6 +212,18 @@ char* Browser(int files_too, int inside_menu)
     while(1) {
         selected = 0; //clear selected flag
         selection += RomBrowserInput(files_too,inside_menu);
+
+        if(oldselect == -3) { //just exited from browser menu, reset vars
+            strcpy(path,"path");
+            strcpy(oldpath,"oldpath");
+            selection = 0;
+            oldselect = -1;
+        }
+
+        if(oldselect == -2) {
+            free(FileEntry);
+            RunLoaderElf(Settings.elfpath,"");
+        }
 
         if(strcmp(path,oldpath) != 0) {
             n = listdir(path,FileEntry,files_too); //n == max number of items + empty entry
@@ -275,23 +297,21 @@ char* Browser(int files_too, int inside_menu)
                     if(strchr(path,'/') == NULL) { //device selected
                         strcpy(path,FileEntry[selection].filename);
                     }
-                    else {
-                        //strcat(path,FileEntry[selection].filename);
-                        //strcat(path,"/");
+                    else { //strcat
                         sprintf(path,"%s%s/",path,FileEntry[selection].filename);
                         printf("path is %s\n",path);
                     }
                 }
             }
-            if(!FileEntry[selection].dircheck) {
-                //strcat(path,FileEntry[selection].filename);
+            if(!FileEntry[selection].dircheck) { //strcat
                 sprintf(path,"%s%s",path,FileEntry[selection].filename);
                 printf("rompath = %s\n", path);
-                //free(FileEntry);
+                free(FileEntry);
                 return (char *)path;
             }
         }
         if(selected_dir) {
+            free(FileEntry);
             return (char *)path;
         }
     }

@@ -40,10 +40,9 @@ typedef s32 int32;
 typedef u8 uint8;
 typedef u16 uint16;
 typedef u32 uint32;
- 
+
 typedef u64 uint64;
 typedef s64 int64;
-
 //typedef unsigned char uint8;
 //typedef unsigned short uint16;
 //typedef unsigned long  uint32;

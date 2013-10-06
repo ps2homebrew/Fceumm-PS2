@@ -36,8 +36,16 @@
 			<Add option="-Wall" />
 		</Compiler>
 		<Unit filename="Makefile" />
-		<Unit filename="Makefile.base" />
 		<Unit filename="boards\01-222.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="boards\103.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="boards\106.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="boards\108.c">
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="boards\112.c">
@@ -46,7 +54,25 @@
 		<Unit filename="boards\117.c">
 			<Option compilerVar="CC" />
 		</Unit>
+		<Unit filename="boards\120.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="boards\121.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="boards\15.c">
+			<Option compilerVar="CC" />
+		</Unit>
 		<Unit filename="boards\164.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="boards\177.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="boards\178.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="boards\179.c">
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="boards\183.c">
@@ -73,7 +99,13 @@
 		<Unit filename="boards\222.c">
 			<Option compilerVar="CC" />
 		</Unit>
+		<Unit filename="boards\23.c">
+			<Option compilerVar="CC" />
+		</Unit>
 		<Unit filename="boards\235.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="boards\3d-block.c">
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="boards\43.c">
@@ -103,14 +135,25 @@
 		<Unit filename="boards\95.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="boards\Makefile" />
+		<Unit filename="boards\KS7032.c">
+			<Option compilerVar="CC" />
+		</Unit>
 		<Unit filename="boards\__dummy_mapper.c">
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="boards\a9711.c">
 			<Option compilerVar="CC" />
 		</Unit>
+		<Unit filename="boards\a9746.c">
+			<Option compilerVar="CC" />
+		</Unit>
 		<Unit filename="boards\addrlatch.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="boards\ax5705.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="boards\bandai.c">
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="boards\bmc13in1jy110.c">
@@ -141,6 +184,15 @@
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="boards\fk23c.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="boards\ghostbusters63in1.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="boards\gs-2004.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="boards\gs-2013.c">
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="boards\h2288.c">
@@ -175,6 +227,9 @@
 		<Unit filename="boards\n106.c">
 			<Option compilerVar="CC" />
 		</Unit>
+		<Unit filename="boards\n625092.c">
+			<Option compilerVar="CC" />
+		</Unit>
 		<Unit filename="boards\novel.c">
 			<Option compilerVar="CC" />
 		</Unit>
@@ -185,6 +240,9 @@
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="boards\sl1632.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="boards\smb2j.c">
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="boards\subor.c">
@@ -200,6 +258,9 @@
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="boards\tengen.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="boards\tf-1201.c">
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="cart.c">
@@ -281,6 +342,11 @@
 		<Unit filename="drivers\ps2\ps2stuff.c">
 			<Option compilerVar="CC" />
 		</Unit>
+		<Unit filename="drivers\ps2\sjpcm.h" />
+		<Unit filename="drivers\ps2\unix-netplay.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="drivers\ps2\unix-netplay.h" />
 		<Unit filename="endian.c">
 			<Option compilerVar="CC" />
 		</Unit>
@@ -330,8 +396,10 @@
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="input.h" />
-		<Unit filename="input\Makefile" />
 		<Unit filename="input\arkanoid.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="input\bbox.c">
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="input\bworld.c">
@@ -382,9 +450,6 @@
 		<Unit filename="input\zapper.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="mappers\15.c">
-			<Option compilerVar="CC" />
-		</Unit>
 		<Unit filename="mappers\151.c">
 			<Option compilerVar="CC" />
 		</Unit>
@@ -398,9 +463,6 @@
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="mappers\193.c">
-			<Option compilerVar="CC" />
-		</Unit>
-		<Unit filename="mappers\200.c">
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="mappers\201.c">
@@ -446,9 +508,6 @@
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="mappers\229.c">
-			<Option compilerVar="CC" />
-		</Unit>
-		<Unit filename="mappers\23.c">
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="mappers\230.c">
@@ -505,9 +564,6 @@
 		<Unit filename="mappers\42.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="mappers\43.c">
-			<Option compilerVar="CC" />
-		</Unit>
 		<Unit filename="mappers\46.c">
 			<Option compilerVar="CC" />
 		</Unit>
@@ -536,9 +592,6 @@
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="mappers\67.c">
-			<Option compilerVar="CC" />
-		</Unit>
-		<Unit filename="mappers\68.c">
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="mappers\69.c">
@@ -596,10 +649,6 @@
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="mappers\99.c">
-			<Option compilerVar="CC" />
-		</Unit>
-		<Unit filename="mappers\Makefile" />
-		<Unit filename="mappers\__226.c">
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="mappers\emu2413.c">

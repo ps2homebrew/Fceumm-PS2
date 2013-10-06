@@ -252,7 +252,7 @@ FCEUGI *FCEUI_LoadGame(const char *name)
 
   if(!fp)
   {
-   FCEU_PrintError("Error opening \"%s\"!",name);
+    FCEU_PrintError("Error opening \"%s\"!",name);
    return 0;
   }
 
@@ -354,7 +354,7 @@ void FCEU_MemoryRand(uint8 *ptr, uint32 size)
  int x=0;
  while(size)
  {
-  *ptr=(x&4)?0xFF:0x00;
+  *ptr=(x&4)?0x7F:0x00;
   x++;
   size--;
   ptr++;

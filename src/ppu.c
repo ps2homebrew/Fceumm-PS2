@@ -63,12 +63,6 @@ static uint32 ppulut1[256];
 static uint32 ppulut2[256];
 static uint32 ppulut3[128];
 
-//int PPUViewer = 0;
-//int PPUViewScanline = 0;
-//void UpdatePPUView(int PPUViewing)
-//{
-//}
-
 static void makeppulut(void)
 {
  int x;
@@ -491,7 +485,7 @@ static void CheckSpriteHit(int p)
     //printf("%d\n",GETLASTPIXEL-16);
     //if(Plinef[x] == 0xFF)
     //printf("PL: %d, %02x\n",scanline, Plinef[x]);
-sphitx=0x100;
+    sphitx=0x100;
     break;
    }
 }

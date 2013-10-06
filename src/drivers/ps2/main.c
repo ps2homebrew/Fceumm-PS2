@@ -32,6 +32,7 @@ FCEUGI *CurGame=NULL;
 /* gsKit Variables                  */
 /************************************/
 GSTEXTURE NES_TEX;
+GSFONT *gsFont;
 extern GSGLOBAL *gsGlobal;
 //unsigned int ps2palette[256];
 /* normal palette
@@ -83,6 +84,7 @@ int main(int argc, char *argv[])
 
     //Setup PS2 here
     InitPS2();
+    SetupGSKit();
     setupPS2Pad();
 
     Settings.offset_x = -1;
@@ -91,13 +93,12 @@ int main(int argc, char *argv[])
 
     if((Settings.offset_x == -1)) { //initialize default values and try to save them
         printf("Load Settings Failed\n");
-        //fioMkdir("mc0:/FCEUMM/");
         Settings.offset_x = gsGlobal->StartX;
         Settings.offset_y = gsGlobal->StartY;
         Settings.interlace = 0;
         //Settings.display already defined
         //Settings.emulation already defined
-        strcpy(Settings.elfpath, "mc0:/BOOT/BOOT.elf");
+        strcpy(Settings.elfpath, "mc0:/BOOT/BOOT.ELF");
         strcpy(Settings.savepath,"mc0:/FCEUMM/");
         Settings.PlayerInput[0][0]  = PAD_TRIANGLE;
         Settings.PlayerInput[0][1]  = PAD_R2;
@@ -123,8 +124,15 @@ int main(int argc, char *argv[])
         Settings.PlayerInput[1][10] = PAD_RIGHT;
     }
 
-	gsGlobal->StartX = Settings.offset_x;
-	gsGlobal->StartY = Settings.offset_y;
+    gsGlobal->StartX = Settings.offset_x;
+    gsGlobal->StartY = Settings.offset_y;
+
+    gsKit_init_screen(gsGlobal);
+
+    gsFont = gsKit_init_font(GSKIT_FTYPE_FONTM, NULL);
+    //gsFont = gsKit_init_font(GSKIT_FTYPE_BMP_DAT, "host:arial.fnt"); //I couldn't get this to work...
+    gsFont->FontM_Spacing = 0.90f;
+    gsKit_font_upload(gsGlobal, gsFont); //upload once
 
     if(!(ret=FCEUI_Initialize())) {
 		printf("FCEUltra did not initialize.\n");

@@ -18,6 +18,7 @@ typedef struct {
 } vars;
 
 
+void SetupGSKit(void);
 void InitPS2(void);
 void setupPS2Pad(void);
 

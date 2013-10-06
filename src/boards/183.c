@@ -17,7 +17,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
- * Gimmick Bootleg
+ * Gimmick Bootleg (VRC4 mapper)
  */
 
 #include "mapinc.h"
@@ -64,7 +64,7 @@ static DECLFW(M183Write)
 {
   if(((A&0xF80C)>=0xB000)&&((A&0xF80C)<=0xE00C))
   {
-    uint8 index=(((A>>11)-6)|(A>>3))&7;
+    int index=(((A>>11)-6)|(A>>3))&7;
     chr[index]=(chr[index]&(0xF0>>(A&4)))|((V&0x0F)<<(A&4));
     SyncChr();
   }

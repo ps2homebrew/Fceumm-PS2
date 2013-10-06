@@ -1,0 +1,392 @@
+diff -buN src1/cart.c src/cart.c
+--- src1/cart.c	Fri Jun 16 12:48:44 2006
++++ src/cart.c	Sat Jul 28 08:06:23 2007
+@@ -455,7 +455,7 @@
+    GENIEROM=0;
+    return;
+   }
+-  if(fread(GENIEROM,1,16,fp)!=16)
++  if((fread(GENIEROM,1,16,fp))!=16)
+   {
+    grerr:
+    FCEU_PrintError("Error reading from Game Genie ROM image!");
+@@ -466,18 +466,22 @@
+   }
+   if(GENIEROM[0]==0x4E)  /* iNES ROM image */
+   {
+-   if(fread(GENIEROM,1,4096,fp)!=4096)
++   if(fread(GENIEROM,1,4096,fp)!=4096) {
+     goto grerr;
+-   if(fseek(fp,16384-4096,SEEK_CUR))
++   }
++   if(fseek(fp,16384-4096,SEEK_CUR)) {
+     goto grerr;
+-   if(fread(GENIEROM+4096,1,256,fp)!=256)
++   }
++   if(fread(GENIEROM+4096,1,256,fp)!=256) {
+     goto grerr;
+   }
++  }
+   else
+   {
+-   if(fread(GENIEROM+16,1,4352-16,fp)!=(4352-16))
++   if(fread(GENIEROM+16,1,4352-16,fp)!=(4352-16)) {
+     goto grerr;
+   }
++  }
+   fclose(fp);
+ 
+   /* Workaround for the FCE Ultra CHR page size only being 1KB */
+@@ -655,6 +659,8 @@
+       LocalHWInfo->SaveGameLen[x],sp);
+     }
+   }
++  if(sp != NULL)
++    fclose(sp);
+   free(soot);
+  }
+ }
+@@ -668,7 +674,7 @@
+ 
+   soot=FCEU_MakeFName(FCEUMKF_SAV,0,"sav");
+   sp=FCEUD_UTF8fopen(soot,"rb");
+-  if(sp!=NULL)
++  if(sp != NULL)
+   {
+    int x;
+    for(x=0;x<4;x++)
+@@ -679,6 +685,8 @@
+ //  {
+ //   FCEU_PrintError("WRAM file \"%s\" cannot be opened.\n",soot);
+ //  }
++  if(sp != NULL)
++    fclose(sp);
+   free(soot);
+  }
+ }
+diff -buN src1/fceu.c src/fceu.c
+--- src1/fceu.c	Fri Jun 16 12:50:20 2006
++++ src/fceu.c	Mon Aug  6 07:25:10 2007
+@@ -279,14 +279,14 @@
+ 
+   PowerNES();
+   FCEUSS_CheckStates();
+-  FCEUMOV_CheckMovies();
+-
++  //FCEUMOV_CheckMovies();
++/*
+   if(FCEUGameInfo->type!=GIT_NSF)
+   {
+    FCEU_LoadGamePalette();
+    FCEU_LoadGameCheats(0);
+   }
+-
++*/
+   FCEU_ResetPalette();
+   FCEU_ResetMessages();  // Save state, status messages, etc.
+ 
+@@ -432,12 +432,12 @@
+  va_start(ap,format);
+  vsprintf(temp,format,ap);
+  FCEUD_Message(temp);
+-
++/*
+  FILE *ofile;
+  ofile=fopen("stdout.txt","ab");
+  fwrite(temp,1,strlen(temp),ofile);
+  fclose(ofile);
+-
++*/
+  va_end(ap);
+ }
+ 
+diff -buN src1/fceu.h src/fceu.h
+--- src1/fceu.h	Fri Jun 16 12:51:46 2006
++++ src/fceu.h	Wed Jul 25 10:57:12 2007
+@@ -86,7 +86,7 @@
+ void FCEU_PutImageDummy(void);
+ #endif
+ 
+-extern uint8 Exit;
++//extern uint8 Exit;
+ extern uint8 pale;
+ extern uint8 vsdip;
+ 
+diff -buN src1/file.c src/file.c
+--- src1/file.c	Fri Jun 16 12:52:48 2006
++++ src/file.c	Mon Aug  6 07:23:14 2007
+@@ -285,6 +285,7 @@
+    fclose((FILE *)t);
+   else      /* Probably gzip */
+   {
++/*    skip gzip support until dup is implemented
+    int fd;
+ 
+    fd = dup(fileno( (FILE *)t));
+@@ -314,8 +315,9 @@
+     return(fceufp);
+    }
+    close(fd);
++*/
+   }
+-
++  fclose((FILE *)t);
+  }
+ 
+   if((t=FCEUD_UTF8fopen(path,mode)))
+diff -buN src1/filter.c src/filter.c
+--- src1/filter.c	Fri Jun 16 12:50:20 2006
++++ src/filter.c	Sun Aug 12 08:03:21 2007
+@@ -46,12 +46,17 @@
+  static int64 acc1=0,acc2=0;
+  int32 mul1,mul2,vmul;
+ 
+- mul1=(94<<16)/FSettings.SndRate;
+- mul2=(24<<16)/FSettings.SndRate;
+- vmul=(FSettings.SoundVolume<<16)*3/4/100;
++ //mul1=(94<<16)/FSettings.SndRate;
++ mul1=140;
++ //mul2=(24<<16)/FSettings.SndRate;
++ mul2=36;
++ //vmul=(FSettings.SoundVolume<<16)*3/4/100;
++ //vmul=503316;
+ 
+- if(FSettings.soundq) vmul/=4;
+- else vmul*=2;      /* TODO:  Increase volume in low quality sound rendering code itself */
++
++// if(FSettings.soundq) vmul/=4;
++ /*else*/ //vmul*=2;      /* TODO:  Increase volume in low quality sound rendering code itself */
++  vmul=1006633;
+ 
+  while(count)
+  {
+diff -buN src1/general.c src/general.c
+--- src1/general.c	Fri Jun 16 12:48:44 2006
++++ src/general.c	Sat Aug 18 00:31:31 2007
+@@ -38,6 +38,10 @@
+ 
+ #include "md5.h"
+ 
++#include "drivers/ps2/ps2fceu.h"
++
++extern vars Settings;
++
+ static char BaseDirectory[2048];
+ static char FileBase[2048];
+ static char FileExt[2048];  /* Includes the . character, as in ".nes" */
+@@ -100,7 +104,7 @@
+            asprintf(&ret,"%s"PSS"fcs"PSS"%s.%s.%d.fcm",BaseDirectory,FileBase,md5_asciistr(FCEUGameInfo->MD5),id1);
+          }
+          break;
+-  case FCEUMKF_STATE:if(odirs[FCEUIOD_STATE])
++  case FCEUMKF_STATE:/*if(odirs[FCEUIOD_STATE])
+           asprintf(&ret,"%s"PSS"%s.fc%d",odirs[FCEUIOD_STATE],FileBase,id1);
+          else
+           asprintf(&ret,"%s"PSS"fcs"PSS"%s.fc%d",BaseDirectory,FileBase,id1);
+@@ -114,7 +118,8 @@
+            asprintf(&ret,"%s"PSS"%s.fc%d",odirs[FCEUIOD_STATE],FileBase,id1);
+           else
+            asprintf(&ret,"%s"PSS"fcs"PSS"%s.fc%d",BaseDirectory,FileBase,id1);
+-         }
++         }*/
++         asprintf(&ret,"%s""%s.fc%d",Settings.savepath,FileBase,id1);
+          break;
+   case FCEUMKF_SNAP:
+         if(FSettings.SnapName)
+@@ -132,12 +137,13 @@
+           asprintf(&ret,"%s"PSS"snaps"PSS"%d.%s",BaseDirectory,id1,cd1);
+         }
+         break;
+-  case FCEUMKF_FDS:if(odirs[FCEUIOD_NV])
+-        asprintf(&ret,"%s"PSS"%s.%s.fds",odirs[FCEUIOD_NV],FileBase,md5_asciistr(FCEUGameInfo->MD5));
+-       else
+-         asprintf(&ret,"%s"PSS"sav"PSS"%s.%s.fds",BaseDirectory,FileBase,md5_asciistr(FCEUGameInfo->MD5));
++  case FCEUMKF_FDS://if(odirs[FCEUIOD_NV])
++        //asprintf(&ret,"%s"PSS"%s.%s.fds",odirs[FCEUIOD_NV],FileBase,md5_asciistr(FCEUGameInfo->MD5));
++       //else
++         //asprintf(&ret,"%s"PSS"sav"PSS"%s.%s.fds",BaseDirectory,FileBase,md5_asciistr(FCEUGameInfo->MD5));
++         asprintf(&ret,"%s"PSS"%s.%s.fds",Settings.savepath,FileBase,md5_asciistr(FCEUGameInfo->MD5));
+        break;
+-  case FCEUMKF_SAV:if(odirs[FCEUIOD_NV])
++  case FCEUMKF_SAV:/*if(odirs[FCEUIOD_NV])
+         asprintf(&ret,"%s"PSS"%s.%s",odirs[FCEUIOD_NV],FileBase,cd1);
+        else
+         asprintf(&ret,"%s"PSS"sav"PSS"%s.%s",BaseDirectory,FileBase,cd1);
+@@ -147,7 +153,9 @@
+          asprintf(&ret,"%s"PSS"%s.%s.%s",odirs[FCEUIOD_NV],FileBase,md5_asciistr(FCEUGameInfo->MD5),cd1);
+         else
+          asprintf(&ret,"%s"PSS"sav"PSS"%s.%s.%s",BaseDirectory,FileBase,md5_asciistr(FCEUGameInfo->MD5),cd1);
+-       }
++       }*/
++       //asprintf(&ret,"%s"PSS"sav","mc0:FCEUMM");
++       asprintf(&ret,"%s""%s.%s",Settings.savepath,FileBase,cd1);
+        break;
+   case FCEUMKF_CHEAT:
+          if(odirs[FCEUIOD_CHEATS])
+@@ -155,10 +163,11 @@
+          else
+           asprintf(&ret,"%s"PSS"cheats"PSS"%s.cht",BaseDirectory,FileBase);
+          break;
+-  case FCEUMKF_IPS:  asprintf(&ret,"%s"PSS"%s%s.ips",FileBaseDirectory,FileBase,FileExt);
++  case FCEUMKF_IPS:  asprintf(&ret,"%s""%s%s.ips",FileBaseDirectory,FileBase,FileExt);
+          break;
+-  case FCEUMKF_GGROM:asprintf(&ret,"%s"PSS"gg.rom",BaseDirectory);break;
+-  case FCEUMKF_FDSROM:asprintf(&ret,"%s"PSS"disksys.rom",BaseDirectory);break;
++  //case FCEUMKF_GGROM:asprintf(&ret,"%s"PSS"gg.rom",BaseDirectory);break;
++  case FCEUMKF_GGROM:asprintf(&ret,"%s""gg.rom",Settings.savepath);break;
++  case FCEUMKF_FDSROM:asprintf(&ret,"%s""disksys.rom",Settings.savepath);break;
+   case FCEUMKF_PALETTE:
+            if(odirs[FCEUIOD_MISC])
+       asprintf(&ret,"%s"PSS"%s.pal",odirs[FCEUIOD_MISC],FileBase);
+diff -buN src1/ppu.c src/ppu.c
+--- src1/ppu.c	Fri Jun 16 12:52:48 2006
++++ src/ppu.c	Mon Aug  6 10:51:46 2007
+@@ -32,7 +32,7 @@
+ #include        "general.h"
+ #include        "endian.h"
+ #include        "memory.h"
+-#include        "ppuview.h"
++//#include        "ppuview.h"
+ 
+ #include        "cart.h"
+ #include        "palette.h"
+@@ -63,6 +63,12 @@
+ static uint32 ppulut2[256];
+ static uint32 ppulut3[128];
+ 
++//int PPUViewer = 0;
++//int PPUViewScanline = 0;
++//void UpdatePPUView(int PPUViewing)
++//{
++//}
++
+ static void makeppulut(void)
+ {
+  int x;
+@@ -1356,7 +1362,7 @@
+     for(scanline=0;scanline<240;)       //scanline is incremented in  DoLine.  Evil. :/
+     {
+      deempcnt[deemp]++;
+-     if ((PPUViewer) && (scanline == PPUViewScanline)) UpdatePPUView(1);
++     //if ((PPUViewer) && (scanline == PPUViewScanline)) UpdatePPUView(1);
+      DoLine();
+     }
+     if(MMC5Hack && (ScreenON || SpriteON)) MMC5_hb(scanline);
+diff -buN src1/sound.c src/sound.c
+--- src1/sound.c	Fri Jun 16 12:51:46 2006
++++ src/sound.c	Sun Aug 12 08:57:32 2007
+@@ -960,21 +960,21 @@
+   int32 end,left;
+ 
+   if(!timestamp) return(0);
+-
++#ifdef SOUND_OFF
+   if(!FSettings.SndRate)
+   {
+    left=0;
+    end=0;
+    goto nosoundo;
+   }
+-
++#endif
+   DoSQ1();
+-  DoSQ2();
+-  DoTriangle();
+-  DoNoise();
++  //DoSQ2(); //redundant for low quality setting, I believe
++  //DoTriangle();
++  //DoNoise();
+   DoPCM();
+ 
+-  if(FSettings.soundq>=1)
++  /*if(FSettings.soundq>=1)
+   {
+    int32 *tmpo=&WaveHi[soundtsoffs];
+ 
+@@ -996,7 +996,7 @@
+     ChannelBC[x]=left;
+   }
+   else
+-  {
++  {*/
+    end=(SOUNDTS<<16)/soundtsinc;
+    if(GameExpSound.Fill)
+     GameExpSound.Fill(end&0xF);
+@@ -1008,23 +1008,24 @@
+    if(end&0xF)
+     Wave[0]=Wave[(end>>4)];
+    Wave[end>>4]=0;
+-  }
++  //}
++#ifdef SOUND_OFF
+   nosoundo:
+-
+-  if(FSettings.soundq>=1)
+-  {
+-   soundtsoffs=left;
+-  }
+-  else
+-  {
++#endif
++  //if(FSettings.soundq>=1) //??
++  //{
++   //soundtsoffs=left;
++  //}
++  //else
++  //{
+    for(x=0;x<5;x++)
+     ChannelBC[x]=end&0xF;
+    soundtsoffs = (soundtsinc*(end&0xF))>>16;
+    end>>=4;
+-  }
++  //}
+   inbuf=end;
+ 
+-  FCEU_WriteWaveData(WaveFinal, end); /* This function will just return
++  /*FCEU_WriteWaveData(WaveFinal, end); * This function will just return
+             if sound recording is off. */
+   return(end);
+ }
+diff -buN src1/types.h src/types.h
+--- src1/types.h	Fri Jun 16 12:50:20 2006
++++ src/types.h	Wed Jul 25 10:54:44 2007
+@@ -21,7 +21,7 @@
+ 
+ #ifndef __FCEU_TYPES
+ #define __FCEU_TYPES
+-
++/*
+ #include <inttypes.h>
+ typedef int8_t int8;
+ typedef int16_t int16;
+@@ -30,6 +30,19 @@
+ typedef uint8_t uint8;
+ typedef uint16_t uint16;
+ typedef uint32_t uint32;
++*/
++
++#include <tamtypes.h>
++typedef s8 int8;
++typedef s16 int16;
++typedef s32 int32;
++
++typedef u8 uint8;
++typedef u16 uint16;
++typedef u32 uint32;
++ 
++typedef u64 uint64;
++typedef s64 int64;
+ 
+ //typedef unsigned char uint8;
+ //typedef unsigned short uint16;
+@@ -37,8 +50,8 @@
+ 
+ 
+ #ifdef __GNUC__
+- typedef unsigned long long uint64;
+- typedef long long int64;
++ //typedef unsigned long long uint64;
++ //typedef long long int64;
+  #define INLINE inline
+  #define GINLINE inline
+ #elif MSVC

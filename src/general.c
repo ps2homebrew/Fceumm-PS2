@@ -137,11 +137,11 @@ char *FCEU_MakeFName(int type, int id1, char *cd1)
           asprintf(&ret,"%s"PSS"snaps"PSS"%d.%s",BaseDirectory,id1,cd1);
         }
         break;
-  case FCEUMKF_FDS://if(odirs[FCEUIOD_NV])
-        //asprintf(&ret,"%s"PSS"%s.%s.fds",odirs[FCEUIOD_NV],FileBase,md5_asciistr(FCEUGameInfo->MD5));
-       //else
-         //asprintf(&ret,"%s"PSS"sav"PSS"%s.%s.fds",BaseDirectory,FileBase,md5_asciistr(FCEUGameInfo->MD5));
-         asprintf(&ret,"%s"PSS"%s.%s.fds",Settings.savepath,FileBase,md5_asciistr(FCEUGameInfo->MD5));
+  case FCEUMKF_FDS:/*if(odirs[FCEUIOD_NV])
+        asprintf(&ret,"%s"PSS"%s.%s.fds",odirs[FCEUIOD_NV],FileBase,md5_asciistr(FCEUGameInfo->MD5));
+       else
+         asprintf(&ret,"%s"PSS"sav"PSS"%s.%s.fds",BaseDirectory,FileBase,md5_asciistr(FCEUGameInfo->MD5));*/
+        asprintf(&ret,"%s"PSS"%s.%s.fds",Settings.savepath,FileBase,md5_asciistr(FCEUGameInfo->MD5));
        break;
   case FCEUMKF_SAV:/*if(odirs[FCEUIOD_NV])
         asprintf(&ret,"%s"PSS"%s.%s",odirs[FCEUIOD_NV],FileBase,cd1);
@@ -154,7 +154,6 @@ char *FCEU_MakeFName(int type, int id1, char *cd1)
         else
          asprintf(&ret,"%s"PSS"sav"PSS"%s.%s.%s",BaseDirectory,FileBase,md5_asciistr(FCEUGameInfo->MD5),cd1);
        }*/
-       //asprintf(&ret,"%s"PSS"sav","mc0:FCEUMM");
        asprintf(&ret,"%s""%s.%s",Settings.savepath,FileBase,cd1);
        break;
   case FCEUMKF_CHEAT:
@@ -174,7 +173,7 @@ char *FCEU_MakeFName(int type, int id1, char *cd1)
            else
       asprintf(&ret,"%s"PSS"gameinfo"PSS"%s.pal",BaseDirectory,FileBase);
            break;
-  }
+ }
  return(ret);
 }
 

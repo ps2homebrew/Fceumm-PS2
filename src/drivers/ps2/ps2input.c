@@ -16,7 +16,6 @@ extern vars Settings;
 static char padBuf[2][256] __attribute__((aligned(64)));
 
 u32 old_pad[2] = {0,0};
-
 int exitgame = 0;
 int NESButtons; //scope saves status of buttons pressed more than one loop
 struct padButtonStatus buttons[2];
@@ -134,6 +133,7 @@ unsigned char Get_PS2Input(int port)
     unsigned char P = 0;
     u16 slot = 0;
 
+
 //check to see if pads are disconnected
     ret[port]=padGetState(0, slot);
     while((ret[port] != PAD_STATE_STABLE) && (ret[port] != PAD_STATE_FINDCTP1)) {
@@ -155,10 +155,10 @@ unsigned char Get_PS2Input(int port)
         if(new_pad[port] == Settings.PlayerInput[port][0]) {
             Ingame_Menu();
         }
-        if(paddata[port] & Settings.PlayerInput[port][1]) {
+        if(new_pad[port] == Settings.PlayerInput[port][1]) {
             FCEUI_SaveState(NULL);
         }
-        if(paddata[port] & Settings.PlayerInput[port][2]) {
+        if(new_pad[port] == Settings.PlayerInput[port][2]) {
             FCEUI_LoadState(NULL);
         }
         if(paddata[port] & Settings.PlayerInput[port][3]) {

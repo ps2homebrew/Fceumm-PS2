@@ -194,7 +194,7 @@ int menu_input(int port, int center_screen)
         Exit to Elf Path
         Exit to PS2Browser
 **/
-void Browser_Menu(void)
+int Browser_Menu(void)
 {
     char *temp;
     char cnfpath[2048];
@@ -379,11 +379,11 @@ void Browser_Menu(void)
                     Save_Global_CNF("mc0:/FCEUMM/FCEUltra.cnf");
                     break;
                 case 9: //Exit to ELF
-                    RunLoaderElf(Settings.elfpath,"");
+                    return 2;
                     break;
                 case 10: //Exit Options Menu
                     selected = 0;
-                    return;
+                    return 1;
             }
         }
     }

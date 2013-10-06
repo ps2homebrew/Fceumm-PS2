@@ -34,7 +34,6 @@ extern vars Settings;
 
 //video
 GSGLOBAL *gsGlobal;
-GSFONT *gsFont;
 
 extern void usbd_irx;
 extern int size_usbd_irx;
@@ -112,7 +111,7 @@ void LoadModules(void)
 	}
 }
 
-int InitGSKit(void)
+void SetupGSKit(void)
 {
     /* detect and set screentype */
     if(gsKit_detect_signal()==GS_MODE_PAL) {
@@ -141,8 +140,6 @@ int InitGSKit(void)
 	gsGlobal->PrimAlphaEnable = GS_SETTING_ON;
     //gsGlobal->PSM = GS_PSM_CT32;
 
-    gsKit_init_screen(gsGlobal);
-
     //640x448, ntsc, tv
     gsGlobal->Width  = 640;
     //gsGlobal->Height = 448;
@@ -150,11 +147,6 @@ int InitGSKit(void)
     //640x512, pal, tv
     //gsGlobal->Height = 512;
 
-    gsFont = gsKit_init_font(GSKIT_FTYPE_FONTM, NULL);
-    //gsFont = gsKit_init_font(GSKIT_FTYPE_BMP_DAT, "host:arial.fnt"); //I couldn't get this to work...
-    gsFont->FontM_Spacing = 0.90f;
-    gsKit_font_upload(gsGlobal, gsFont); //upload once
-    return 0;
 }
 
 void InitPS2(void)
@@ -188,8 +180,6 @@ void InitPS2(void)
 		SleepThread();
 	}
 #endif
-
-	InitGSKit();
 
 #ifdef SOUND_ON
     audsrv_init();

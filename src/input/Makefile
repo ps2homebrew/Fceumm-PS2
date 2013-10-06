@@ -1,1 +1,1 @@
-INPUT_OBJS = input/arkanoid.o input/bworld.o input/cursor.o input/fkb.o input/ftrainer.o input/hypershot.o input/mahjong.o input/mouse.o input/oekakids.o input/pads.o input/powerpad.o input/quiz.o input/shadow.o input/suborkb.o input/toprider.o input/zapper.o
+INPUT_OBJS = input/arkanoid.o input/bbox.o input/bworld.o input/cursor.o input/fkb.o input/ftrainer.o input/hypershot.o input/mahjong.o input/mouse.o input/oekakids.o input/pads.o input/powerpad.o input/quiz.o input/shadow.o input/suborkb.o input/toprider.o input/zapper.o

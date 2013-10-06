@@ -33,6 +33,14 @@ static MOUSE Mouse;
 static void FP_FASTAPASS(1) StrobeMOUSE(int w)
 {
   Mouse.readbit=0;
+  if((Mouse.mzxold-Mouse.mzx)>0)
+    Mouse.data|=0x0C;
+  else if((Mouse.mzxold-Mouse.mzx)<0)
+    Mouse.data|=0x04;
+  if((Mouse.mzyold-Mouse.mzy)>0)
+    Mouse.data|=0x30;
+  else if((Mouse.mzyold-Mouse.mzy)<0)
+    Mouse.data|=0x10;
 }
 
 static uint8 FP_FASTAPASS(1) ReadMOUSE(int w)

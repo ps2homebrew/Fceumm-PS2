@@ -285,7 +285,7 @@ FCEUFILE * FCEU_fopen(const char *path, const char *ipsfn, char *mode, char *ext
    fclose((FILE *)t);
   else      /* Probably gzip */
   {
-/*    skip gzip support until dup is implemented
+/*
    int fd;
 
    fd = dup(fileno( (FILE *)t));
@@ -317,7 +317,7 @@ FCEUFILE * FCEU_fopen(const char *path, const char *ipsfn, char *mode, char *ext
    close(fd);
 */
   }
-  fclose((FILE *)t);
+ fclose((FILE *)t);
  }
 
   if((t=FCEUD_UTF8fopen(path,mode)))

@@ -19,6 +19,7 @@
  */
 
 #include <string.h>
+#include <stdlib.h>
 #include "share.h"
 
 static uint32 FTVal,FTValR;

@@ -83,9 +83,15 @@ void FixMMC3PRG(int V)
  else
  {
   pwrap(0x8000,DRegBuf[6]);
-  pwrap(0xC000,~1);
+//  if(EXPREGS[4])
+//   pwrap(0xC000,~0);
+//  else
+   pwrap(0xC000,~1);
  }
- pwrap(0xA000,DRegBuf[7]);
+//  if(EXPREGS[4])
+//   pwrap(0xA000,(EXPREGS[4]&0xf)>>1);
+//  else
+   pwrap(0xA000,DRegBuf[7]);
  pwrap(0xE000,~0);
 }
 
@@ -116,6 +122,8 @@ void MMC3RegReset(void)
  DRegBuf[5]=7;
  DRegBuf[6]=0;
  DRegBuf[7]=1;
+ 
+ EXPREGS[4]=0;
 
  FixMMC3PRG(0);
  FixMMC3CHR(0);
@@ -124,6 +132,11 @@ void MMC3RegReset(void)
 DECLFW(MMC3_CMDWrite)
 {
 // FCEU_printf("bs %04x %02x\n",A,V);
+// if(A==0x8003)
+// {
+//   EXPREGS[4]=V;
+//   FixMMC3PRG(MMC3_cmd);
+//} else
  switch(A&0xE001)
  {
   case 0x8000:
@@ -133,6 +146,7 @@ DECLFW(MMC3_CMDWrite)
           FixMMC3CHR(V);
        MMC3_cmd = V;
        break;
+//  case 0x8004:
   case 0x8001:
        {
         int cbase=(MMC3_cmd&0x80)<<5;
@@ -181,8 +195,10 @@ DECLFW(MMC3_IRQWrite)
  switch(A&0xE001)
  {
   case 0xC000:IRQLatch=V;break;
+//  case 0xC004:
   case 0xC001:IRQReload=1;break;
   case 0xE000:X6502_IRQEnd(FCEU_IQEXT);IRQa=0;break;
+//  case 0xE004:
   case 0xE001:IRQa=1;break;
  }
 }
@@ -535,8 +551,9 @@ static void M45CW(uint32 A, uint8 V)
    uint32 NV=V;
    if(EXPREGS[2]&8)
       NV&=(1<<((EXPREGS[2]&7)+1))-1;
-//   else
-//      NV&=0;
+   else
+      if(EXPREGS[2])
+         NV&=0; // hack ;( don't know exactly how it should be
    NV|=EXPREGS[0]|((EXPREGS[2]&0xF0)<<4);
    setchr1(A,NV);
  }
@@ -628,7 +645,7 @@ static void M47Power(void)
 
 void Mapper47_Init(CartInfo *info)
 {
- GenMMC3_Init(info, 512, 256, 8, info->battery);
+ GenMMC3_Init(info, 512, 256, 8, 0);
  pwrap=M47PW;
  cwrap=M47CW;
  info->Power=M47Power;
@@ -854,6 +871,8 @@ static void M115CW(uint32 A, uint8 V)
 
 static DECLFW(M115Write)
 {
+// FCEU_printf("%04x:%04x\n",A,V);
+ if(A==0x5080) EXPREGS[2]=V;
  if(A==0x6000)
     EXPREGS[0]=V;
  else if(A==0x6001)
@@ -861,11 +880,16 @@ static DECLFW(M115Write)
  FixMMC3PRG(MMC3_cmd);
 }
 
+static DECLFR(M115Read)
+{
+ return EXPREGS[2];
+}
+
 static void M115Power(void)
 {
  GenMMC3Power();
  SetWriteHandler(0x4100,0x7FFF,M115Write);
- SetReadHandler(0x4100,0x7FFF,0);
+ SetReadHandler(0x5000,0x5FFF,M115Read);
 }
 
 void Mapper115_Init(CartInfo *info)
@@ -954,6 +978,48 @@ void Mapper119_Init(CartInfo *info)
  CHRRAMSize=8192;
  CHRRAM=(uint8*)FCEU_gmalloc(CHRRAMSize);
  SetupCartCHRMapping(0x10, CHRRAM, CHRRAMSize, 1);
+}
+
+// ---------------------------- Mapper 134 ------------------------------
+
+static void M134PW(uint32 A, uint8 V)
+{
+  setprg8(A,(V&0x1F)|((EXPREGS[0]&2)<<4));
+}
+
+static void M134CW(uint32 A, uint8 V)
+{
+  setchr1(A,(V&0xFF)|((EXPREGS[0]&0x20)<<3));
+}
+
+static DECLFW(M134Write)
+{
+  EXPREGS[0]=V;
+  FixMMC3CHR(MMC3_cmd);
+  FixMMC3PRG(MMC3_cmd);
+}
+
+static void M134Power(void)
+{
+ EXPREGS[0]=0;
+ GenMMC3Power();
+ SetWriteHandler(0x6001,0x6001,M134Write);
+}
+
+static void M134Reset(void)
+{
+ EXPREGS[0]=0;
+ MMC3RegReset();
+}
+
+void Mapper134_Init(CartInfo *info)
+{
+ GenMMC3_Init(info, 256, 256, 0, 0);
+ pwrap=M134PW;
+ cwrap=M134CW;
+ info->Power=M134Power;
+ info->Reset=M134Reset;
+ AddExState(EXPREGS, 4, 0, "EXPR");
 }
 
 // ---------------------------- Mapper 165 ------------------------------
@@ -1159,6 +1225,47 @@ void Mapper195_Init(CartInfo *info)
  AddExState(wramtw, wramsize, 0, "WRAMTW");
 }
 
+// ---------------------------- Mapper 196 -------------------------------
+
+static DECLFW(Mapper196Write)
+{
+  A=(A&0xFFFE)|((A>>2)&1)|((A>>3)&1);
+  if(A >= 0xC000)
+   MMC3_IRQWrite(A,V);
+  else
+   MMC3_CMDWrite(A,V);
+}
+
+static void Mapper196Power(void)
+{
+  GenMMC3Power();
+  SetWriteHandler(0x8000,0xFFFF,Mapper196Write);
+}
+
+void Mapper196_Init(CartInfo *info)
+{
+  GenMMC3_Init(info, 128, 128, 0, 0);
+  info->Power=Mapper196Power;
+}
+
+// ---------------------------- Mapper 197 -------------------------------
+
+static void M197CW(uint32 A, uint8 V)
+{
+  if(A==0x0000)
+    setchr4(0x0000,V>>1);
+  else if(A==0x1000)
+    setchr2(0x1000,V);
+  else if(A==0x1400)
+    setchr2(0x1800,V);
+}
+
+void Mapper197_Init(CartInfo *info)
+{
+ GenMMC3_Init(info, 128, 512, 8, 0);
+ cwrap=M197CW;
+}
+
 // ---------------------------- Mapper 198 -------------------------------
 
 static void M198PW(uint32 A, uint8 V)
@@ -1169,21 +1276,10 @@ static void M198PW(uint32 A, uint8 V)
     setprg8(A,V);
 }
 
-static void M198CW(uint32 A, uint8 V)
-{
-  if(A==0x0000)
-    setchr4(0x0000,V>>1);
-  else if(A==0x1000)
-    setchr2(0x1000,V);
-  else if(A==0x1400)
-    setchr2(0x1800,V);
-}
-
 void Mapper198_Init(CartInfo *info)
 {
  GenMMC3_Init(info, 1024, 256, 8, info->battery);
  pwrap=M198PW;
- cwrap=M198CW;
  info->Power=M195Power;
  info->Close=M195Close;
  wramsize=4096;
@@ -1292,17 +1388,17 @@ static DECLFW(M215ExWrite)
 // FCEU_printf("bs %04x %02x (%04x)\n",A,V,A&0x5007);
  switch(A)
  {
-  case 0x6000:
+//  case 0x6000:
   case 0x5000:
        EXPREGS[0]=V;
        FixMMC3PRG(MMC3_cmd);
        break;
-  case 0x6001:
+//  case 0x6001:
   case 0x5001:
        EXPREGS[1]=V;
        FixMMC3CHR(MMC3_cmd);
        break;
-  case 0x6007:
+//  case 0x6007:
   case 0x5007:
        EXPREGS[2]=V;
        MMC3RegReset();

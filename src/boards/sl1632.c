@@ -21,7 +21,7 @@
 #include "mapinc.h"
 #include "mmc3.h"
 
-static uint8 chrcmd[8], prg0, prg1, brk, latc, mirr;
+static uint8 chrcmd[8], prg0, prg1, brk, mirr, swap;
 static SFORMAT StateRegs[]=
 {
   {chrcmd, 8, "CHRCMD"},
@@ -29,6 +29,7 @@ static SFORMAT StateRegs[]=
   {&prg1, 1, "PRG1"},
   {&brk, 1, "BRK"},
   {&mirr, 1, "MIRR"},
+  {&swap, 1, "SWAP"},
   {0}
 };
 
@@ -46,25 +47,36 @@ static void Sync(void)
 
 static void UNLSL1632CW(uint32 A, uint8 V)
 {
-  setchr1(A,((latc&0x20)<<3)|V);
+  int cbase=(MMC3_cmd&0x80)<<5;
+  int page0=(brk&0x08)<<5;
+  int page1=(brk&0x20)<<3;
+  int page2=(brk&0x80)<<1;
+  setchr1(cbase^0x0000,page0|(DRegBuf[0]&(~1)));
+  setchr1(cbase^0x0400,page0|DRegBuf[0]|1);
+  setchr1(cbase^0x0800,page0|(DRegBuf[1]&(~1)));
+  setchr1(cbase^0x0C00,page0|DRegBuf[1]|1);
+  setchr1(cbase^0x1000,page1|DRegBuf[2]);
+  setchr1(cbase^0x1400,page1|DRegBuf[3]);
+  setchr1(cbase^0x1800,page2|DRegBuf[4]);
+  setchr1(cbase^0x1c00,page2|DRegBuf[5]);
 }
 
 static DECLFW(UNLSL1632CMDWrite)
 {
-  FCEU_printf("bs %04x %02x %3d\n",A,V,scanline);     
-  if((A&0xA131)==0xA131)
+  if(A==0xA131)
   {
     brk=V;
-    latc = brk;
   }
+//  if((A&0xf100)==0x4100) 
+//  {
+//    brk=V<<1;
+//  }
   if(brk&2)
   {
     FixMMC3PRG(MMC3_cmd);
     FixMMC3CHR(MMC3_cmd);
     if(A<0xC000)
-    {
       MMC3_CMDWrite(A,V);
-    }
     else
       MMC3_IRQWrite(A,V);
   }
@@ -102,7 +114,7 @@ static void UNLSL1632Power(void)
 {
   GenMMC3Power();
   SetReadHandler(0x8000,0xFFFF,CartBR);
-  SetWriteHandler(0x8000,0xFFFF,UNLSL1632CMDWrite);
+  SetWriteHandler(0x4100,0xFFFF,UNLSL1632CMDWrite);
 }
 
 void UNLSL1632_Init(CartInfo *info)
