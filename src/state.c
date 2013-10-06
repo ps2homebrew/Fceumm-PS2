@@ -411,8 +411,12 @@ void FCEUI_SelectState(int w)
  FCEUI_SelectMovie(-1);
 
  CurrentState=w;
+#ifndef TARGET_PS2
  StateShow=180;
  FCEU_DispMessage("-select state-");
+#else
+ StateShow=0;
+#endif
 }
 
 void FCEUI_SaveState(char *fname)

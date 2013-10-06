@@ -161,6 +161,7 @@ void FCEU_FDSInsert(int oride)
 void FCEU_FDSEject(void)
 {
    InDisk=255;
+   FCEU_DispMessage("Disk Ejected.");
 }
 
 void FCEU_FDSSelect(void)

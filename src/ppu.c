@@ -32,7 +32,10 @@
 #include        "general.h"
 #include        "endian.h"
 #include        "memory.h"
+
+#ifndef TARGET_PS2
 #include        "ppuview.h"
+#endif
 
 #include        "cart.h"
 #include        "palette.h"
@@ -1356,7 +1359,9 @@ int FCEUPPU_Loop(int skip)
     for(scanline=0;scanline<240;)       //scanline is incremented in  DoLine.  Evil. :/
     {
      deempcnt[deemp]++;
+#ifndef TARGET_PS2
      if ((PPUViewer) && (scanline == PPUViewScanline)) UpdatePPUView(1);
+#endif
      DoLine();
     }
     if(MMC5Hack && (ScreenON || SpriteON)) MMC5_hb(scanline);

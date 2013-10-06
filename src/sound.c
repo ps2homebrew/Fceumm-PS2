@@ -1027,8 +1027,8 @@ int FlushEmulateSound(void)
 
    SexyFilter(Wave,WaveFinal,end>>4);
 
-   //if(FSettings.lowpass)
-   // SexyFilter2(WaveFinal,end>>4);
+   if(FSettings.lowpass)
+    SexyFilter2(WaveFinal,end>>4);
    if(end&0xF)
     Wave[0]=Wave[(end>>4)];
    Wave[end>>4]=0;
@@ -1048,8 +1048,10 @@ int FlushEmulateSound(void)
   }
   inbuf=end;
 
+#ifndef TARGET_PS2
   FCEU_WriteWaveData(WaveFinal, end); /* This function will just return
             if sound recording is off. */
+#endif 
   return(end);
 }
 

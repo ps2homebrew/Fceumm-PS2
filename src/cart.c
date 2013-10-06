@@ -655,6 +655,10 @@ void FCEU_SaveGameSave(CartInfo *LocalHWInfo)
       LocalHWInfo->SaveGameLen[x],sp);
     }
   }
+  if(sp != NULL)
+  {
+    fclose(sp);
+  }
   free(soot);
  }
 }
@@ -679,6 +683,10 @@ void FCEU_LoadGameSave(CartInfo *LocalHWInfo)
 //  {
 //   FCEU_PrintError("WRAM file \"%s\" cannot be opened.\n",soot);
 //  }
+  if(sp != NULL)
+  {
+    fclose(sp);
+  }
   free(soot);
  }
 }

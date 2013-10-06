@@ -285,6 +285,7 @@ FCEUFILE * FCEU_fopen(const char *path, const char *ipsfn, char *mode, char *ext
    fclose((FILE *)t);
   else      /* Probably gzip */
   {
+#ifndef TARGET_PS2
    int fd;
 
    fd = dup(fileno( (FILE *)t));
@@ -314,8 +315,11 @@ FCEUFILE * FCEU_fopen(const char *path, const char *ipsfn, char *mode, char *ext
     return(fceufp);
    }
    close(fd);
+#endif
   }
-
+#ifdef TARGET_PS2
+ fclose((FILE *)t);
+#endif
  }
 
   if((t=FCEUD_UTF8fopen(path,mode)))

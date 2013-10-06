@@ -140,7 +140,7 @@ static uint8 FP_FASTAPASS(2) ReadFami4(int w, uint8 ret)
 }
 
 static INPUTCFC FAMI4C={ReadFami4,0,StrobeFami4,0,0,0};
-INPUTC *FCEU_InitFami4(int w)
+INPUTCFC *FCEU_InitFami4(int w)
 {
   memset(&F4ReadBit,0,sizeof(F4ReadBit));
   return(&FAMI4C);
