@@ -252,7 +252,7 @@ FCEUGI *FCEUI_LoadGame(const char *name)
 
   if(!fp)
   {
-    FCEU_PrintError("Error opening \"%s\"!",name);
+   FCEU_PrintError("Error opening \"%s\"!",name);
    return 0;
   }
 
@@ -279,14 +279,14 @@ FCEUGI *FCEUI_LoadGame(const char *name)
 
   PowerNES();
   FCEUSS_CheckStates();
-  FCEUMOV_CheckMovies();
-
+  //FCEUMOV_CheckMovies();
+/*
   if(FCEUGameInfo->type!=GIT_NSF)
   {
    FCEU_LoadGamePalette();
    FCEU_LoadGameCheats(0);
   }
-
+*/
   FCEU_ResetPalette();
   FCEU_ResetMessages();  // Save state, status messages, etc.
 
@@ -354,7 +354,7 @@ void FCEU_MemoryRand(uint8 *ptr, uint32 size)
  int x=0;
  while(size)
  {
-  *ptr=(x&4)?0x7F:0x00;
+  *ptr=(x&4)?0xFF:0x00;
   x++;
   size--;
   ptr++;
@@ -432,14 +432,12 @@ void FCEU_printf(char *format, ...)
  va_start(ap,format);
  vsprintf(temp,format,ap);
  FCEUD_Message(temp);
-
-#ifndef TARGET_PS2
+/*
  FILE *ofile;
  ofile=fopen("stdout.txt","ab");
  fwrite(temp,1,strlen(temp),ofile);
  fclose(ofile);
-#endif
-
+*/
  va_end(ap);
 }
 

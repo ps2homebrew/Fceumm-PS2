@@ -69,148 +69,6 @@ static INPUTCFC *FCExp=0;
 
 void (*InputScanlineHook)(uint8 *bg, uint8 *spr, uint32 linets, int final);
 
-#define DI      01
-#define CLK     02
-#define CS      04
-#define OUT0    01
-#define D3      01
-#define D4      02
-
-typedef struct
-{
-  uint8 state;
-  uint8 cmd;
-  uint8 addr;
-  uint8 iswritable;
-  uint16 acc;
-  uint16 data[128];
-} EEPROM;
-
-EEPROM serialROM[2];
-uint8 oldCLK, bankFlip, DIFlip, OUT0state;
-
-uint8 serialROMautomat(uint8 chip, uint16 data)
-{
-  uint8 resp = 1;
-  chip &= 1;
-  if(!(data & CS))
-  {
-    if(!(data & CLK))
-    {
-      uint8 state = serialROM[chip].state;
-      uint8 mask, i;
-      FCEU_printf("> state = %02x\n", serialROM[chip].state);
-      switch (serialROM[chip].cmd)
-      {
-        case 0x00:
-             mask = ~(1<<(state&7));
-             if(state<8)
-             {
-               serialROM[chip].addr &= mask;
-               serialROM[chip].addr |= ((data&1)<<(state&7));
-               if(state==7)
-                FCEU_printf("> addr = %02x\n", serialROM[chip].addr);
-             }
-             else if(state<15)
-             {
-               serialROM[chip].acc &= mask;
-               serialROM[chip].acc |= ((data&1)<<(state&7));
-             }
-             else
-             {
-               serialROM[chip].acc &= mask;
-               serialROM[chip].acc |= ((data&1)<<(state&7));
-               serialROM[chip].cmd = serialROM[chip].acc;
-               FCEU_printf("> cmd = %02x\n", serialROM[chip].cmd);
-             }
-             break;
-        case 0x01:
-             if(state<30)
-               resp = (serialROM[chip].data[serialROM[chip].addr]>>(state&15))&1;
-             else
-             {
-               resp = (serialROM[chip].data[serialROM[chip].addr]>>(state&15))&1;
-               serialROM[chip].cmd = 0;
-             }
-             break;
-        case 0x06:
-             mask = ~(1<<(state&15));
-             if(state<30)
-             {
-               serialROM[chip].acc &= mask;
-               serialROM[chip].acc |= ((data&1)<<(state&15));
-             }
-             else
-             {
-               serialROM[chip].acc &= mask;
-               serialROM[chip].acc |= ((data&1)<<(state&15));
-               if(serialROM[chip].iswritable)
-                 serialROM[chip].data[serialROM[chip].addr] = serialROM[chip].acc;
-               serialROM[chip].cmd = 0;
-             }
-             break;
-        case 0x0C:
-             for(i=0;i<128;i++)
-                serialROM[chip].data[i] = 0xFFFF;
-             serialROM[chip].cmd = 0;
-             resp = 1;
-             break;
-        case 0x0D:
-             serialROM[chip].cmd = 0;
-             resp = 1;
-             break;
-        case 0x09:
-             serialROM[chip].cmd = 0;
-             serialROM[chip].iswritable = 1;
-             break;
-        case 0x0B:
-             serialROM[chip].cmd = 0;
-             serialROM[chip].iswritable = 0;
-             break;
-        default:
-             serialROM[chip].cmd = 0;
-             serialROM[chip].state = 0;
-             break;
-      }
-    }
-    else
-    {
-      if(serialROM[chip].cmd == 0)
-      {
-        if(serialROM[chip].state>15)
-          serialROM[chip].state = 0;
-      }
-      else
-        serialROM[chip].state++;
-    }
-  }
-  else
-  {
-    serialROM[chip].cmd = 0;
-    serialROM[chip].state = 0;
-  }
-  return resp;
-}
-
-uint8 serialROMstate(uint8 linestate)
-{
-  uint8 answ = 0, newCLK = linestate & CLK;
-  if((!oldCLK)&&newCLK)
-  {
-    DIFlip^=1;
-    if(linestate&&OUT0)
-    {
-      serialROMautomat(bankFlip, 04+DIFlip);
-      bankFlip^=1;
-      serialROMautomat(bankFlip, 02+DIFlip);
-    }    
-  }
-  answ = DIFlip^1;
-  answ |= (serialROMautomat(bankFlip, newCLK+DIFlip)<<1);
-  oldCLK = newCLK;
-  return answ << 3;
-}
-
 static DECLFR(JPRead)
 {
   uint8 ret=0;
@@ -223,23 +81,11 @@ static DECLFR(JPRead)
       ret=FCExp->Read(A&1,ret);
 
   ret|=X.DB&0xC0;
-
-//  if(A==0x4017)
-//{
-//    ret |= serialROMstate(OUT0);
-//    serialROMstate(OUT0|CLK);
-//    FCEU_printf("> 4017 read %02x\n",ret);
-//  }
-     
   return(ret);
 }
 
 static DECLFW(B4016)
 {
-//  OUT0state = V;
-//  serialROMstate(OUT0state|CLK);
-//  FCEU_printf("> 4016 write %02x\n",V);
-
   if(FCExp)
     if(FCExp->Write)
       FCExp->Write(V&7);
@@ -251,7 +97,6 @@ static DECLFW(B4016)
 
   if((LastStrobe&1) && (!(V&1)))
   {
-//    FCEUD_UpdateInput();    
     if(JPorts[0]->Strobe)
       JPorts[0]->Strobe(0);
     if(JPorts[1]->Strobe)

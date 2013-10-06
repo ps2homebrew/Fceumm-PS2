@@ -1,19 +1,19 @@
 /* FCE Ultra - NES/Famicom Emulator
- * 
+ *
  * Copyright notice for this file:
  *  Copyright (C) 1998 BERO
  *  Copyright (C) 2003 Xodnizel
- *  
+ *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or   
+ * the Free Software Foundation; either version 2 of the License, or
  * (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of 
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
@@ -32,16 +32,13 @@
 #include        "general.h"
 #include        "endian.h"
 #include        "memory.h"
-
-#ifndef TARGET_PS2
-#include        "ppuview.h"
-#endif
+//#include        "ppuview.h"
 
 #include        "cart.h"
 #include        "palette.h"
 #include        "state.h"
-#include        "video.h"  
-#include        "input.h"  
+#include        "video.h"
+#include        "input.h"
 
 #define VBlankON        (PPU[0]&0x80)   /* Generate VBlank NMI */
 #define Sprite16        (PPU[0]&0x20)   /* Sprites 8x16/8x8        */
@@ -54,7 +51,7 @@
 
 #define PPU_status      (PPU[2])
 
-#define Pal     (PALRAM)   
+#define Pal     (PALRAM)
 
 static void FetchSpriteData(void);
 static void FASTAPASS(1) RefreshLine(int lastpixel);
@@ -66,6 +63,12 @@ static uint32 ppulut1[256];
 static uint32 ppulut2[256];
 static uint32 ppulut3[128];
 
+//int PPUViewer = 0;
+//int PPUViewScanline = 0;
+//void UpdatePPUView(int PPUViewing)
+//{
+//}
+
 static void makeppulut(void)
 {
  int x;
@@ -74,7 +77,7 @@ static void makeppulut(void)
  for(x=0;x<256;x++)
  {
   ppulut1[x]=0;
-  for(y=0;y<8;y++) 
+  for(y=0;y<8;y++)
    ppulut1[x]|=((x>>(7-y))&1)<<(y*4);
   ppulut2[x]=ppulut1[x]<<1;
  }
@@ -100,8 +103,8 @@ static void makeppulut(void)
   }
 
  }
-} 
-  
+}
+
 static int ppudead;
 static int kook = 0;
 int fceuindbg=0;
@@ -111,15 +114,15 @@ uint32 MMC5HackVROMMask;
 uint8 *MMC5HackExNTARAMPtr;
 uint8 *MMC5HackVROMPTR;
 uint8 MMC5HackCHRMode=0;
-uint8 MMC5HackSPMode;   
-uint8 MMC5HackSPScroll; 
-uint8 MMC5HackSPPage;   
+uint8 MMC5HackSPMode;
+uint8 MMC5HackSPScroll;
+uint8 MMC5HackSPPage;
 
 
 uint8 VRAMBuffer,PPUGenLatch;
 uint8 *vnapage[4];
-uint8 PPUNTARAM;  
-uint8 PPUCHRRAM;  
+uint8 PPUNTARAM;
+uint8 PPUCHRRAM;
 
 /* Color deemphasis emulation.  Joy... */
 static uint8 deemp=0;
@@ -130,30 +133,30 @@ void FP_FASTAPASS(1) (*PPU_hook)(uint32 A);
 
 uint8 vtoggle=0;
 uint8 XOffset=0;
-   
+
 uint32 TempAddr,RefreshAddr;
-  
-static int maxsprites=8;  
-    
+
+static int maxsprites=8;
+
 /* scanline is equal to the current visible scanline we're on. */
-     
+
 int scanline;
 static uint32 scanlines_per_frame;
-    
+
 uint8 PPU[4];
 uint8 PPUSPL;
 uint8 NTARAM[0x800],PALRAM[0x20],SPRAM[0x100],SPRBUF[0x100];
 
 
 #define MMC5SPRVRAMADR(V)      &MMC5SPRVPage[(V)>>10][(V)]
-#define MMC5BGVRAMADR(V)      &MMC5BGVPage[(V)>>10][(V)]  
+#define MMC5BGVRAMADR(V)      &MMC5BGVPage[(V)>>10][(V)]
 #define VRAMADR(V)      &VPage[(V)>>10][(V)]
 
 
 static DECLFR(A2002)
 {
                         uint8 ret;
-        
+
 			FCEUPPU_LineUpdate();
                         ret = PPU_status;
                         ret|=PPUGenLatch&0x1F;
@@ -183,7 +186,7 @@ static DECLFR(A2004)
 			FCEUPPU_LineUpdate();
 			ret = SPRAM[PPU[3]];
 
-	                if(PPUSPL>=8) 
+	                if(PPUSPL>=8)
         	        {
                 	 if(PPU[3]>=8)
 	                  ret = SPRAM[PPU[3]];
@@ -207,7 +210,7 @@ static DECLFR(A2007)
                         uint32 tmp=RefreshAddr&0x3FFF;
 
 			FCEUPPU_LineUpdate();
-                        
+
                         ret=VRAMBuffer;
 
 			#ifdef FCEUDEF_DEBUGGER
@@ -221,7 +224,7 @@ static DECLFR(A2007)
                           VRAMBuffer=VPage[tmp>>10][tmp];
                          }
                          else
-                         {   
+                         {
                           VRAMBuffer=vnapage[(tmp>>10)&0x3][tmp&0x3FF];
                          }
                         }
@@ -261,7 +264,7 @@ static DECLFW(B2001)
                 if(V&0xE0)
                  deemp=V>>5;
 }
- 
+
 static DECLFW(B2002)
 {
                 PPUGenLatch=V;
@@ -274,19 +277,19 @@ static DECLFW(B2003)
                 PPU[3]=V;
                 PPUSPL=V&0x7;
 }
- 
+
 static DECLFW(B2004)
 {
 		//printf("Wr: %04x:$%02x\n",A,V);
 
                 PPUGenLatch=V;
-                if(PPUSPL>=8) 
+                if(PPUSPL>=8)
                 {
                  if(PPU[3]>=8)
                   SPRAM[PPU[3]]=V;
                 }
                 else
-                {   
+                {
                  //printf("$%02x:$%02x\n",PPUSPL,V);
                  SPRAM[PPUSPL]=V;
                 }
@@ -294,26 +297,26 @@ static DECLFW(B2004)
                 PPUSPL++;
 
 }
- 
+
 static DECLFW(B2005)
 {
                 uint32 tmp=TempAddr;
 		FCEUPPU_LineUpdate();
                 PPUGenLatch=V;
-                if (!vtoggle) 
+                if (!vtoggle)
                 {
                  tmp&=0xFFE0;
-                 tmp|=V>>3;  
+                 tmp|=V>>3;
                  XOffset=V&7;
                 }
                 else
-                {   
+                {
                  tmp&=0x8C1F;
                  tmp|=((V&~0x7)<<2);
                  tmp|=(V&7)<<12;
                 }
                 TempAddr=tmp;
-                vtoggle^=1;  
+                vtoggle^=1;
 }
 
 
@@ -322,13 +325,13 @@ static DECLFW(B2006)
 		FCEUPPU_LineUpdate();
 
                 PPUGenLatch=V;
-                if(!vtoggle)  
+                if(!vtoggle)
                 {
                  TempAddr&=0x00FF;
                  TempAddr|=(V&0x3f)<<8;
                 }
                 else
-                {   
+                {
                  TempAddr&=0xFF00;
                  TempAddr|=V;
 
@@ -339,7 +342,7 @@ static DECLFW(B2006)
                 }
                 vtoggle^=1;
 }
- 
+
 static DECLFW(B2007)
 {
                         uint32 tmp=RefreshAddr&0x3FFF;
@@ -355,7 +358,7 @@ static DECLFW(B2007)
                         {
                           if(PPUCHRRAM&(1<<(tmp>>10)))
                             VPage[tmp>>10][tmp]=V;
-                        }   
+                        }
                         else
                         {
                          if(PPUNTARAM&(1<<((tmp&0xF00)>>10)))
@@ -365,7 +368,7 @@ static DECLFW(B2007)
                         else RefreshAddr++;
                         if(PPU_hook) PPU_hook(RefreshAddr&0x3fff);
 }
- 
+
 static DECLFW(B4014)
 {
         uint32 t=V<<8;
@@ -380,7 +383,7 @@ static DECLFW(B4014)
 #define GETLASTPIXEL    (PAL?((timestamp*48-linestartts)/15) : ((timestamp*48-linestartts)>>4) )
 
 static uint8 *Pline,*Plinef;
-static int firsttile;  
+static int firsttile;
 static int linestartts;
 static int tofix=0;
 
@@ -390,12 +393,12 @@ static void ResetRL(uint8 *target)
  if(InputScanlineHook)
   InputScanlineHook(0,0,0,0);
  Plinef=target;
- Pline=target; 
+ Pline=target;
  firsttile=0;
  linestartts=timestamp*48+X.count;
  tofix=0;
  FCEUPPU_LineUpdate();
- tofix=1;  
+ tofix=1;
 }
 static uint8 sprlinebuf[256+8];
 
@@ -409,8 +412,8 @@ void FCEUPPU_LineUpdate(void)
    int l=GETLASTPIXEL;
    RefreshLine(l);
  }
-} 
-  
+}
+
 static int tileview=0;
 static int rendis = 0;
 
@@ -423,31 +426,31 @@ void FCEUI_SetRenderDisable(int sprites, int bg)
 {
  //printf("%d, %d\n",sprites,bg);
  if(sprites >= 0)
- { 
+ {
   if(sprites == 2) rendis ^= 1;
-  else rendis = (rendis &~1) | sprites?1:0; 
+  else rendis = (rendis &~1) | sprites?1:0;
  }
  if(bg >= 0)
- { 
+ {
   if(bg == 2) rendis ^= 2;
   else rendis = (rendis &~2) | bg?2:0;
  }
 }
-/* 
+/*
 static void TileView(void)
 {
  uint8 *P=XBuf+16*256;
  int bgh;
- int y;  
- int X1; 
+ int y;
+ int X1;
  for(bgh=0;bgh<2;bgh++)
- for(y=0;y<16*8;y++)   
+ for(y=0;y<16*8;y++)
  for(P=XBuf+bgh*128+(16+y)*256,X1=16;X1;X1--,P+=8)
  {
   uint8 *C;
   register uint8 cc;
   uint32 vadr;
-  
+
   vadr=((((16-X1)|((y>>3)<<4))<<4)|(y&7))+bgh*0x1000;
   //C= ROM+vadr+turt*8192;
   C = VRAMADR(vadr);
@@ -456,7 +459,7 @@ static void TileView(void)
   cc=0;
   //#include "pputile.h"
  }
-} 
+}
 */
 static void CheckSpriteHit(int p);
 
@@ -468,7 +471,7 @@ static void EndRL(void)
  CheckSpriteHit(272);
  Pline=0;
 }
- 
+
 static int32 sphitx;
 static uint8 sphitdata;
 
@@ -476,7 +479,7 @@ static void CheckSpriteHit(int p)
 {
  int l=p-16;
  int x;
- 
+
  if(sphitx==0x100) return;
 
  for(x=sphitx;x<(sphitx+8) && x<l;x++)
@@ -488,16 +491,16 @@ static void CheckSpriteHit(int p)
     //printf("%d\n",GETLASTPIXEL-16);
     //if(Plinef[x] == 0xFF)
     //printf("PL: %d, %02x\n",scanline, Plinef[x]);
-    sphitx=0x100;
+sphitx=0x100;
     break;
    }
-}   
+}
 }
 static int spork=0;     /* spork the world.  Any sprites on this line?
                            Then this will be set to 1.  Needed for zapper
                            emulation and *gasp* sprite emulation.
                         */
-                          
+
 // lasttile is really "second to last tile."
 static void FASTAPASS(1) RefreshLine(int lastpixel)
 {
@@ -531,15 +534,15 @@ static void FASTAPASS(1) RefreshLine(int lastpixel)
 
         if(lasttile>34) lasttile=34;
         numtiles=lasttile-firsttile;
-        
+
 	if(numtiles<=0) return;
 
         P=Pline;
-        
+
         vofs=0;
-        
+
         vofs=((PPU[0]&0x10)<<8) | ((RefreshAddr>>12)&7);
-        
+
         if(!ScreenON && !SpriteON)
         {
          uint32 tem;
@@ -548,7 +551,7 @@ static void FASTAPASS(1) RefreshLine(int lastpixel)
          FCEU_dwmemset(Pline,tem,numtiles*8);
          P+=numtiles*8;
          Pline=P;
-         
+
          firsttile=lasttile;
 
          #define TOFIXNUM (272-0x4)
@@ -558,7 +561,7 @@ static void FASTAPASS(1) RefreshLine(int lastpixel)
           tofix=0;
          }
 
-         if(InputScanlineHook && (lastpixel-16)>=0) 
+         if(InputScanlineHook && (lastpixel-16)>=0)
          {
           InputScanlineHook(Plinef,spork?sprlinebuf:0,linestartts,lasttile*8-16);
          }
@@ -566,7 +569,7 @@ static void FASTAPASS(1) RefreshLine(int lastpixel)
         }
 
 	/* Priority bits, needed for sprite emulation. */
-        Pal[0]|=64; 
+        Pal[0]|=64;
         Pal[4]|=64;
         Pal[8]|=64;
         Pal[0xC]|=64;
@@ -574,7 +577,7 @@ static void FASTAPASS(1) RefreshLine(int lastpixel)
         /* This high-level graphics MMC5 emulation code was written
            for MMC5 carts in "CL" mode.  It's probably not totally
            correct for carts in "SL" mode.
-        */      
+        */
 
 	#define PPUT_MMC5
         if(MMC5Hack && geniestage!=1)
@@ -593,7 +596,7 @@ static void FASTAPASS(1) RefreshLine(int lastpixel)
 	   }
 	   else
 	   {
-	    #include "pputile.h"	    
+	    #include "pputile.h"
 	   }
 	   tochange--;
 	  }
@@ -653,16 +656,16 @@ static void FASTAPASS(1) RefreshLine(int lastpixel)
         #undef RefreshAddr
 
 	/* Reverse changes made before. */
-        Pal[0]&=63; 
+        Pal[0]&=63;
         Pal[4]&=63;
         Pal[8]&=63;
         Pal[0xC]&=63;
 
         RefreshAddr=smorkus;
-        if(firsttile<=2 && 2<lasttile && !(PPU[1]&2)) 
+        if(firsttile<=2 && 2<lasttile && !(PPU[1]&2))
         {
          uint32 tem;
-         tem=Pal[0]|(Pal[0]<<8)|(Pal[0]<<16)|(Pal[0]<<24);  
+         tem=Pal[0]|(Pal[0]<<8)|(Pal[0]<<16)|(Pal[0]<<24);
          tem|=0x40404040;
          *(uint32 *)Plinef=*(uint32 *)(Plinef+4)=tem;
         }
@@ -673,7 +676,7 @@ static void FASTAPASS(1) RefreshLine(int lastpixel)
          int tstart,tcount;
          tem=Pal[0]|(Pal[0]<<8)|(Pal[0]<<16)|(Pal[0]<<24);
          tem|=0x40404040;
-          
+
          tcount=lasttile-firsttile;
          tstart=firsttile-2;
          if(tstart<0)
@@ -693,7 +696,7 @@ static void FASTAPASS(1) RefreshLine(int lastpixel)
         }
 
         //CheckSpriteHit(lasttile*8); //lasttile*8); //lastpixel);
-	
+
 	CheckSpriteHit(lastpixel);	/* This only works right because
 					   of a hack earlier in this function.
 					*/
@@ -898,7 +901,7 @@ static void FetchSpriteData(void)
                   if(MMC5Hack && geniestage!=1) C = MMC5SPRVRAMADR(vadr);
                   else C = VRAMADR(vadr);
 
-                  
+
                   dst.ca[0]=C[0];
                   dst.ca[1]=C[8];
                   dst.x=spr->x;
@@ -1015,7 +1018,7 @@ static void RefreshSprites(void)
         int x=spr->x;
         uint8 *C;
         uint8 *VB;
-                
+
         pixdata=ppulut1[spr->ca[0]]|ppulut2[spr->ca[1]];
         J=spr->ca[0]|spr->ca[1];
         atr=spr->atr;
@@ -1034,13 +1037,13 @@ static void RefreshSprites(void)
                                         ((J>>1)&0x08) |
                                         ((J>>3)&0x04) |
                                         ((J>>5)&0x02) |
-                                        ((J>>7)&0x01);                                          
+                                        ((J>>7)&0x01);
                         }
 
          C = sprlinebuf+x;
          VB = (PALRAM+0x10)+((atr&3)<<2);
 
-         if(atr&SP_BACK) 
+         if(atr&SP_BACK)
          {
           if (atr&H_FLIP)
           {
@@ -1060,9 +1063,9 @@ static void RefreshSprites(void)
            pixdata>>=4;
            if(J&0x01) C[0]=VB[pixdata]|0x40;
           } else  {
-           if(J&0x80) C[0]=VB[pixdata&3]|0x40;   
+           if(J&0x80) C[0]=VB[pixdata&3]|0x40;
            pixdata>>=4;
-           if(J&0x40) C[1]=VB[pixdata&3]|0x40;   
+           if(J&0x40) C[1]=VB[pixdata&3]|0x40;
            pixdata>>=4;
            if(J&0x20) C[2]=VB[pixdata&3]|0x40;
            pixdata>>=4;
@@ -1079,9 +1082,9 @@ static void RefreshSprites(void)
          } else {
           if (atr&H_FLIP)
           {
-           if(J&0x80) C[7]=VB[pixdata&3];   
+           if(J&0x80) C[7]=VB[pixdata&3];
            pixdata>>=4;
-           if(J&0x40) C[6]=VB[pixdata&3];   
+           if(J&0x40) C[6]=VB[pixdata&3];
            pixdata>>=4;
            if(J&0x20) C[5]=VB[pixdata&3];
            pixdata>>=4;
@@ -1094,10 +1097,10 @@ static void RefreshSprites(void)
            if(J&0x02) C[1]=VB[pixdata&3];
            pixdata>>=4;
            if(J&0x01) C[0]=VB[pixdata];
-          }else{                 
-           if(J&0x80) C[0]=VB[pixdata&3];   
+          }else{
+           if(J&0x80) C[0]=VB[pixdata&3];
            pixdata>>=4;
-           if(J&0x40) C[1]=VB[pixdata&3];   
+           if(J&0x40) C[1]=VB[pixdata&3];
            pixdata>>=4;
            if(J&0x20) C[2]=VB[pixdata&3];
            pixdata>>=4;
@@ -1221,7 +1224,7 @@ void FCEUPPU_Init(void)
 
 void FCEUPPU_Reset(void)
 {
-        VRAMBuffer=PPU[0]=PPU[1]=PPU_status=PPU[3]=0;   
+        VRAMBuffer=PPU[0]=PPU[1]=PPU_status=PPU[3]=0;
         PPUSPL=0;
         PPUGenLatch=0;
         RefreshAddr=TempAddr=0;
@@ -1235,8 +1238,8 @@ void FCEUPPU_Power(void)
 	int x;
 
         memset(NTARAM,0x00,0x800);
-        memset(PALRAM,0x00,0x20); 
-        memset(SPRAM,0x00,0x100); 
+        memset(PALRAM,0x00,0x20);
+        memset(SPRAM,0x00,0x100);
         FCEUPPU_Reset();
 
         for(x=0x2000;x<0x4000;x+=8)
@@ -1279,7 +1282,7 @@ int FCEUPPU_Loop(int skip)
                                   off, though.  NOTE:  Not having this here
                                   breaks a Super Donkey Kong game. */
                                 /* I need to figure out the true nature and length
-                                   of this delay. 
+                                   of this delay.
                                 */
    X6502_Run(12);
    if(FCEUGameInfo->type==GIT_NSF)
@@ -1289,7 +1292,7 @@ int FCEUPPU_Loop(int skip)
     if(VBlankON)
      TriggerNMI();
    }
-   X6502_Run((scanlines_per_frame-242)*(256+85)-12); //-12); 
+   X6502_Run((scanlines_per_frame-242)*(256+85)-12); //-12);
    PPU_status&=0x1f;
    X6502_Run(256);
 
@@ -1307,9 +1310,9 @@ int FCEUPPU_Loop(int skip)
     }
     X6502_Run(85-16);
     if(ScreenON || SpriteON)
-    {  
-     RefreshAddr=TempAddr;  
-     if(PPU_hook) PPU_hook(RefreshAddr&0x3fff);  
+    {
+     RefreshAddr=TempAddr;
+     if(PPU_hook) PPU_hook(RefreshAddr&0x3fff);
     }
 
     /* Clean this stuff up later. */
@@ -1339,7 +1342,7 @@ int FCEUPPU_Loop(int skip)
        GameHBIRQHook();
       if(scanline==y && SpriteON) PPU_status|=0x40;
       X6502_Run((scanline==239)?85:(256+85));
-     }    
+     }
     }
     else if(y<240)
     {
@@ -1359,9 +1362,7 @@ int FCEUPPU_Loop(int skip)
     for(scanline=0;scanline<240;)       //scanline is incremented in  DoLine.  Evil. :/
     {
      deempcnt[deemp]++;
-#ifndef TARGET_PS2
-     if ((PPUViewer) && (scanline == PPUViewScanline)) UpdatePPUView(1);
-#endif
+     //if ((PPUViewer) && (scanline == PPUViewScanline)) UpdatePPUView(1);
      DoLine();
     }
     if(MMC5Hack && (ScreenON || SpriteON)) MMC5_hb(scanline);
@@ -1380,7 +1381,7 @@ int FCEUPPU_Loop(int skip)
    }
   } /* else... to if(ppudead) */
 
-  #ifdef FRAMESKIP   
+  #ifdef FRAMESKIP
   if(skip)
   {
    FCEU_PutImageDummy();
@@ -1390,9 +1391,9 @@ int FCEUPPU_Loop(int skip)
   #endif
   {
    //if(tileview) TileView();
-   FCEU_PutImage();     
+   FCEU_PutImage();
    return(1);
-  }   
+  }
 }
 
 static uint16 TempAddrT,RefreshAddrT;
@@ -1422,6 +1423,6 @@ SFORMAT FCEUPPU_STATEINFO[]={
 
 void FCEUPPU_SaveState(void)
 {
- TempAddrT=TempAddr;   
+ TempAddrT=TempAddr;
  RefreshAddrT=RefreshAddr;
 }

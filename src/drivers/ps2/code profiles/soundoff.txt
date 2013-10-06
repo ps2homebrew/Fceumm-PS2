@@ -1,0 +1,240 @@
+Flat profile:
+
+Each sample counts as 0.001 seconds.
+  %   cumulative   self              self     total           
+ time   seconds   seconds    calls   s/call   s/call  name    
+ 23.18      4.91     4.91                             gsKit_vsync
+ 20.93      9.33     4.43  1250568     0.00     0.00  X6502_Run
+ 14.80     12.47     3.13   552368     0.00     0.00  RefreshLine
+ 10.63     14.72     2.25     1063     0.00     0.00  RenderFrame
+  7.77     16.36     1.65  9936487     0.00     0.00  FCEU_SoundCPUHook
+  4.71     17.36     1.00                             done
+  4.23     18.25     0.90 20451820     0.00     0.00  CartBR
+  2.60     18.80     0.55   254640     0.00     0.00  DoLine
+  2.24     19.28     0.47   225640     0.00     0.00  FetchSpriteData
+  1.51     19.60     0.32     9644     0.00     0.00  GenieRead
+  1.14     19.84     0.24                             SyncDCache
+  0.92     20.04     0.19                             memset
+  0.87     20.22     0.18   225640     0.00     0.00  CopySprites
+  0.67     20.36     0.14   225236     0.00     0.00  RefreshSprites
+  0.40     20.45     0.08   254640     0.00     0.00  ResetRL
+  0.39     20.53     0.08   226758     0.00     0.00  ClockMMC3Counter
+  0.27     20.59     0.06   328484     0.00     0.00  FCEUPPU_LineUpdate
+  0.24     20.64     0.05  1566661     0.00     0.00  ARAML
+  0.23     20.68     0.05     1063     0.00     0.01  FCEUPPU_Loop
+  0.17     20.72     0.04                             padInit
+  0.15     20.75     0.03   519213     0.00     0.00  CheckSpriteHit
+  0.15     20.78     0.03   216064     0.00     0.00  X6502_DMR
+  0.14     20.81     0.03   254640     0.00     0.00  EndRL
+  0.13     20.84     0.03   216064     0.00     0.00  B2004
+  0.12     20.86     0.03   216064     0.00     0.00  X6502_DMW
+  0.09     20.89     0.02   254640     0.00     0.00  Fixit1
+  0.09     20.91     0.02     8193     0.00     0.00  md5_process
+  0.09     20.93     0.02                             WaitSema
+  0.09     20.94     0.02   226758     0.00     0.00  MMC3_hb
+  0.08     20.96     0.02                             mcInit
+  0.06     20.97     0.01                             A2002
+  0.05     20.98     0.01    51200     0.00     0.00  ReadGP
+  0.05     21.00     0.01                             crc32_little
+  0.04     21.00     0.01   252548     0.00     0.00  MMC3_CMDWrite
+  0.04     21.01     0.01        4     0.00     0.00  BRAML
+  0.04     21.02     0.01                             B2007
+  0.04     21.03     0.01                             B4014
+  0.03     21.04     0.01                             JPRead
+  0.03     21.04     0.01                             SignalSema
+  0.03     21.05     0.01    21380     0.00     0.00  MAWRAM
+  0.03     21.05     0.01     4242     0.00     0.00  FrameSoundStuff
+  0.03     21.06     0.01                             B4016
+  0.03     21.07     0.01                             FlushCache
+  0.03     21.07     0.01                             _heap_mem_fit
+  0.02     21.08     0.01     7064     0.00     0.00  setprg8r
+  0.02     21.08     0.01        8     0.00     0.00  SetReadHandler
+  0.02     21.09     0.01                             free
+  0.02     21.09     0.00     1063     0.00     0.00  FCEU_UpdateInput
+  0.02     21.09     0.00     1063     0.00     0.00  FlushEmulateSound
+  0.02     21.10     0.00       12     0.00     0.00  SetWriteHandler
+  0.01     21.10     0.00     2126     0.00     0.00  FCEUMOV_AddJoy
+  0.01     21.11     0.00     1063     0.00     0.01  FCEUI_Emulate
+  0.01     21.11     0.00     1063     0.00     0.00  FCEU_DrawNTSCControlBars
+  0.01     21.11     0.00                             Write_PSG
+  0.01     21.11     0.00                             gsKit_queue_exec_real
+  0.01     21.12     0.00                             padGetDmaStr
+  0.01     21.12     0.00     2126     0.00     0.00  UpdateGP
+  0.01     21.12     0.00     2125     0.00     0.00  Get_PS2Input
+  0.01     21.12     0.00     1063     0.00     0.00  FCEU_DrawInput
+  0.01     21.13     0.00     1063     0.00     0.00  FCEU_DrawSaveStates
+  0.01     21.13     0.00     1062     0.00     0.00  SetNESDeemph
+  0.01     21.13     0.00        1     0.00     0.00  FlushGenieRW
+  0.01     21.13     0.00        1     0.00     0.00  unzlocal_SearchCentralDir
+  0.01     21.13     0.00                             B2006
+  0.01     21.14     0.00                             MMC3_IRQWrite
+  0.01     21.14     0.00                             dmaKit_wait_fast
+  0.01     21.14     0.00                             gsKit_setactive
+  0.01     21.14     0.00                             gsKit_texture_size_ee
+  0.01     21.14     0.00                             memcpy
+  0.00     21.14     0.00    21235     0.00     0.00  Dummyfunc
+  0.00     21.15     0.00     7064     0.00     0.00  setprg8
+  0.00     21.15     0.00     4673     0.00     0.00  setchr1r
+  0.00     21.15     0.00     4242     0.00     0.00  FrameSoundUpdate
+  0.00     21.15     0.00     1063     0.00     0.01  DoFun
+  0.00     21.15     0.00     1038     0.00     0.00  X6502_IRQBegin
+  0.00     21.15     0.00      143     0.00     0.00  ARAMH
+  0.00     21.15     0.00                             B2001
+  0.00     21.15     0.00                             DIntr
+  0.00     21.15     0.00                             DeleteSema
+  0.00     21.15     0.00                             SetGsCrt
+  0.00     21.16     0.00                             SifSetDma
+  0.00     21.16     0.00                             gsKit_finish
+  0.00     21.16     0.00                             gsKit_prim_sprite
+  0.00     21.16     0.00                             gsKit_queue_exec
+  0.00     21.16     0.00                             gsKit_set_finish
+  0.00     21.16     0.00                             gsKit_sync_flip
+  0.00     21.16     0.00                             malloc
+  0.00     21.16     0.00                             memalign
+  0.00     21.16     0.00                             padGetState
+  0.00     21.16     0.00                             ps2_sbrk
+  0.00     21.16     0.00                             smem_read
+  0.00     21.16     0.00    11729     0.00     0.00  GENCWRAP
+  0.00     21.16     0.00     8636     0.00     0.00  MBWRAM
+  0.00     21.16     0.00     6400     0.00     0.00  StrobeGP
+  0.00     21.16     0.00     4673     0.00     0.00  setchr1
+  0.00     21.16     0.00     1216     0.00     0.00  X6502_IRQEnd
+  0.00     21.16     0.00     1063     0.00     0.00  DrawMessage
+  0.00     21.16     0.00     1063     0.00     0.00  FCEUD_Update
+  0.00     21.16     0.00     1063     0.00     0.00  FCEU_DrawMovies
+  0.00     21.16     0.00     1063     0.00     0.00  FCEU_PutImage
+  0.00     21.16     0.00     1063     0.00     0.00  Get_NESInput
+  0.00     21.16     0.00     1049     0.00     0.00  TriggerNMI
+  0.00     21.16     0.00      763     0.00     0.00  FCEU_ApplyPeriodicCheats
+  0.00     21.16     0.00      135     0.00     0.00  FCEUD_SetPalette
+  0.00     21.16     0.00       91     0.00     0.00  SQReload
+  0.00     21.16     0.00       23     0.00     0.00  FCEUD_Message
+  0.00     21.16     0.00       23     0.00     0.00  FCEU_printf
+  0.00     21.16     0.00       22     0.00     0.00  unzlocal_getByte
+  0.00     21.16     0.00       18     0.00     0.00  FCEUD_UTF8fopen
+  0.00     21.16     0.00       15     0.00     0.00  FCEU_MakeFName
+  0.00     21.16     0.00       15     0.00     0.00  asprintf
+  0.00     21.16     0.00        8     0.00     0.00  GENPWRAP
+  0.00     21.16     0.00        8     0.00     0.00  Write_IRQFM
+  0.00     21.16     0.00        7     0.00     0.00  FCEU_malloc
+  0.00     21.16     0.00        5     0.00     0.00  CheckSLHook
+  0.00     21.16     0.00        5     0.00     0.00  unzlocal_getShort
+  0.00     21.16     0.00        4     0.00     0.00  SetInputStuff
+  0.00     21.16     0.00        4     0.00     0.01  md5_update
+  0.00     21.16     0.00        4     0.00     0.00  setmirror
+  0.00     21.16     0.00        3     0.00     0.00  FCEU_fread
+  0.00     21.16     0.00        3     0.00     0.00  SetSoundVariables
+  0.00     21.16     0.00        3     0.00     0.00  unzlocal_getLong
+  0.00     21.16     0.00        3     0.00     0.00  waitPadReady
+  0.00     21.16     0.00        2     0.00     0.00  AddExState
+  0.00     21.16     0.00        2     0.00     0.00  CalcCRC32
+  0.00     21.16     0.00        2     0.00     0.00  FCEUI_SetInput
+  0.00     21.16     0.00        2     0.00     0.00  FCEU_CheatAddRAM
+  0.00     21.16     0.00        2     0.00     0.00  FCEU_InitJoyPad
+  0.00     21.16     0.00        2     0.00     0.00  FixMMC3PRG
+  0.00     21.16     0.00        2     0.00     0.00  LoadDMCPeriod
+  0.00     21.16     0.00        2     0.00     0.00  initializePad
+  0.00     21.16     0.00        2     0.00     0.00  uppow2
+  0.00     21.16     0.00        1     0.00     0.00  AllocGenieRW
+  0.00     21.16     0.00        1     0.00     0.00  CheckBad
+  0.00     21.16     0.00        1     0.00     0.00  CheckHInfo
+  0.00     21.16     0.00        1     0.00     0.00  ChoosePalette
+  0.00     21.16     0.00        1     0.00     0.00  FCEUI_DisableFourScore
+  0.00     21.16     0.00        1     0.00     0.00  FCEUI_Initialize
+  0.00     21.16     0.00        1     0.00     0.03  FCEUI_LoadGame
+  0.00     21.16     0.00        1     0.00     0.00  FCEUI_SetGameGenie
+  0.00     21.16     0.00        1     0.00     0.00  FCEUI_SetLowPass
+  0.00     21.16     0.00        1     0.00     0.00  FCEUI_SetSoundQuality
+  0.00     21.16     0.00        1     0.00     0.00  FCEUI_SetSoundVolume
+  0.00     21.16     0.00        1     0.00     0.00  FCEUI_SetVidSystem
+  0.00     21.16     0.00        1     0.00     0.00  FCEUI_Sound
+  0.00     21.16     0.00        1     0.00     0.00  FCEUMOV_AddCommand
+  0.00     21.16     0.00        1     0.00     0.00  FCEUPPU_Init
+  0.00     21.16     0.00        1     0.00     0.00  FCEUPPU_Power
+  0.00     21.16     0.00        1     0.00     0.00  FCEUPPU_Reset
+  0.00     21.16     0.00        1     0.00     0.00  FCEUPPU_SetVideoSystem
+  0.00     21.16     0.00        1     0.00     0.00  FCEUSND_Power
+  0.00     21.16     0.00        1     0.00     0.00  FCEUSND_Reset
+  0.00     21.16     0.00        1     0.00     0.00  FCEUSS_CheckStates
+  0.00     21.16     0.00        1     0.00     0.00  FCEU_CheatResetRAM
+  0.00     21.16     0.00        1     0.00     0.00  FCEU_InitVirtualVideo
+  0.00     21.16     0.00        1     0.00     0.00  FCEU_LoadGameCheats
+  0.00     21.16     0.00        1     0.00     0.00  FCEU_LoadGamePalette
+  0.00     21.16     0.00        1     0.00     0.00  FCEU_LoadGameSave
+  0.00     21.16     0.00        1     0.00     0.00  FCEU_MemoryRand
+  0.00     21.16     0.00        1     0.00     0.00  FCEU_PowerCheats
+  0.00     21.16     0.00        1     0.00     0.00  FCEU_ResetMessages
+  0.00     21.16     0.00        1     0.00     0.00  FCEU_ResetPalette
+  0.00     21.16     0.00        1     0.00     0.00  FCEU_ResetVidSys
+  0.00     21.16     0.00        1     0.00     0.00  FCEU_VSUniCheck
+  0.00     21.16     0.00        1     0.00     0.00  FCEU_fclose
+  0.00     21.16     0.00        1     0.00     0.00  FCEU_fopen
+  0.00     21.16     0.00        1     0.00     0.00  FCEU_gmalloc
+  0.00     21.16     0.00        1     0.00     0.00  FixGenieMap
+  0.00     21.16     0.00        1     0.00     0.00  FixMMC3CHR
+  0.00     21.16     0.00        1     0.00     0.00  GENMWRAP
+  0.00     21.16     0.00        1     0.00     0.01  GenMMC3Power
+  0.00     21.16     0.00        1     0.00     0.00  GenMMC3_Init
+  0.00     21.16     0.00        1     0.00     0.00  GeniePower
+  0.00     21.16     0.00        1     0.00     0.00  GetFileBase
+  0.00     21.16     0.00        1     0.00     0.00  InitGSKit
+  0.00     21.16     0.00        1     0.00     0.00  InitPS2
+  0.00     21.16     0.00        1     0.00     0.00  InitializeInput
+  0.00     21.16     0.00        1     0.00     0.00  LoadModules
+  0.00     21.16     0.00        1     0.00     0.01  M4Power
+  0.00     21.16     0.00        1     0.00     0.00  MMC3RegReset
+  0.00     21.16     0.00        1     0.00     0.00  Mapper4_Init
+  0.00     21.16     0.00        1     0.00     0.00  NewiNES_Init
+  0.00     21.16     0.00        1     0.00     0.00  OpenGenie
+  0.00     21.16     0.00        1     0.00     0.03  PS2_LoadGame
+  0.00     21.16     0.00        1     0.00     0.01  PowerNES
+  0.00     21.16     0.00        1     0.00     0.00  RebuildSubCheats
+  0.00     21.16     0.00        1     0.00     0.00  ResetCartMapping
+  0.00     21.16     0.00        1     0.00     0.00  ResetExState
+  0.00     21.16     0.00        1     0.00     0.00  ResetGameLoaded
+  0.00     21.16     0.00        1     0.00     0.00  SetInput
+  0.00     21.16     0.00        1     0.00     0.00  SetInputStuffFC
+  0.00     21.16     0.00        1     0.00     0.00  SetNESSoundMap
+  0.00     21.16     0.00        1     0.00     0.00  Set_NESInput
+  0.00     21.16     0.00        1     0.00     0.00  SetupCartCHRMapping
+  0.00     21.16     0.00        1     0.00     0.00  SetupCartMirroring
+  0.00     21.16     0.00        1     0.00     0.00  SetupCartPRGMapping
+  0.00     21.16     0.00        1     0.00     0.00  WritePalette
+  0.00     21.16     0.00        1     0.00     0.00  X6502_Init
+  0.00     21.16     0.00        1     0.00     0.00  X6502_Power
+  0.00     21.16     0.00        1     0.00     0.00  X6502_Reset
+  0.00     21.16     0.00        1     0.00     0.01  iNESGI
+  0.00     21.16     0.00        1     0.00     0.02  iNESLoad
+  0.00     21.16     0.00        1     0.00    14.17  main
+  0.00     21.16     0.00        1     0.00     0.00  makeppulut
+  0.00     21.16     0.00        1     0.00     0.01  md5_finish
+  0.00     21.16     0.00        1     0.00     0.00  md5_starts
+  0.00     21.16     0.00        1     0.00     0.00  setupPS2Pad
+  0.00     21.16     0.00        1     0.00     0.00  unzOpen
+
+ %         the percentage of the total running time of the
+time       program used by this function.
+
+cumulative a running sum of the number of seconds accounted
+ seconds   for by this function and those listed above it.
+
+ self      the number of seconds accounted for by this
+seconds    function alone.  This is the major sort for this
+           listing.
+
+calls      the number of times this function was invoked, if
+           this function is profiled, else blank.
+ 
+ self      the average number of milliseconds spent in this
+ms/call    function per call, if this function is profiled,
+	   else blank.
+
+ total     the average number of milliseconds spent in this
+ms/call    function and its descendents per call, if this 
+	   function is profiled, else blank.
+
+name       the name of the function.  This is the minor sort
+           for this listing. The index shows the location of
+	   the function in the gprof listing. If the index is
+	   in parenthesis it shows where it would appear in
+	   the gprof listing if it were to be printed.

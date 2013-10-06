@@ -38,6 +38,10 @@
 
 #include "md5.h"
 
+#include "drivers/ps2/ps2fceu.h"
+
+extern vars Settings;
+
 static char BaseDirectory[2048];
 static char FileBase[2048];
 static char FileExt[2048];  /* Includes the . character, as in ".nes" */
@@ -100,7 +104,7 @@ char *FCEU_MakeFName(int type, int id1, char *cd1)
            asprintf(&ret,"%s"PSS"fcs"PSS"%s.%s.%d.fcm",BaseDirectory,FileBase,md5_asciistr(FCEUGameInfo->MD5),id1);
          }
          break;
-  case FCEUMKF_STATE:if(odirs[FCEUIOD_STATE])
+  case FCEUMKF_STATE:/*if(odirs[FCEUIOD_STATE])
           asprintf(&ret,"%s"PSS"%s.fc%d",odirs[FCEUIOD_STATE],FileBase,id1);
          else
           asprintf(&ret,"%s"PSS"fcs"PSS"%s.fc%d",BaseDirectory,FileBase,id1);
@@ -114,7 +118,8 @@ char *FCEU_MakeFName(int type, int id1, char *cd1)
            asprintf(&ret,"%s"PSS"%s.fc%d",odirs[FCEUIOD_STATE],FileBase,id1);
           else
            asprintf(&ret,"%s"PSS"fcs"PSS"%s.fc%d",BaseDirectory,FileBase,id1);
-         }
+         }*/
+         asprintf(&ret,"%s""%s.fc%d",Settings.savepath,FileBase,id1);
          break;
   case FCEUMKF_SNAP:
         if(FSettings.SnapName)
@@ -132,12 +137,13 @@ char *FCEU_MakeFName(int type, int id1, char *cd1)
           asprintf(&ret,"%s"PSS"snaps"PSS"%d.%s",BaseDirectory,id1,cd1);
         }
         break;
-  case FCEUMKF_FDS:if(odirs[FCEUIOD_NV])
-        asprintf(&ret,"%s"PSS"%s.%s.fds",odirs[FCEUIOD_NV],FileBase,md5_asciistr(FCEUGameInfo->MD5));
-       else
-         asprintf(&ret,"%s"PSS"sav"PSS"%s.%s.fds",BaseDirectory,FileBase,md5_asciistr(FCEUGameInfo->MD5));
+  case FCEUMKF_FDS://if(odirs[FCEUIOD_NV])
+        //asprintf(&ret,"%s"PSS"%s.%s.fds",odirs[FCEUIOD_NV],FileBase,md5_asciistr(FCEUGameInfo->MD5));
+       //else
+         //asprintf(&ret,"%s"PSS"sav"PSS"%s.%s.fds",BaseDirectory,FileBase,md5_asciistr(FCEUGameInfo->MD5));
+         asprintf(&ret,"%s"PSS"%s.%s.fds",Settings.savepath,FileBase,md5_asciistr(FCEUGameInfo->MD5));
        break;
-  case FCEUMKF_SAV:if(odirs[FCEUIOD_NV])
+  case FCEUMKF_SAV:/*if(odirs[FCEUIOD_NV])
         asprintf(&ret,"%s"PSS"%s.%s",odirs[FCEUIOD_NV],FileBase,cd1);
        else
         asprintf(&ret,"%s"PSS"sav"PSS"%s.%s",BaseDirectory,FileBase,cd1);
@@ -147,7 +153,9 @@ char *FCEU_MakeFName(int type, int id1, char *cd1)
          asprintf(&ret,"%s"PSS"%s.%s.%s",odirs[FCEUIOD_NV],FileBase,md5_asciistr(FCEUGameInfo->MD5),cd1);
         else
          asprintf(&ret,"%s"PSS"sav"PSS"%s.%s.%s",BaseDirectory,FileBase,md5_asciistr(FCEUGameInfo->MD5),cd1);
-       }
+       }*/
+       //asprintf(&ret,"%s"PSS"sav","mc0:FCEUMM");
+       asprintf(&ret,"%s""%s.%s",Settings.savepath,FileBase,cd1);
        break;
   case FCEUMKF_CHEAT:
          if(odirs[FCEUIOD_CHEATS])
@@ -155,17 +163,18 @@ char *FCEU_MakeFName(int type, int id1, char *cd1)
          else
           asprintf(&ret,"%s"PSS"cheats"PSS"%s.cht",BaseDirectory,FileBase);
          break;
-  case FCEUMKF_IPS:  asprintf(&ret,"%s"PSS"%s%s.ips",FileBaseDirectory,FileBase,FileExt);
+  case FCEUMKF_IPS:  asprintf(&ret,"%s""%s%s.ips",FileBaseDirectory,FileBase,FileExt);
          break;
-  case FCEUMKF_GGROM:asprintf(&ret,"%s"PSS"gg.rom",BaseDirectory);break;
-  case FCEUMKF_FDSROM:asprintf(&ret,"%s"PSS"disksys.rom",BaseDirectory);break;
+  //case FCEUMKF_GGROM:asprintf(&ret,"%s"PSS"gg.rom",BaseDirectory);break;
+  case FCEUMKF_GGROM:asprintf(&ret,"%s""gg.rom",Settings.savepath);break;
+  case FCEUMKF_FDSROM:asprintf(&ret,"%s""disksys.rom",Settings.savepath);break;
   case FCEUMKF_PALETTE:
            if(odirs[FCEUIOD_MISC])
       asprintf(&ret,"%s"PSS"%s.pal",odirs[FCEUIOD_MISC],FileBase);
            else
       asprintf(&ret,"%s"PSS"gameinfo"PSS"%s.pal",BaseDirectory,FileBase);
            break;
- }
+  }
  return(ret);
 }
 

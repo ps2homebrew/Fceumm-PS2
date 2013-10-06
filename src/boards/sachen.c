@@ -20,7 +20,7 @@
 
 #include "mapinc.h"
 
-static uint8 cmd, dip;
+static uint8 cmd;
 static uint8 latch[8];
 
 static void S74LS374MSync(uint8 mirr)
@@ -65,7 +65,7 @@ static DECLFR(S74LS374NRead)
   uint8 ret;
   if((A&0x4100)==0x4100)
 //    ret=(X.DB&0xC0)|((~cmd)&0x3F);
-    ret=((~cmd)&0x3F)^dip;
+    ret=~cmd&0x3F;
   else
     ret=X.DB;
   return ret;
@@ -73,19 +73,11 @@ static DECLFR(S74LS374NRead)
 
 static void S74LS374NPower(void)
 {
-   dip=0;
    latch[0]=latch[1]=latch[2]=latch[3]=latch[4]=0;
    S74LS374NSynco();
    SetReadHandler(0x8000,0xFFFF,CartBR);
    SetWriteHandler(0x4100,0x7FFF,S74LS374NWrite);
    SetReadHandler(0x4100,0x5fff,S74LS374NRead);
-}
-
-static void S74LS374NReset(void)
-{
-   dip^=1;
-   latch[0]=latch[1]=latch[2]=latch[3]=latch[4]=0;
-   S74LS374NSynco();
 }
 
 static void S74LS374NRestore(int version)
@@ -96,11 +88,9 @@ static void S74LS374NRestore(int version)
 void S74LS374N_Init(CartInfo *info)
 {
   info->Power=S74LS374NPower;
-  info->Reset=S74LS374NReset;
   GameStateRestore=S74LS374NRestore;
   AddExState(latch, 5, 0, "LATC");
   AddExState(&cmd, 1, 0, "CMD");
-  AddExState(&dip, 1, 0, "DIP");
 }
 
 static void S74LS374NASynco(void)
@@ -302,12 +292,6 @@ static void SA72007Synco()
   setchr8(latch[0]>>7);
 }
 
-static void SA009Synco()
-{
-  setprg32(0x8000,0);
-  setchr8(latch[0]&1);
-}
-
 static void SA72008Synco()
 {
   setprg32(0x8000,(latch[0]>>2)&1);
@@ -338,14 +322,6 @@ void SA72008_Init(CartInfo *info)
   AddExState(&latch[0], 1, 0, "LATC");
 }
 
-void SA009_Init(CartInfo *info)
-{
-  WSync=SA009Synco;
-  GameStateRestore=SARestore;
-  info->Power=SAPower;
-  AddExState(&latch[0], 1, 0, "LATC");
-}
-
 void SA0036_Init(CartInfo *info)
 {
   WSync=SA72007Synco;
@@ -362,15 +338,13 @@ void SA0037_Init(CartInfo *info)
   AddExState(&latch[0], 1, 0, "LATC");
 }
 
-// -----------------------------------------------
-
 static void TCU01Synco()
 {
-  setprg32(0x8000,((latch[0]&0x80)>>6)|((latch[0]>>2)&1));
+  setprg32(0x8000,(latch[0]>>2)&1);
   setchr8((latch[0]>>3)&0xF);
 }
 
-static DECLFW(TCU01Write)
+static DECLFW(TCWrite)
 {
   if((A&0x103)==0x102)
   {
@@ -379,11 +353,11 @@ static DECLFW(TCU01Write)
   }
 }
 
-static void TCU01Power(void)
+static void TCU01Reset(void)
 {
   latch[0]=0;
   SetReadHandler(0x8000,0xFFFF,CartBR);
-  SetWriteHandler(0x4100,0xFFFF,TCU01Write);
+  SetWriteHandler(0x4100,0xFFFF,TCWrite);
   TCU01Synco();
 }
 
@@ -395,54 +369,9 @@ static void TCU01Restore(int version)
 void TCU01_Init(CartInfo *info)
 {
   GameStateRestore=TCU01Restore;
-  info->Power=TCU01Power;
+  info->Power=TCU01Reset;
   AddExState(&latch[0], 1, 0, "LATC");
 }
-
-//-----------------------------------------------
-
-static void TCU02Synco()
-{
-  setprg32(0x8000,0);
-  setchr8(latch[0]&3);
-}
-
-static DECLFW(TCU02Write)
-{
-  if((A&0x103)==0x102)
-  {
-    latch[0]=V+3;
-    TCU02Synco();
-  }
-}
-
-static DECLFR(TCU02Read)
-{
-  return (latch[0]&0x3F)|(X.DB&0xC0);
-}
-
-static void TCU02Power(void)
-{
-  latch[0]=0;
-  SetReadHandler(0x8000,0xFFFF,CartBR);
-  SetReadHandler(0x4100,0x4100,TCU02Read);
-  SetWriteHandler(0x4100,0xFFFF,TCU02Write);
-  TCU02Synco();
-}
-
-static void TCU02Restore(int version)
-{
-  TCU02Synco();
-}
-
-void TCU02_Init(CartInfo *info)
-{
-  GameStateRestore=TCU02Restore;
-  info->Power=TCU02Power;
-  AddExState(&latch[0], 1, 0, "LATC");
-}
-
-// ---------------------------------------------
 
 static DECLFR(TCA01Read)
 {
@@ -454,7 +383,7 @@ static DECLFR(TCA01Read)
   return ret;
 }
 
-static void TCA01Power(void)
+static void TCA01Reset(void)
 {
   setprg16(0x8000,0);
   setprg16(0xC000,1);
@@ -465,6 +394,6 @@ static void TCA01Power(void)
 
 void TCA01_Init(CartInfo *info)
 {
-  info->Power=TCA01Power;
+  info->Power=TCA01Reset;
 }
 

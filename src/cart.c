@@ -455,7 +455,7 @@ void OpenGenie(void)
    GENIEROM=0;
    return;
   }
-  if(fread(GENIEROM,1,16,fp)!=16)
+  if((fread(GENIEROM,1,16,fp))!=16)
   {
    grerr:
    FCEU_PrintError("Error reading from Game Genie ROM image!");
@@ -466,17 +466,21 @@ void OpenGenie(void)
   }
   if(GENIEROM[0]==0x4E)  /* iNES ROM image */
   {
-   if(fread(GENIEROM,1,4096,fp)!=4096)
+   if(fread(GENIEROM,1,4096,fp)!=4096) {
     goto grerr;
-   if(fseek(fp,16384-4096,SEEK_CUR))
+   }
+   if(fseek(fp,16384-4096,SEEK_CUR)) {
     goto grerr;
-   if(fread(GENIEROM+4096,1,256,fp)!=256)
+   }
+   if(fread(GENIEROM+4096,1,256,fp)!=256) {
     goto grerr;
+   }
   }
   else
   {
-   if(fread(GENIEROM+16,1,4352-16,fp)!=(4352-16))
+   if(fread(GENIEROM+16,1,4352-16,fp)!=(4352-16)) {
     goto grerr;
+   }
   }
   fclose(fp);
 
@@ -656,9 +660,7 @@ void FCEU_SaveGameSave(CartInfo *LocalHWInfo)
     }
   }
   if(sp != NULL)
-  {
     fclose(sp);
-  }
   free(soot);
  }
 }
@@ -672,7 +674,7 @@ void FCEU_LoadGameSave(CartInfo *LocalHWInfo)
 
   soot=FCEU_MakeFName(FCEUMKF_SAV,0,"sav");
   sp=FCEUD_UTF8fopen(soot,"rb");
-  if(sp!=NULL)
+  if(sp != NULL)
   {
    int x;
    for(x=0;x<4;x++)
@@ -684,9 +686,7 @@ void FCEU_LoadGameSave(CartInfo *LocalHWInfo)
 //   FCEU_PrintError("WRAM file \"%s\" cannot be opened.\n",soot);
 //  }
   if(sp != NULL)
-  {
     fclose(sp);
-  }
   free(soot);
  }
 }

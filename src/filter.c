@@ -46,18 +46,17 @@ void SexyFilter(int32 *in, int32 *out, int32 count)
  static int64 acc1=0,acc2=0;
  int32 mul1,mul2,vmul;
 
-#ifndef TARGET_PS2
- mul1=(94<<16)/FSettings.SndRate;
- mul2=(24<<16)/FSettings.SndRate;
- vmul=(FSettings.SoundVolume<<16)*3/4/100;
+ //mul1=(94<<16)/FSettings.SndRate;
+ mul1=140;
+ //mul2=(24<<16)/FSettings.SndRate;
+ mul2=36;
+ //vmul=(FSettings.SoundVolume<<16)*3/4/100;
+ //vmul=503316;
 
- if(FSettings.soundq) vmul/=4;
- else vmul*=2;      /* TODO:  Increase volume in low quality sound rendering code itself */
-#else
- mul1=139.691247166;
- mul2=35.66585034;
- vmul=1006633;
-#endif
+
+// if(FSettings.soundq) vmul/=4;
+ /*else*/ //vmul*=2;      /* TODO:  Increase volume in low quality sound rendering code itself */
+  vmul=1006633;
 
  while(count)
  {
@@ -70,7 +69,7 @@ void SexyFilter(int32 *in, int32 *out, int32 count)
    int32 t=(acc1-ino+acc2)>>16;
    //if(t>32767 || t<-32768) printf("Flow: %d\n",t);
    if(t>32767) t=32767;
-   if(t<-32767) t=-32767;
+   if(t<-32768) t=-32768;
    *out=t;
   }
   in++;

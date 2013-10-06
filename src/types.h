@@ -21,7 +21,7 @@
 
 #ifndef __FCEU_TYPES
 #define __FCEU_TYPES
-
+/*
 #include <inttypes.h>
 typedef int8_t int8;
 typedef int16_t int16;
@@ -30,6 +30,19 @@ typedef int32_t int32;
 typedef uint8_t uint8;
 typedef uint16_t uint16;
 typedef uint32_t uint32;
+*/
+
+#include <tamtypes.h>
+typedef s8 int8;
+typedef s16 int16;
+typedef s32 int32;
+
+typedef u8 uint8;
+typedef u16 uint16;
+typedef u32 uint32;
+ 
+typedef u64 uint64;
+typedef s64 int64;
 
 //typedef unsigned char uint8;
 //typedef unsigned short uint16;
@@ -37,8 +50,8 @@ typedef uint32_t uint32;
 
 
 #ifdef __GNUC__
- typedef unsigned long long uint64;
- typedef long long int64;
+ //typedef unsigned long long uint64;
+ //typedef long long int64;
  #define INLINE inline
  #define GINLINE inline
 #elif MSVC

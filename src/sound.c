@@ -89,34 +89,25 @@ static int32 sqacc[2];
 static int32 lengthcount[4];
 static const uint8 lengthtable[0x20]=
 {
- 0x0A, 0xFE, 0x14, 0x02, 0x28, 0x04, 0x50, 0x06,
- 0xa0, 0x08, 0x3c, 0x0a, 0x0e, 0x0c, 0x1a, 0x0e,
- 0x0c, 0x10, 0x18, 0x12, 0x30, 0x14, 0x60, 0x16,
- 0xc0, 0x18, 0x48, 0x1a, 0x10, 0x1c, 0x20, 0x1E
+ 0x5*2,0x7f*2,0xA*2,0x1*2,0x14*2,0x2*2,0x28*2,0x3*2,0x50*2,0x4*2,0x1E*2,0x5*2,0x7*2,0x6*2,0x0E*2,0x7*2,
+ 0x6*2,0x08*2,0xC*2,0x9*2,0x18*2,0xa*2,0x30*2,0xb*2,0x60*2,0xc*2,0x24*2,0xd*2,0x8*2,0xe*2,0x10*2,0xf*2
 };
 
-static const uint32 NTSCNoiseFreqTable[0x10]=
+static const uint32 NoiseFreqTable[0x10]=
 {
- 0x004, 0x008, 0x010, 0x020, 0x040, 0x060, 0x080, 0x0A0,
- 0x0CA, 0x0FE, 0x17C, 0x1FC, 0x2FA, 0x3F8, 0x7F2, 0xFE4 
-};
-
-static const uint32 PALNoiseFreqTable[0x10]=
-{
- 0x004, 0x007, 0x00E, 0x01E, 0x03C, 0x058, 0x076, 0x094,
- 0x0BC, 0x0EC, 0x162, 0x1D8, 0x2C4, 0x3B0, 0x762, 0xEC2 
+ 2,4,8,0x10,0x20,0x30,0x40,0x50,0x65,0x7f,0xbe,0xfe,0x17d,0x1fc,0x3f9,0x7f2
 };
 
 static const uint32 NTSCDMCTable[0x10]=
 {
- 0x1AC, 0x17C, 0x154, 0x140, 0x11E, 0x0FE, 0x0E2, 0x0D6,
- 0x0BE, 0x0A0, 0x08E, 0x080, 0x06A, 0x054, 0x048, 0x036
+ 428,380,340,320,286,254,226,214,
+ 190,160,142,128,106, 84 ,72,54
 };
 
 static const uint32 PALDMCTable[0x10]=
 {
- 0x18E, 0x162, 0x13C, 0x12A, 0x114, 0x0EC, 0x0D2, 0x0C6,
- 0x0B0, 0x094, 0x084, 0x076, 0x062, 0x04E, 0x042, 0x032
+ 397, 353, 315, 297, 265, 235, 209, 198,
+ 176, 148, 131, 118, 98, 78, 66, 50,
 };
 
 // $4010  -  Frequency
@@ -827,10 +818,7 @@ static void RDoTriangleNoisePCMLQ(void)
     if(noiseacc<=0)
     {
      rea2:
-     if(PAL)
-      noiseacc+=PALNoiseFreqTable[PSG[0xE]&0xF]<<(16+2);
-     else 
-      noiseacc+=NTSCNoiseFreqTable[PSG[0xE]&0xF]<<(16+2);
+     noiseacc+=NoiseFreqTable[PSG[0xE]&0xF]<<(16+2);
      nreg=(nreg<<1)+(((nreg>>nshift)^(nreg>>14))&1);
      nreg&=0x7fff;
      noiseout=amptab[(nreg>>0xe)];
@@ -869,10 +857,7 @@ static void RDoTriangleNoisePCMLQ(void)
      if(noiseacc<=0)
      {
       area2:
-      if(PAL)
-       noiseacc+=PALNoiseFreqTable[PSG[0xE]&0xF]<<(16+2);
-      else 
-       noiseacc+=NTSCNoiseFreqTable[PSG[0xE]&0xF]<<(16+2);
+      noiseacc+=NoiseFreqTable[PSG[0xE]&0xF]<<(16+2);
       nreg=(nreg<<1)+(((nreg>>nshift)^(nreg>>14))&1);
       nreg&=0x7fff;
       noiseout=amptab[(nreg>>0xe)];
@@ -920,10 +905,7 @@ static void RDoNoise(void)
    if(!wlcount[3])
    {
     uint8 feedback;
-    if(PAL)
-     wlcount[3]=PALNoiseFreqTable[PSG[0xE]&0xF]<<1;
-    else 
-     wlcount[3]=NTSCNoiseFreqTable[PSG[0xE]&0xF]<<1;
+    wlcount[3]=NoiseFreqTable[PSG[0xE]&0xF]<<1;
     feedback=((nreg>>8)&1)^((nreg>>14)&1);
     nreg=(nreg<<1)+feedback;
     nreg&=0x7fff;
@@ -938,10 +920,7 @@ static void RDoNoise(void)
    if(!wlcount[3])
    {
     uint8 feedback;
-    if(PAL)
-     wlcount[3]=PALNoiseFreqTable[PSG[0xE]&0xF]<<1;
-    else 
-     wlcount[3]=NTSCNoiseFreqTable[PSG[0xE]&0xF]<<1;
+    wlcount[3]=NoiseFreqTable[PSG[0xE]&0xF]<<1;
     feedback=((nreg>>13)&1)^((nreg>>14)&1);
     nreg=(nreg<<1)+feedback;
     nreg&=0x7fff;
@@ -955,15 +934,12 @@ DECLFW(Write_IRQFM)
 {
  V=(V&0xC0)>>6;
  fcnt=0;
- if(V&2)
+ if(V&0x2)
   FrameSoundUpdate();
+ fcnt=1;
  fhcnt=fhinc;
- if(V&1)
- {
-  fcnt=1;
-  X6502_IRQEnd(FCEU_IQFCOUNT);
-  SIRQStat&=~0x40;
- }
+ X6502_IRQEnd(FCEU_IQFCOUNT);
+ SIRQStat&=~0x40;
  IRQFrameMode=V;
 }
 
@@ -984,21 +960,21 @@ int FlushEmulateSound(void)
   int32 end,left;
 
   if(!timestamp) return(0);
-
+#ifdef SOUND_OFF
   if(!FSettings.SndRate)
   {
    left=0;
    end=0;
    goto nosoundo;
   }
-
+#endif
   DoSQ1();
-  DoSQ2();
-  DoTriangle();
-  DoNoise();
+  //DoSQ2(); //redundant for low quality setting, I believe
+  //DoTriangle();
+  //DoNoise();
   DoPCM();
 
-  if(FSettings.soundq>=1)
+  /*if(FSettings.soundq>=1)
   {
    int32 *tmpo=&WaveHi[soundtsoffs];
 
@@ -1020,38 +996,37 @@ int FlushEmulateSound(void)
     ChannelBC[x]=left;
   }
   else
-  {
+  {*/
    end=(SOUNDTS<<16)/soundtsinc;
    if(GameExpSound.Fill)
     GameExpSound.Fill(end&0xF);
 
    SexyFilter(Wave,WaveFinal,end>>4);
 
-   if(FSettings.lowpass)
-    SexyFilter2(WaveFinal,end>>4);
+   //if(FSettings.lowpass)
+   // SexyFilter2(WaveFinal,end>>4);
    if(end&0xF)
     Wave[0]=Wave[(end>>4)];
    Wave[end>>4]=0;
-  }
+  //}
+#ifdef SOUND_OFF
   nosoundo:
-
-  if(FSettings.soundq>=1)
-  {
-   soundtsoffs=left;
-  }
-  else
-  {
+#endif
+  //if(FSettings.soundq>=1) //??
+  //{
+   //soundtsoffs=left;
+  //}
+  //else
+  //{
    for(x=0;x<5;x++)
     ChannelBC[x]=end&0xF;
    soundtsoffs = (soundtsinc*(end&0xF))>>16;
    end>>=4;
-  }
+  //}
   inbuf=end;
 
-#ifndef TARGET_PS2
-  FCEU_WriteWaveData(WaveFinal, end); /* This function will just return
+  /*FCEU_WriteWaveData(WaveFinal, end); * This function will just return
             if sound recording is off. */
-#endif 
   return(end);
 }
 

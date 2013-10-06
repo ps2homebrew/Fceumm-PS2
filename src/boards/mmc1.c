@@ -24,8 +24,8 @@
 static void GenMMC1Power(void);
 static void GenMMC1Init(CartInfo *info, int prg, int chr, int wram, int battery);
 
-static uint8 BufferShift,DRegs[4];
-static uint8 Buffer;
+static uint8 DRegs[4];
+static uint8 Buffer,BufferShift;
 
 static int mmc1opts;
 
@@ -34,7 +34,7 @@ static void (*MMC1PRGHook16)(uint32 A, uint8 V);
 
 static uint8 *WRAM=NULL;
 static uint8 *CHRRAM=NULL;
-static int is155, is171;
+static int is155;
 
 static DECLFW(MBWRAM)
 {
@@ -58,7 +58,6 @@ static void MMC1CHR(void)
     else
       setprg8r(0x10,0x6000,(DRegs[1]>>3)&1);
   }
-
   if(MMC1CHRHook4)
   {
     if(DRegs[0]&0x10)
@@ -104,35 +103,31 @@ static void MMC1PRG(void)
                 break;
     }
   }
-  else
+  else switch(DRegs[0]&0xC)
   {
-    switch(DRegs[0]&0xC)
-    {
-      case 0xC: setprg16(0x8000,(DRegs[3]+offs));
-                setprg16(0xC000,0xF+offs);
-                break;
-      case 0x8: setprg16(0xC000,(DRegs[3]+offs));
-                setprg16(0x8000,offs);
-                break;
-      case 0x0:
-      case 0x4:
-                setprg16(0x8000,((DRegs[3]&~1)+offs));
-                setprg16(0xc000,((DRegs[3]&~1)+offs+1));
-                break;
-    }
+    case 0xC: setprg16(0x8000,(DRegs[3]+offs));
+              setprg16(0xC000,0xF+offs);
+              break;
+    case 0x8: setprg16(0xC000,(DRegs[3]+offs));
+              setprg16(0x8000,offs);
+              break;
+    case 0x0:
+    case 0x4:
+              setprg16(0x8000,((DRegs[3]&~1)+offs));
+              setprg16(0xc000,((DRegs[3]&~1)+offs+1));
+              break;
   }
 }
 
 static void MMC1MIRROR(void)
 {
-  if(!is171) 
-    switch(DRegs[0]&3)
-    {
-      case 2: setmirror(MI_V); break;
-      case 3: setmirror(MI_H); break;
-      case 0: setmirror(MI_0); break;
-      case 1: setmirror(MI_1); break;
-    }
+  switch(DRegs[0]&3)
+  {
+    case 2: setmirror(MI_V); break;
+    case 3: setmirror(MI_H); break;
+    case 0: setmirror(MI_0); break;
+    case 1: setmirror(MI_1); break;
+  }
 }
 
 static uint64 lreset;
@@ -140,18 +135,15 @@ static DECLFW(MMC1_write)
 {
   int n=(A>>13)-4;
   //FCEU_DispMessage("%016x",timestampbase+timestamp);
-//  FCEU_printf("$%04x:$%02x, $%04x\n",A,V,X.PC);
+  //printf("$%04x:$%02x, $%04x\n",A,V,X.PC);
   //DumpMem("out",0xe000,0xffff);
 
   /* The MMC1 is busy so ignore the write. */
   /* As of version FCE Ultra 0.81, the timestamp is only
      increased before each instruction is executed(in other words
      precision isn't that great), but this should still work to
-	   deal with 2 writes in a row from a single RMW instruction.
-	*/
-  if((timestampbase+timestamp)<(lreset+1))
-    return;
-//  FCEU_printf("Write %04x:%02x\n",A,V);
+     deal with 2 writes in a row from a single RMW instruction. */
+  if((timestampbase+timestamp)<(lreset+2)) return;
   if(V&0x80)
   {
     DRegs[0]|=0xC;
@@ -160,12 +152,9 @@ static DECLFW(MMC1_write)
     lreset=timestampbase+timestamp;
     return;
   }
-
   Buffer|=(V&1)<<(BufferShift++);
-
   if(BufferShift==5)
   {
-//    FCEU_printf("REG[%d]=%02x\n",n,Buffer);
     DRegs[n] = Buffer;
     BufferShift = Buffer = 0;
     switch(n)
@@ -189,12 +178,10 @@ static void MMC1_Restore(int version)
 static void MMC1CMReset(void)
 {
   int i;
-
   for(i=0;i<4;i++)
      DRegs[i]=0;
   Buffer = BufferShift = 0;
   DRegs[0]=0x1F;
-
   DRegs[1]=0;
   DRegs[2]=0;                  // Should this be something other than 0?
   DRegs[3]=0;
@@ -226,7 +213,7 @@ static uint32 NWCIRQCount;
 static uint8 NWCRec;
 #define NWCDIP 0xE
 
-static void NWCIRQHook(int a)
+static void FP_FASTAPASS(1) NWCIRQHook(int a)
 {
   if(!(NWCRec&0x10))
   {
@@ -246,7 +233,6 @@ static void NWCCHRHook(uint32 A, uint8 V)
     NWCIRQCount=0;
     X6502_IRQEnd(FCEU_IQEXT);
   }
-
   NWCRec=V;
   if(V&0x08)
     MMC1PRG();
@@ -335,12 +321,12 @@ static void GenMMC1Init(CartInfo *info, int prg, int chr, int wram, int battery)
       info->SaveGameLen[0]=8192;
     }
   }
-//  if(!chr)
-//  {
-//    CHRRAM=(uint8*)FCEU_gmalloc(8192);
-//    SetupCartCHRMapping(0, CHRRAM, 8192, 1);
-//    AddExState(CHRRAM, 8192, 0, "CHRR");
-//  }
+  if(!chr)
+  {
+    CHRRAM=(uint8*)FCEU_gmalloc(8192);
+    SetupCartCHRMapping(0, CHRRAM, 8192, 1);
+    AddExState(CHRRAM, 8192, 0, "CHRR");
+  }
   AddExState(DRegs, 4, 0, "DREG");
 
   info->Power=GenMMC1Power;
@@ -359,14 +345,6 @@ void Mapper155_Init(CartInfo *info)
 {
   GenMMC1Init(info,512,256,8,info->battery);
   is155=1;
-}
-
-/* Same as mapper 1, with different (or without) mirroring control. */
-/* Kaiser KS7058 board, KS203 custom chip */
-void Mapper171_Init(CartInfo *info)
-{
-  GenMMC1Init(info,32,32,0,0);
-  is171=1;
 }
 
 void SAROM_Init(CartInfo *info)

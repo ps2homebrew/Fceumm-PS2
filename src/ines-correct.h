@@ -32,9 +32,7 @@
     {0x7678f1d5,207,8},  /* Fudou Myouou Den */
     {0x276237b3,206,0},  /* Karnov */
     {0x4e1c1e3c,206,0},  /* Karnov */
-    {0xb616885c,195,0}, /* CHaos WOrld (Ch)*/
-    {0x7f3dbf1b,195,0},
-    
+
     /* Some entries to sort out the minor 33/48 mess. */
     {0xaebd6549,48,8},     /* Bakushou!! Jinsei Gekijou 3 */
     {0x6cdc0cd9,48,8},  /* Bubble Bobble 2 */
@@ -165,7 +163,6 @@
 {0xd26efd78,66,1},  /* SMB Duck Hunt */
 {0x811f06d9,66,1},  /* Dragon Power */
 {0x3293afea,140,1},  /* Mississippi Satsujin Jiken */
-{0xe46b1c5d,140,1},  /* Mississippi Satsujin Jiken */
 {0xe84274c5,66,1},  /* "" "" */
 {0x9552e8df,66,1},  /* Dragon Ball */
 
@@ -226,16 +223,5 @@
    {0x48239b42,146,-1}, /* Mahjong Companion (Sachen) [!] */
    {0xb6a727fa,146,-1}, /* Papillion (As) [!] */
    {0xa62b79e1,146,-1}, /* Side Winder (HES) [!] */
-   {0x73fb55ac,150,-1}, /* 2-in-1 Cosmo Cop + Cyber Monster (Sachen) [!] */
-   {0xddcbda16,150,-1}, /* 2-in-1 Tough Cop + Super Tough Cop (Sachen) [!] */
-   {0x29582ca1,150,-1},
-   {0x40dbf7a2,150,-1},
-   {0x5aefbc94,133,-1}, /* Jovial Race (Sachen) [a1][!] */
-   {0x58152b42,160,-1}, /* Pipe 5 (Sachen) */
-   
-   {0x22d6d5bd,4,1},
-   {0x6a03d3f3,114,-1},
-   
-   {0x02c41438,179,-1}, /* Xing He Zhan Shi (C) */
    
    {0,-1,-1}

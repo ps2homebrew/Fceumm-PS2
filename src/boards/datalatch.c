@@ -166,17 +166,17 @@ static void MHROMSync(void)
 }
 
 void MHROM_Init(CartInfo *info)
-{
+{ 
   Latch_Init(info, MHROMSync, 0, 0x8000, 0xFFFF);
 }
 
 void Mapper140_Init(CartInfo *info)
-{
+{ 
   Latch_Init(info, MHROMSync, 0, 0x6000, 0x7FFF);
 }
 
 void Mapper240_Init(CartInfo *info)
-{
+{ 
   Latch_Init(info, MHROMSync, 0, 0x4020, 0x5FFF);
   // need SRAM.
 }
@@ -191,7 +191,7 @@ static void M87Sync(void)
 }
 
 void Mapper87_Init(CartInfo *info)
-{
+{ 
   Latch_Init(info, M87Sync, ~0, 0x6000, 0xFFFF);
 }
 
@@ -204,40 +204,15 @@ static void M11Sync(void)
 }
 
 void Mapper11_Init(CartInfo *info)
-{
+{ 
   Latch_Init(info, M11Sync, 0, 0x8000, 0xFFFF);
 }
 
 void Mapper144_Init(CartInfo *info)
-{
+{ 
   Latch_Init(info, M11Sync, 0, 0x8001, 0xFFFF);
 }
 
-//------------------ Map 38 ---------------------------
-
-static void M38Sync(void)
-{
-  setprg32(0x8000,latche&3);
-  setchr8(latche>>2);
-}
-
-void Mapper38_Init(CartInfo *info)
-{
-  Latch_Init(info, M38Sync, 0, 0x7000, 0x7FFF);
-}
-
-//------------------ Map 36 ---------------------------
-
-static void M36Sync(void)
-{
-  setprg32(0x8000,latche>>4);
-  setchr8((latche)&0xF);
-}
-
-void Mapper36_Init(CartInfo *info)
-{
-  Latch_Init(info, M36Sync, 0, 0x8400, 0xfffe);
-}
 //------------------ UNROM ---------------------------
 
 static void UNROMSync(void)
@@ -325,7 +300,7 @@ void Mapper113_Init(CartInfo *info)
 
 // actually, there is two cart in one... First have extra mirroring
 // mode (one screen) and 32K bankswitching, second one have only
-// 16 bankswitching mode and normal mirroring... But there is no any
+// 16 bankswitching mode and normal mirroring... But there is no any 
 // correlations between modes and they can be used in one mapper code.
 
 static void BMCA65ASSync(void)

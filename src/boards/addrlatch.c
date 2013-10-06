@@ -27,14 +27,8 @@ static readfunc defread;
 
 static DECLFW(LatchWrite)
 {
-  FCEU_printf("%04x:%02x\n",A,V);
+//  FCEU_printf("%04x:%02x\n",A,V);
   latche=A;
-  WSync();
-}
-
-static void LatchReset(void)
-{
-  latche=latcheinit;
   WSync();
 }
 
@@ -62,7 +56,6 @@ static void Latch_Init(CartInfo *info, void (*proc)(void), readfunc func, uint16
   else
     defread=CartBR;
   info->Power=LatchPower;
-  info->Reset=LatchReset;
   GameStateRestore=StateRestore;
   AddExState(&latche, 2, 0, "LATC");
 }
@@ -74,6 +67,7 @@ static void UNLCC21Sync(void)
   setprg32(0x8000,0);
   setchr8(latche&1);
   setmirror(MI_0+((latche&2)>>1));
+  
 }
 
 void UNLCC21_Init(CartInfo *info)
@@ -153,20 +147,5 @@ static void M200Sync(void)
 void Mapper200_Init(CartInfo *info)
 { 
   Latch_Init(info, M200Sync, 0, 0xff, 0x8000, 0xFFFF);
-}
-
-//------------------ 190in1 ---------------------------
-
-static void BMC190in1Sync(void)
-{
-  setprg16(0x8000,(latche>>2)&0x07);
-  setprg16(0xC000,(latche>>2)&0x07);
-  setchr8((latche>>2)&0x07);
-  setmirror((latche&1)^1);
-}
-
-void BMC190in1_Init(CartInfo *info)
-{ 
-  Latch_Init(info, BMC190in1Sync, 0, 0, 0x8000, 0xFFFF);
 }
 

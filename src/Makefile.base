@@ -1,0 +1,2 @@
+OBJECTS = cart.o cheat.o crc32.o debug.o endian.o fceu.o fceustr.o fds.o file.o filter.o general.o ines.o input.o md5.o memory.o movie.o netplay.o nsf.o palette.o ppu.o sound.o state.o unif.o unzip.o video.o vsuni.o wave.o x6502.o
+#soundexp.o

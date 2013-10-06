@@ -20,7 +20,7 @@
  */
 
 #include "mapinc.h"
-#define DEBUG90
+//#define DEBUG90
 
 // Mapper 090 is simpliest mapper hardware and have not extended nametable control and latched chr banks in 4k mode
 // Mapper 209 much compicated hardware with decribed above features disabled by default and switchable by command
@@ -119,15 +119,12 @@ static void tekprom(void)
              setprg16(0xC000,0x1F|((tkcom[3]&6)<<4));
              break;
     case 03: // bit reversion
-    case 02: 
-             if(tkcom[0]&0x80)
+    case 02: if(tkcom[0]&0x80)
                setprg8(0x6000,(prgb[3]&0x3F)|bankmode);
              setprg8(0x8000,(prgb[0]&0x3F)|bankmode);
              setprg8(0xa000,(prgb[1]&0x3F)|bankmode);
              setprg8(0xc000,(prgb[2]&0x3F)|bankmode);
              setprg8(0xe000,0x3F|bankmode);
-//             setprg8(0xe000,(prgb[3]&0x0F)|((tkcom[3]&6)<<3));
-//             setprg32(0x8000,((prgb[0]&0x0F)>>2)|((tkcom[3]&6)<<3));
              break;
     case 04: if(tkcom[0]&0x80)
                setprg8(0x6000,(((prgb[3]<<2)+3)&0x3F)|bankmode);
@@ -187,50 +184,54 @@ static void tekvrom(void)
 
 static DECLFW(M90TekWrite)
 {
-  switch(A&0x5C03)
+//  FCEU_printf("bs %04x %02x\n",A,V);
+  switch(A&0x5805)
   {
     case 0x5800: mul[0]=V; break;
     case 0x5801: mul[1]=V; break;
     case 0x5803: regie=V; break;
+//    case 0x5803: regie2=V; break;
+//    default: regie=V; break;
   }
 }
 
 static DECLFR(M90TekRead)
 {
-  switch(A&0x5C03)
+  switch(A&0x5805)
   {
+    case 0x5000: return tekker;
     case 0x5800: return (mul[0]*mul[1]);
     case 0x5801: return((mul[0]*mul[1])>>8);
     case 0x5803: return (regie);
-    default: return tekker;
+//    case 0x5804: return (regie2);
   }
   return(0xff);
 }
 
 static DECLFW(M90PRGWrite)
 {
-  FCEU_printf("bs %04x %02x\n",A,V);
+//  FCEU_printf("bs %04x %02x\n",A,V);
   prgb[A&3]=V;
   tekprom();
 }
 
 static DECLFW(M90CHRlowWrite)
 {
-  FCEU_printf("bs %04x %02x\n",A,V);
+//  FCEU_printf("bs %04x %02x\n",A,V);
   chrlow[A&7]=V;
   tekvrom();
 }
 
 static DECLFW(M90CHRhiWrite)
 {
-  FCEU_printf("bs %04x %02x\n",A,V);
+//  FCEU_printf("bs %04x %02x\n",A,V);
   chrhigh[A&7]=V;
   tekvrom();
 }
 
 static DECLFW(M90NTWrite)
 {
-  FCEU_printf("bs %04x %02x\n",A,V);
+//  FCEU_printf("bs %04x %02x\n",A,V);
   if(A&4)
   {
     names[A&3]&=0x00FF;
@@ -246,39 +247,39 @@ static DECLFW(M90NTWrite)
 
 static DECLFW(M90IRQWrite)
 {
-  FCEU_printf("bs %04x %02x\n",A,V);
+//  FCEU_printf("bs %04x %02x\n",A,V);
   switch(A&7)
   {
-    case 00: FCEU_printf("%s IRQ (C000)\n",V&1?"Enable":"Disable");
+    case 00: //FCEU_printf("%s IRQ (C000)\n",V&1?"Enable":"Disable");
              IRQa=V&1;if(!(V&1)) X6502_IRQEnd(FCEU_IQEXT);break;
-    case 02: FCEU_printf("Disable IRQ (C002) scanline=%d\n", scanline);
+    case 02: //FCEU_printf("Disable IRQ (C002) scanline=%d\n", scanline);
              IRQa=0;X6502_IRQEnd(FCEU_IQEXT);break;
-    case 03: FCEU_printf("Enable IRQ (C003) scanline=%d\n", scanline);
+    case 03: //FCEU_printf("Enable IRQ (C003) scanline=%d\n", scanline);
              IRQa=1;break;
     case 01: IRQMode=V;
-               FCEU_printf("IRQ Count method: ");
-               switch (IRQMode&3)
-               {
-                 case 00: FCEU_printf("M2 cycles\n");break;
-                 case 01: FCEU_printf("PPU A12 toggles\n");break;
-                 case 02: FCEU_printf("PPU reads\n");break;
-                 case 03: FCEU_printf("Writes to CPU space\n");break;
-               }
-               FCEU_printf("Counter prescaler size: %s\n",(IRQMode&4)?"3 bits":"8 bits");
-               FCEU_printf("Counter prescaler size adjust: %s\n",(IRQMode&8)?"Used C007":"Normal Operation");
-               if((IRQMode>>6)==2) FCEU_printf("Counter Down\n");
-                else if((IRQMode>>6)==1) FCEU_printf("Counter Up\n");
-                else FCEU_printf("Counter Stopped\n");
+             //  FCEU_printf("IRQ Count method: ");
+             //  switch (IRQMode&3)
+             //  {
+             //    case 00: FCEU_printf("M2 cycles\n");break;
+             //    case 01: FCEU_printf("PPU A12 toggles\n");break;
+             //    case 02: FCEU_printf("PPU reads\n");break;
+             //    case 03: FCEU_printf("Writes to CPU space\n");break;
+             //  }
+             //  FCEU_printf("Counter prescaler size: %s\n",(IRQMode&4)?"3 bits":"8 bits");
+             //  FCEU_printf("Counter prescaler size adjust: %s\n",(IRQMode&8)?"Used C007":"Normal Operation");
+             //  if((IRQMode>>6)==2) FCEU_printf("Counter Down\n");
+             //   else if((IRQMode>>6)==1) FCEU_printf("Counter Up\n");
+             //   else FCEU_printf("Counter Stopped\n");
               break;
-    case 04: FCEU_printf("Pre Counter Loaded and Xored wiht C006: %d\n",V^IRQXOR);
+    case 04: //FCEU_printf("Pre Counter Loaded and Xored wiht C006: %d\n",V^IRQXOR);
              IRQPre=V^IRQXOR;break;
-    case 05: FCEU_printf("Main Counter Loaded and Xored wiht C006: %d\n",V^IRQXOR);
+    case 05: //FCEU_printf("Main Counter Loaded and Xored wiht C006: %d\n",V^IRQXOR);
              IRQCount=V^IRQXOR;break;
-    case 06: FCEU_printf("Xor Value: %d\n",V);
+    case 06: //FCEU_printf("Xor Value: %d\n",V);
              IRQXOR=V;break;
-    case 07: if(!(IRQMode&8)) FCEU_printf("C001 is clear, no effect applied\n");
-                  else if(V==0xFF) FCEU_printf("Prescaler is changed for 12bits\n");
-                  else FCEU_printf("Counter Stopped\n");
+    case 07: //if(!(IRQMode&8)) FCEU_printf("C001 is clear, no effect applied\n");
+             //     else if(V==0xFF) FCEU_printf("Prescaler is changed for 12bits\n");
+             //     else FCEU_printf("Counter Stopped\n");
              IRQPreSize=V;break;
   }
 }
