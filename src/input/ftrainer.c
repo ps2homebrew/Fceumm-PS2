@@ -15,61 +15,55 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
 #include <string.h>
 #include <stdlib.h>
 #include "share.h"
 
-static uint32 FTVal,FTValR;
+static uint32 FTVal, FTValR;
 static char side;
 
-static uint8 FP_FASTAPASS(2) FT_Read(int w, uint8 ret)
-{
- if(w) 
- {
-  ret|=FTValR;
- }
- return(ret);
+static uint8 FP_FASTAPASS(2) FT_Read(int w, uint8 ret) {
+	if (w) {
+		ret |= FTValR;
+	}
+	return(ret);
 }
 
-static void FP_FASTAPASS(1) FT_Write(uint8 V)
-{
- FTValR=0;
+static void FP_FASTAPASS(1) FT_Write(uint8 V) {
+	FTValR = 0;
 
- //printf("%08x\n",FTVal);
- if(!(V&0x1))
-  FTValR=(FTVal>>8);
- else if(!(V&0x2))
-  FTValR=(FTVal>>4);
- else if(!(V&0x4))
-  FTValR=FTVal;
+	//printf("%08x\n",FTVal);
+	if (!(V & 0x1))
+		FTValR = (FTVal >> 8);
+	else if (!(V & 0x2))
+		FTValR = (FTVal >> 4);
+	else if (!(V & 0x4))
+		FTValR = FTVal;
 
- FTValR=(~FTValR)&0xF;
- if(side=='B')
-  FTValR=((FTValR&0x8)>>3) | ((FTValR&0x4)>>1) | ((FTValR&0x2)<<1) | ((FTValR&0x1)<<3);
- FTValR<<=1;
+	FTValR = (~FTValR) & 0xF;
+	if (side == 'B')
+		FTValR = ((FTValR & 0x8) >> 3) | ((FTValR & 0x4) >> 1) | ((FTValR & 0x2) << 1) | ((FTValR & 0x1) << 3);
+	FTValR <<= 1;
 }
 
-static void FP_FASTAPASS(2) FT_Update(void *data, int arg)
-{
- FTVal=*(uint32 *)data;
+static void FP_FASTAPASS(2) FT_Update(void *data, int arg) {
+	FTVal = *(uint32*)data;
 }
 
-static INPUTCFC FamilyTrainer={FT_Read,FT_Write,0,FT_Update,0,0};
+static INPUTCFC FamilyTrainer = { FT_Read, FT_Write, 0, FT_Update, 0, 0 };
 
-INPUTCFC *FCEU_InitFamilyTrainerA(void)
-{
- side='A';
- FTVal=FTValR=0;
- return(&FamilyTrainer);
+INPUTCFC *FCEU_InitFamilyTrainerA(void) {
+	side = 'A';
+	FTVal = FTValR = 0;
+	return(&FamilyTrainer);
 }
 
-INPUTCFC *FCEU_InitFamilyTrainerB(void)
-{
- side='B';
- FTVal=FTValR=0;
- return(&FamilyTrainer);
+INPUTCFC *FCEU_InitFamilyTrainerB(void) {
+	side = 'B';
+	FTVal = FTValR = 0;
+	return(&FamilyTrainer);
 }
 

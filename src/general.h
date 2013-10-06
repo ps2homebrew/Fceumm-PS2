@@ -14,3 +14,4 @@ char *FCEU_MakeFName(int type, int id1, char *cd1);
 #define FCEUMKF_FDS  9
 #define FCEUMKF_MOVIE  10
 #define FCEUMKF_NPTEMP  11
+#define FCEUCOPY_FAMI 12

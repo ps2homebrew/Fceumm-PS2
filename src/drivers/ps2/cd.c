@@ -4,7 +4,9 @@
 #include <sifrpc.h>
 #include <sys/fcntl.h>
 #include <cdvd_rpc.h>
+//#include <SMS_CDVD.h>
 #include "cd.h"
+
 
 #define CD_SERVER_INIT			0x80000592
 #define CD_SERVER_SCMD			0x80000593

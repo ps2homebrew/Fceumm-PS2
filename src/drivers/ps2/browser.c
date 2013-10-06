@@ -9,8 +9,12 @@
 #include <libpad.h>
 #include <dmaKit.h>
 #include <gsKit.h>
+#ifdef CDSUPPORT
 #include <cdvd_rpc.h>
+//#include <SMS_CDVD.h>
+//#include "../smscdvd/iop/SMSCDVD/SMSCDVD.h"
 #include "cd.h"
+#endif
 
 #include "ps2fceu.h"
 
@@ -23,7 +27,7 @@ extern skin FCEUSkin;
 /************************************/
 extern GSGLOBAL *gsGlobal;
 extern GSTEXTURE BG_TEX;
-extern GSFONT *gsFont;
+extern GSFONTM *gsFontM;
 
 /************************************/
 /* Pad Variables                    */
@@ -131,6 +135,7 @@ int RomBrowserInput(int files_too, int inside_menu)
   return ret[1];
 }
 
+#ifdef CDSUPPORT
 int listcdvd(const char *path, entries *FileEntry) {
 	static struct TocEntry TocEntryList[2048];
 	char dir[1025];
@@ -187,6 +192,7 @@ int listcdvd(const char *path, entries *FileEntry) {
 	return t;
 
 }
+#endif
 
 int listdir(char *path, entries *FileEntry, int files_too)
 {
@@ -211,10 +217,12 @@ int listdir(char *path, entries *FileEntry, int files_too)
         FileEntry[4].dircheck = 1;
         n = 5;
     }
+#ifdef CDSUPPORT
     else if(!strncmp(path, "cdfs", 4)) {
         n = listcdvd(path, FileEntry);
     }
-    else { //it has a /
+#endif
+	else { //it has a /
         dd = fioDopen(path);
         if( dd < 0) {
             printf("Didn't open!\n");
@@ -291,9 +299,11 @@ int listpfs(char *path, entries *FileEntry, int files_too)
         FileEntry[3].dircheck = 1;
         n = 4;
     }
+#ifdef CDSUPPORT
     else if(!strncmp(path, "cdfs", 4)) {
         n = listcdvd(path, FileEntry);
     }
+#endif
     else {
         if((dd=fileXioDopen(path)) < 0) {
             printf("Didn't open!\n");

@@ -15,31 +15,31 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
 typedef struct {
-    char ID[5]; /*NESM^Z*/
-    uint8 Version;
-    uint8 TotalSongs;
-    uint8 StartingSong;
-    uint8 LoadAddressLow;
-    uint8 LoadAddressHigh;
-    uint8 InitAddressLow;
-    uint8 InitAddressHigh;
-    uint8 PlayAddressLow;
-    uint8 PlayAddressHigh;
-    uint8 SongName[32];
-    uint8 Artist[32];
-    uint8 Copyright[32];
-    uint8 NTSCspeed[2];        // Unused
-    uint8 BankSwitch[8];
-    uint8 PALspeed[2];         // Unused
-    uint8 VideoSystem;
-    uint8 SoundChip;
-    uint8 Expansion[4];
-    uint8 reserve[8];
-  } NSF_HEADER;
+	char ID[5];				// NESM^Z
+	uint8 Version;
+	uint8 TotalSongs;
+	uint8 StartingSong;
+	uint8 LoadAddressLow;
+	uint8 LoadAddressHigh;
+	uint8 InitAddressLow;
+	uint8 InitAddressHigh;
+	uint8 PlayAddressLow;
+	uint8 PlayAddressHigh;
+	uint8 SongName[32];
+	uint8 Artist[32];
+	uint8 Copyright[32];
+	uint8 NTSCspeed[2];		// Unused
+	uint8 BankSwitch[8];
+	uint8 PALspeed[2];		// Unused
+	uint8 VideoSystem;
+	uint8 SoundChip;
+	uint8 Expansion[4];
+	uint8 reserve[8];
+} NSF_HEADER;
 void NSF_init(void);
 void DrawNSF(uint8 *XBuf);
 void NSFDealloc(void);

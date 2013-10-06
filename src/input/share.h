@@ -1,4 +1,4 @@
-#include "../types.h"
+#include "../fceu-types.h"
 #include "../input.h"
 #include "../fceu.h"
 #include "../ppu.h"

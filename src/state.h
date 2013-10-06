@@ -15,29 +15,33 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
-#include <stdio.h>
+#ifndef _FCEU_STATE_H_
+#define _FCEU_STATE_H_
+
+#include "memory.h"
 
 void FCEUSS_Save(char *);
 int FCEUSS_Load(char *);
-int FCEUSS_SaveFP(FILE *);
-int FCEUSS_LoadFP(FILE *);
+int FCEUSS_SaveFP(MEM_TYPE *);
+int FCEUSS_LoadFP(MEM_TYPE *);
 
 extern int CurrentState;
 void FCEUSS_CheckStates(void);
 
 typedef struct {
-     void *v;
-     uint32 s;
-     char *desc;
+	void *v;
+	uint32 s;
+	char desc[4];
 } SFORMAT;
 
-void ResetExState(void (*PreSave)(void),void (*PostSave)(void));
+void ResetExState(void (*PreSave)(void), void (*PostSave)(void));
 void AddExState(void *v, uint32 s, int type, char *desc);
 
 #define FCEUSTATE_RLSB      0x80000000
 
 void FCEU_DrawSaveStates(uint8 *XBuf);
 
+#endif

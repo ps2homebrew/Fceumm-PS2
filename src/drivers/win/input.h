@@ -18,12 +18,12 @@ extern int cidisabled;
 
 #define MAXBUTTCONFIG   4
 typedef struct {
-        uint8  ButtType[MAXBUTTCONFIG];
-        uint8  DeviceNum[MAXBUTTCONFIG];
-        uint16 ButtonNum[MAXBUTTCONFIG];
-        uint32 NumC;
-        GUID DeviceInstance[MAXBUTTCONFIG];
-        //uint64 DeviceID[MAXBUTTCONFIG];        /* TODO */
+	uint8 ButtType[MAXBUTTCONFIG];
+	uint8 DeviceNum[MAXBUTTCONFIG];
+	uint16 ButtonNum[MAXBUTTCONFIG];
+	uint32 NumC;
+	GUID DeviceInstance[MAXBUTTCONFIG];
+	//uint64 DeviceID[MAXBUTTCONFIG];        /* TODO */
 } ButtConfig;
 
 extern CFGSTRUCT InputConfig[];
@@ -40,5 +40,7 @@ void ParseGIInput(FCEUGI *GI);
 #define FCFGD_QUIZKING  4
 
 void InitOtherInput(void);
+void FCEUD_UpdateInput(void);
+int DTestButton(ButtConfig *bc);
 #endif
 

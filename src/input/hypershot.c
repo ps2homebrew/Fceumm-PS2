@@ -15,36 +15,32 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
 #include <string.h>
 #include "share.h"
 
-static uint8 HSVal,HSValR;
+static uint8 HSVal, HSValR;
 
 
-static uint8 FP_FASTAPASS(2) HS_Read(int w, uint8 ret)
-{
- if(w) ret|=HSValR;
+static uint8 FP_FASTAPASS(2) HS_Read(int w, uint8 ret) {
+	if (w) ret |= HSValR;
 
- return(ret);
+	return(ret);
 }
 
-static void HS_Strobe(void)
-{
- HSValR=HSVal<<1;
+static void HS_Strobe(void) {
+	HSValR = HSVal << 1;
 }
 
-static void FP_FASTAPASS(2) HS_Update(void *data, int arg)
-{
- HSVal=*(uint8*)data;
+static void FP_FASTAPASS(2) HS_Update(void *data, int arg) {
+	HSVal = *(uint8*)data;
 }
 
-static INPUTCFC HyperShot={HS_Read,0,HS_Strobe,HS_Update,0,0};
+static INPUTCFC HyperShot = { HS_Read, 0, HS_Strobe, HS_Update, 0, 0 };
 
-INPUTCFC *FCEU_InitHS(void)
-{
- HSVal=HSValR=0;
- return(&HyperShot);
+INPUTCFC *FCEU_InitHS(void) {
+	HSVal = HSValR = 0;
+	return(&HyperShot);
 }

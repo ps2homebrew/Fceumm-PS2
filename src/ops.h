@@ -15,148 +15,148 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
 case 0x00:  /* BRK */
-      _PC++;
-      PUSH(_PC>>8);
-      PUSH(_PC);
-      PUSH(_P|U_FLAG|B_FLAG);
-      _P|=I_FLAG;
-      _PI|=I_FLAG;
-      _PC=RdMem(0xFFFE);
-      _PC|=RdMem(0xFFFF)<<8;
-      break;
+			_PC++;
+			PUSH(_PC>>8);
+			PUSH(_PC);
+			PUSH(_P|U_FLAG|B_FLAG);
+			_P|=I_FLAG;
+			_PI|=I_FLAG;
+			_PC=RdMem(0xFFFE);
+			_PC|=RdMem(0xFFFF)<<8;
+			break;
 
 case 0x40:  /* RTI */
-      _P=POP();
-      /* _PI=_P; This is probably incorrect, so it's commented out. */
-      _PI = _P;
-      _PC=POP();
-      _PC|=POP()<<8;
-      break;
+			_P=POP();
+			/* _PI=_P; This is probably incorrect, so it's commented out. */
+			_PI = _P;
+			_PC=POP();
+			_PC|=POP()<<8;
+			break;
 
 case 0x60:  /* RTS */
-      _PC=POP();
-      _PC|=POP()<<8;
-      _PC++;
-      break;
+			_PC=POP();
+			_PC|=POP()<<8;
+			_PC++;
+			break;
 
 case 0x48: /* PHA */
-     PUSH(_A);
-     break;
+			PUSH(_A);
+			break;
 case 0x08: /* PHP */
-     PUSH(_P|U_FLAG|B_FLAG);
-     break;
+			PUSH(_P|U_FLAG|B_FLAG);
+			break;
 case 0x68: /* PLA */
-     _A=POP();
-     X_ZN(_A);
-     break;
+			_A=POP();
+			X_ZN(_A);
+			break;
 case 0x28: /* PLP */
-     _P=POP();
-     break;
+			_P=POP();
+			break;
 case 0x4C:
-    {
-     uint16 ptmp=_PC;
-     unsigned int npc;
+		{
+			uint16 ptmp=_PC;
+			uint32 npc;
 
-     npc=RdMem(ptmp);
-     ptmp++;
-     npc|=RdMem(ptmp)<<8;
-     _PC=npc;
-    }
-    break; /* JMP ABSOLUTE */
+			npc=RdMem(ptmp);
+			ptmp++;
+			npc|=RdMem(ptmp)<<8;
+			_PC=npc;
+		}
+		break; /* JMP ABSOLUTE */
 case 0x6C:
-     {
-      uint32 tmp;
-      GetAB(tmp);
-      _PC=RdMem(tmp);
-      _PC|=RdMem( ((tmp+1)&0x00FF) | (tmp&0xFF00))<<8;
-     }
-     break;
+			{
+			uint32 tmp;
+			GetAB(tmp);
+			_PC=RdMem(tmp);
+			_PC|=RdMem( ((tmp+1)&0x00FF) | (tmp&0xFF00))<<8;
+			}
+			break;
 case 0x20: /* JSR */
-     {
-      uint8 npc;
-      npc=RdMem(_PC);
-      _PC++;
-      PUSH(_PC>>8);
-      PUSH(_PC);
-      _PC=RdMem(_PC)<<8;
-      _PC|=npc;
-     }
-     break;
+			{
+			uint8 npc;
+			npc=RdMem(_PC);
+			_PC++;
+			PUSH(_PC>>8);
+			PUSH(_PC);
+			_PC=RdMem(_PC)<<8;
+			_PC|=npc;
+			}
+			break;
 
 case 0xAA: /* TAX */
-     _X=_A;
-     X_ZN(_A);
-     break;
+			_X=_A;
+			X_ZN(_A);
+			break;
 
 case 0x8A: /* TXA */
-     _A=_X;
-     X_ZN(_A);
-     break;
+			_A=_X;
+			X_ZN(_A);
+			break;
 
 case 0xA8: /* TAY */
-     _Y=_A;
-     X_ZN(_A);
-     break;
+			_Y=_A;
+			X_ZN(_A);
+			break;
 case 0x98: /* TYA */
-     _A=_Y;
-     X_ZN(_A);
-     break;
+			_A=_Y;
+			X_ZN(_A);
+			break;
 
 case 0xBA: /* TSX */
-     _X=_S;
-     X_ZN(_X);
-     break;
+			_X=_S;
+			X_ZN(_X);
+			break;
 case 0x9A: /* TXS */
-     _S=_X;
-     break;
+			_S=_X;
+			break;
 
 case 0xCA: /* DEX */
-     _X--;
-     X_ZN(_X);
-     break;
+			_X--;
+			X_ZN(_X);
+			break;
 case 0x88: /* DEY */
-     _Y--;
-     X_ZN(_Y);
-     break;
+			_Y--;
+			X_ZN(_Y);
+			break;
 
 case 0xE8: /* INX */
-     _X++;
-     X_ZN(_X);
-     break;
+			_X++;
+			X_ZN(_X);
+			break;
 case 0xC8: /* INY */
-     _Y++;
-     X_ZN(_Y);
-     break;
+			_Y++;
+			X_ZN(_Y);
+			break;
 
 case 0x18: /* CLC */
-     _P&=~C_FLAG;
-     break;
+			_P&=~C_FLAG;
+			break;
 case 0xD8: /* CLD */
-     _P&=~D_FLAG;
-     break;
+			_P&=~D_FLAG;
+			break;
 case 0x58: /* CLI */
-     _P&=~I_FLAG;
-     break;
+			_P&=~I_FLAG;
+			break;
 case 0xB8: /* CLV */
-     _P&=~V_FLAG;
-     break;
+			_P&=~V_FLAG;
+			break;
 
 case 0x38: /* SEC */
-     _P|=C_FLAG;
-     break;
+			_P|=C_FLAG;
+			break;
 case 0xF8: /* SED */
-     _P|=D_FLAG;
-     break;
+			_P|=D_FLAG;
+			break;
 case 0x78: /* SEI */
-     _P|=I_FLAG;
-     break;
+			_P|=I_FLAG;
+			break;
 
 case 0xEA: /* NOP */
-     break;
+			break;
 
 case 0x0A: RMW_A(ASL);
 case 0x06: RMW_ZP(ASL);
@@ -322,7 +322,7 @@ case 0x70: JR(_P&V_FLAG); break;
 //default: printf("Bad %02x at $%04x\n",b1,X.PC);break;
 //ifdef moo
 /* Here comes the undocumented instructions block.  Note that this implementation
-   may be "wrong".  If so, please tell me.
+		may be "wrong".  If so, please tell me.
 */
 
 /* AAC */
@@ -337,9 +337,9 @@ case 0x83: ST_IX(_A&_X);
 
 /* ARR - ARGH, MATEY! */
 case 0x6B: {
-       uint8 arrtmp;
-       LD_IM(AND;_P&=~V_FLAG;_P|=(_A^(_A>>1))&0x40;arrtmp=_A>>7;_A>>=1;_A|=(_P&C_FLAG)<<7;_P&=~C_FLAG;_P|=arrtmp;X_ZN(_A));
-     }
+				uint8 arrtmp;
+				LD_IM(AND;_P&=~V_FLAG;_P|=(_A^(_A>>1))&0x40;arrtmp=_A>>7;_A>>=1;_A|=(_P&C_FLAG)<<7;_P&=~C_FLAG;_P|=arrtmp;X_ZN(_A));
+			}
 /* ASR */
 case 0x4B: LD_IM(AND;LSRA);
 
@@ -399,9 +399,9 @@ case 0x92:
 case 0xB2:
 case 0xD2:
 case 0xF2:ADDCYC(0xFF);
-    _jammed=1;
-    _PC--;
-    break;
+		_jammed=1;
+		_PC--;
+		break;
 
 /* LAR */
 case 0xBB: RMW_ABY(_S&=x;_A=_X=_S;X_ZN(_X));

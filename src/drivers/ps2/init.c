@@ -8,9 +8,11 @@
 #include <stdio.h>
 #include <libpwroff.h>
 #include <sbv_patches.h>
+#ifdef CDSUPPORT
 #include <cdvd_rpc.h>
+//#include <SMS_CDVD.h>
 #include "cd.h"
-
+#endif
 #include <gsKit.h>
 #include <dmaKit.h>
 
@@ -18,6 +20,8 @@
   #include <audsrv.h>
   extern void audsrv_irx;
   extern int size_audsrv_irx;
+  extern void freesd_irx;
+  extern int size_freesd_irx;
 #endif
 
 #include "ps2fceu.h"
@@ -27,7 +31,7 @@ int defaulty;
 
 //input
 #define NEW_PADMAN
-#include "libpad.h"
+#include <libpad.h>
 
 //video
 GSGLOBAL *gsGlobal;
@@ -50,8 +54,10 @@ extern void usbd_irx;
 extern int size_usbd_irx;
 extern void usbhdfsd_irx;
 extern int size_usbhdfsd_irx;
+#ifdef CDSUPPORT
 extern void cdvd_irx;
 extern int size_cdvd_irx;
+#endif
 extern void SMSUTILS_irx;
 extern int size_SMSUTILS_irx;
 
@@ -105,10 +111,14 @@ void LoadExtraModules(void)
     int i,ret,sometime;
 
 #ifdef SOUND_ON
-    ret = SifLoadModule("rom0:LIBSD", 0, NULL);
+    ret = SifExecModuleBuffer(&freesd_irx, size_freesd_irx,0, NULL, &ret);
+    if (ret < 0) {
+        printf("Failed to load module: FREESD.IRX");
+    }
+/*ret = SifLoadModule("rom0:LIBSD", 0, NULL);
     if (ret < 0) {
         printf("Failed to load module: LIBSD");
-    }
+    }*/
     ret = SifExecModuleBuffer(&audsrv_irx, size_audsrv_irx,0, NULL, &ret);
     if (ret < 0) {
         printf("Failed to load module: AUDSRV.IRX");
@@ -125,10 +135,12 @@ void LoadExtraModules(void)
         printf("Failed to load module: USBD.IRX");
     }
 
+#ifdef CDSUPPORT
     ret = SifExecModuleBuffer(&cdvd_irx, size_cdvd_irx, 0, NULL, &ret);
     if (ret < 0) {
         printf("Failed to load module: CDVD.IRX");
     }
+#endif
 
     ret = SifExecModuleBuffer(&usbhdfsd_irx, size_usbhdfsd_irx,0, NULL, &ret);
     for (i  = 0; i < 3; i++) { //taken from ulaunchelf
@@ -156,8 +168,8 @@ void LoadHDDModules(void)
     if (ret < 0) {
         printf("Failed to load module: POWEROFF.IRX");
     }
-    poweroffInit();
-    poweroffSetCallback((void *)poweroffps2, NULL);
+//    poweroffInit();
+//    poweroffSetCallback((void *)poweroffps2, NULL);
     if(!smod_get_mod_by_name("IOX/File_Manager", &mod_t))
         ret = SifExecModuleBuffer(&iomanX_irx, size_iomanX_irx,0, NULL, &ret);
     if (ret < 0) {
@@ -196,7 +208,10 @@ void SetupGSKit(void)
 {
     /* detect and set screentype */
     //gsGlobal = gsKit_init_global(GS_MODE_PAL);
-    gsGlobal = gsKit_init_global_custom(GS_MODE_PAL, GS_RENDER_QUEUE_OS_POOLSIZE+GS_RENDER_QUEUE_OS_POOLSIZE/2, GS_RENDER_QUEUE_PER_POOLSIZE+GS_RENDER_QUEUE_PER_POOLSIZE/2);
+    //gsGlobal = gsKit_init_global_custom(GS_RENDER_QUEUE_OS_POOLSIZE+GS_RENDER_QUEUE_OS_POOLSIZE/2, GS_RENDER_QUEUE_PER_POOLSIZE+GS_RENDER_QUEUE_PER_POOLSIZE/2);
+	if(gsGlobal!=NULL) gsKit_deinit_global(gsGlobal);
+	gsGlobal=gsKit_init_global();
+	
     gsGlobal->Height = 512;
 
     defaultx = gsGlobal->StartX;
@@ -228,13 +243,13 @@ void InitPS2(void)
     if(LoadBasicModules()) {
         SifIopReset("rom0:UDNL rom0:EELOADCNF",0);
         while(!SifIopSync());
-        fioExit();
+   fioExit();
         SifExitIopHeap();
         SifLoadFileExit();
         SifExitRpc();
         SifExitCmd();
 
-        SifInitRpc(0);
+   SifInitRpc(0);
         FlushCache(0);
         FlushCache(2);
 
@@ -245,11 +260,14 @@ void InitPS2(void)
     sbv_patch_disable_prefix_check();
 
     LoadExtraModules();
-    LoadHDDModules();
+ LoadHDDModules();
 
     mcInit(MC_TYPE_XMC);
+
+#ifdef CDSUPPORT
     cdInit(CDVD_INIT_INIT);
     CDVD_Init();
+#endif
 
 #ifdef SOUND_ON
     audsrv_init();
@@ -263,15 +281,15 @@ void normalize_screen(void)
 {
     GS_SET_DISPLAY1(gsGlobal->StartX,		// X position in the display area (in VCK unit
         gsGlobal->StartY,		// Y position in the display area (in Raster u
-        gsGlobal->MagX,			// Horizontal Magnification
-        gsGlobal->MagY,			// Vertical Magnification
+        gsGlobal->MagH,			// Horizontal Magnification
+        gsGlobal->MagV,			// Vertical Magnification
         (gsGlobal->Width * 4) -1,	// Display area width
         (gsGlobal->Height-1));		// Display area height
 
     GS_SET_DISPLAY2(gsGlobal->StartX,		// X position in the display area (in VCK units)
         gsGlobal->StartY,		// Y position in the display area (in Raster units)
-        gsGlobal->MagX,			// Horizontal Magnification
-        gsGlobal->MagY,			// Vertical Magnification
+        gsGlobal->MagH,			// Horizontal Magnification
+        gsGlobal->MagV,			// Vertical Magnification
         (gsGlobal->Width * 4) -1,	// Display area width
         (gsGlobal->Height-1));		// Display area height
 }
@@ -296,7 +314,8 @@ void init_custom_screen(void)
     if(!Settings.interlace) {
         gsGlobal->Interlace = GS_NONINTERLACED;
         gsGlobal->Field = GS_FRAME;
-        //gsGlobal->StartY = gsGlobal->StartY/2 + 1;
+//	gsGlobal->Height = gsGlobal->Height /2 + 1;
+//      gsGlobal->StartY = gsGlobal->StartY/2 + 1;
     }
     //else if (gsGlobal->Mode == GS_MODE_NTSC)
         //gsGlobal->StartY = gsGlobal->StartY + 22;

@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
 #define SCAN_GRAVE        0x29
@@ -76,18 +76,18 @@
 #define SCAN_LEFTALT                0x38
 #define SCAN_SPACE                0x39
 
-#define SCAN_RIGHTALT                (0x38|0x80)
-#define SCAN_RIGHTCONTROL        (0x1D|0x80)
-#define SCAN_BL_INSERT                (0x52|0x80)
-#define SCAN_BL_DELETE                (0x53|0x80)
-#define SCAN_BL_CURSORLEFT        (0x4B|0x80)
-#define SCAN_BL_HOME                (0x47|0x80)
-#define SCAN_BL_END                (0x4F|0x80)
-#define SCAN_BL_CURSORUP        (0x48|0x80)
-#define SCAN_BL_CURSORDOWN        (0x50|0x80)
-#define SCAN_BL_PAGEUP                (0x49|0x80)
-#define SCAN_BL_PAGEDOWN        (0x51|0x80)
-#define SCAN_BL_CURSORRIGHT        (0x4D|0x80)
+#define SCAN_RIGHTALT                (0x38 | 0x80)
+#define SCAN_RIGHTCONTROL        (0x1D | 0x80)
+#define SCAN_BL_INSERT                (0x52 | 0x80)
+#define SCAN_BL_DELETE                (0x53 | 0x80)
+#define SCAN_BL_CURSORLEFT        (0x4B | 0x80)
+#define SCAN_BL_HOME                (0x47 | 0x80)
+#define SCAN_BL_END                (0x4F | 0x80)
+#define SCAN_BL_CURSORUP        (0x48 | 0x80)
+#define SCAN_BL_CURSORDOWN        (0x50 | 0x80)
+#define SCAN_BL_PAGEUP                (0x49 | 0x80)
+#define SCAN_BL_PAGEDOWN        (0x51 | 0x80)
+#define SCAN_BL_CURSORRIGHT        (0x4D | 0x80)
 
 #define SCAN_SCROLLLOCK         0x46
 /* Keys in the key pad area. */
@@ -123,5 +123,5 @@
 #define SCAN_F11                0x57
 #define SCAN_F12                0x58
 
-#define MKK(k) SCAN_##k
+#define MKK(k) SCAN_ ## k
 #define MKK_COUNT (256)

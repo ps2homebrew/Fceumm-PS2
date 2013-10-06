@@ -37,7 +37,7 @@ u8 power_off = 0;
 /* gsKit Variables                  */
 /************************************/
 extern GSGLOBAL *gsGlobal;
-extern GSFONT *gsFont;
+extern GSFONTM *gsFontM;
 extern GSTEXTURE BG_TEX;
 extern GSTEXTURE MENU_TEX;
 

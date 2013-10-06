@@ -1,7 +1,7 @@
 #include <libpad.h>
 
 #include <dmaKit.h>
-#include <gsKit.h>
+#include <gsToolkit.h>
 
 typedef struct {
     char displayname[64];

@@ -15,33 +15,30 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
-int CloseWave(void)
-{
-
- return(FCEUI_EndWaveRecord());
+int CloseWave(void) {
+	return(FCEUI_EndWaveRecord());
 }
 
-int CreateSoundSave(void)
-{
- const char filter[]="MS WAVE(*.wav)\0*.wav\0";
- char nameo[2048];
- OPENFILENAME ofn;
+int CreateSoundSave(void) {
+	const char filter[] = "MS WAVE(*.wav)\0*.wav\0";
+	char nameo[2048];
+	OPENFILENAME ofn;
 
- FCEUI_EndWaveRecord();
+	FCEUI_EndWaveRecord();
 
- memset(&ofn,0,sizeof(ofn));
- ofn.lStructSize=sizeof(ofn);
- ofn.hInstance=fceu_hInstance;
- ofn.lpstrTitle="Log Sound As...";
- ofn.lpstrFilter=filter;
- nameo[0]=0;
- ofn.lpstrFile=nameo;
- ofn.nMaxFile=256;
- ofn.Flags=OFN_EXPLORER|OFN_FILEMUSTEXIST|OFN_HIDEREADONLY;
- if(GetSaveFileName(&ofn))
-  return FCEUI_BeginWaveRecord(nameo);
- return 0;
+	memset(&ofn, 0, sizeof(ofn));
+	ofn.lStructSize = sizeof(ofn);
+	ofn.hInstance = fceu_hInstance;
+	ofn.lpstrTitle = "Log Sound As...";
+	ofn.lpstrFilter = filter;
+	nameo[0] = 0;
+	ofn.lpstrFile = nameo;
+	ofn.nMaxFile = 256;
+	ofn.Flags = OFN_EXPLORER | OFN_FILEMUSTEXIST | OFN_HIDEREADONLY;
+	if (GetSaveFileName(&ofn))
+		return FCEUI_BeginWaveRecord(nameo);
+	return 0;
 }

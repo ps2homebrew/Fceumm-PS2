@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 /*
 #include <string.h>
@@ -48,95 +48,95 @@ uint8 serialROMautomat(uint8 chip, uint16 data)
   chip &= 1;
   if(!(data & CS))
   {
-    if(!(data & CLK))
-    {
-      uint8 state = serialROM[chip].state;
-      uint8 mask, i;
-      switch (serialROM[chip].cmd)
-      {
-        case 0x00:
-             mask = ~(1<<(state&7));
-             if(state<8)
-             {
-               serialROM[chip].addr &= mask;
-               serialROM[chip].addr |= ((data&1)<<(state&7));
-             }
-             else if(state<15)
-             {
-               serialROM[chip].acc &= mask;
-               serialROM[chip].acc |= ((data&1)<<(state&7));
-             }
-             else
-             {
-               serialROM[chip].acc &= mask;
-               serialROM[chip].acc |= ((data&1)<<(state&7));
-               serialROM[chip].cmd = serialROM[chip].acc;
-             }
-             break;
-        case 0x01:
-             if(state<30)
-               resp = (serialROM[chip].data[serialROM[chip].addr]>>(state&15))&1;
-             else
-             {
-               resp = (serialROM[chip].data[serialROM[chip].addr]>>(state&15))&1;
-               serialROM[chip].cmd = 0;
-             }
-             break;
-        case 0x06:
-             mask = ~(1<<(state&15));
-             if(state<30)
-             {
-               serialROM[chip].acc &= mask;
-               serialROM[chip].acc |= ((data&1)<<(state&15));
-             }
-             else
-             {
-               serialROM[chip].acc &= mask;
-               serialROM[chip].acc |= ((data&1)<<(state&15));
-               if(serialROM[chip].iswritable)
-                 serialROM[chip].data[serialROM[chip].addr] = serialROM[chip].acc;
-               serialROM[chip].cmd = 0;
-             }
-             break;
-        case 0x0C:
-             for(i=0;i<128;i++)
-                serialROM[chip].data[i] = 0xFFFF;
-             serialROM[chip].cmd = 0;
-             resp = 1;
-             break;
-        case 0x0D:
-             serialROM[chip].cmd = 0;
-             resp = 1;
-             break;
-        case 0x09:
-             serialROM[chip].cmd = 0;
-             serialROM[chip].iswritable = 1;
-             break;
-        case 0x0B:
-             serialROM[chip].cmd = 0;
-             serialROM[chip].iswritable = 0;
-             break;
-        default:
-             serialROM[chip].cmd = 0;
-             serialROM[chip].state = 0;
-             break;
-      }
-    }
-    else
-    {
-      if(serialROM[chip].cmd == 0)
-      {
-        if(serialROM[chip].state>15)
-          serialROM[chip].state = 0;
-      }
-      else
-        serialROM[chip].cmd++;
-    }
+	if(!(data & CLK))
+	{
+	  uint8 state = serialROM[chip].state;
+	  uint8 mask, i;
+	  switch (serialROM[chip].cmd)
+	  {
+		case 0x00:
+			 mask = ~(1<<(state&7));
+			 if(state<8)
+			 {
+			   serialROM[chip].addr &= mask;
+			   serialROM[chip].addr |= ((data&1)<<(state&7));
+			 }
+			 else if(state<15)
+			 {
+			   serialROM[chip].acc &= mask;
+			   serialROM[chip].acc |= ((data&1)<<(state&7));
+			 }
+			 else
+			 {
+			   serialROM[chip].acc &= mask;
+			   serialROM[chip].acc |= ((data&1)<<(state&7));
+			   serialROM[chip].cmd = serialROM[chip].acc;
+			 }
+			 break;
+		case 0x01:
+			 if(state<30)
+			   resp = (serialROM[chip].data[serialROM[chip].addr]>>(state&15))&1;
+			 else
+			 {
+			   resp = (serialROM[chip].data[serialROM[chip].addr]>>(state&15))&1;
+			   serialROM[chip].cmd = 0;
+			 }
+			 break;
+		case 0x06:
+			 mask = ~(1<<(state&15));
+			 if(state<30)
+			 {
+			   serialROM[chip].acc &= mask;
+			   serialROM[chip].acc |= ((data&1)<<(state&15));
+			 }
+			 else
+			 {
+			   serialROM[chip].acc &= mask;
+			   serialROM[chip].acc |= ((data&1)<<(state&15));
+			   if(serialROM[chip].iswritable)
+				 serialROM[chip].data[serialROM[chip].addr] = serialROM[chip].acc;
+			   serialROM[chip].cmd = 0;
+			 }
+			 break;
+		case 0x0C:
+			 for(i=0;i<128;i++)
+				serialROM[chip].data[i] = 0xFFFF;
+			 serialROM[chip].cmd = 0;
+			 resp = 1;
+			 break;
+		case 0x0D:
+			 serialROM[chip].cmd = 0;
+			 resp = 1;
+			 break;
+		case 0x09:
+			 serialROM[chip].cmd = 0;
+			 serialROM[chip].iswritable = 1;
+			 break;
+		case 0x0B:
+			 serialROM[chip].cmd = 0;
+			 serialROM[chip].iswritable = 0;
+			 break;
+		default:
+			 serialROM[chip].cmd = 0;
+			 serialROM[chip].state = 0;
+			 break;
+	  }
+	}
+	else
+	{
+	  if(serialROM[chip].cmd == 0)
+	  {
+		if(serialROM[chip].state>15)
+		  serialROM[chip].state = 0;
+	  }
+	  else
+		serialROM[chip].cmd++;
+	}
   }
   else
   {
-    serialROM[chip].cmd = 0;
-    serialROM[chip].state = 0;
+	serialROM[chip].cmd = 0;
+	serialROM[chip].state = 0;
   }
   return resp;
 }
@@ -146,13 +146,13 @@ uint8 serialROMstate(uint8 linestate)
   uint8 answ = 0, newCLK = linestate & CLK;
   if((!oldCLK)&&newCLK)
   {
-    DIFlip^=1;
-    if(linestate&&OUT0)
-    {
-      serialROMautomat(bankFlip, 04+DIFlip);
-      bankFlip^=1;
-      serialROMautomat(bankFlip, 02+DIFlip);
-    }    
+	DIFlip^=1;
+	if(linestate&&OUT0)
+	{
+	  serialROMautomat(bankFlip, 04+DIFlip);
+	  bankFlip^=1;
+	  serialROMautomat(bankFlip, 02+DIFlip);
+	}
   }
   answ = DIFlip^1;
   answ |= (serialROMautomat(bankFlip, newCLK+DIFlip)<<1);
@@ -164,8 +164,8 @@ static uint8 FP_FASTAPASS(2) BBRead(int w, uint8 ret)
 {
   if(w)
   {
-    serialROMstate(OUT0);
-    ret |= serialROMstate(OUT0|CLK);
+	serialROMstate(OUT0);
+	ret |= serialROMstate(OUT0|CLK);
   }
   return(ret);
 }

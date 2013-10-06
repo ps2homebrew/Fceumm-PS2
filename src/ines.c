@@ -16,25 +16,24 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
-#include "types.h"
+#include "fceu-types.h"
 #include "x6502.h"
 #include "fceu.h"
 #include "cart.h"
 #include "ppu.h"
 
-#define INESPRIV
 #include "ines.h"
 #include "unif.h"
-#include "general.h"
 #include "state.h"
 #include "file.h"
+#include "general.h"
 #include "memory.h"
 #include "crc32.h"
 #include "md5.h"
@@ -43,187 +42,179 @@
 
 extern SFORMAT FCEUVSUNI_STATEINFO[];
 
-static uint8 *trainerpoo=0;
-static uint8 *ROM=NULL;
-static uint8 *VROM=NULL;
+uint8 *trainerpoo = NULL;
+uint8 *ROM = NULL;
+uint8 *VROM = NULL;
+uint8 *ExtraNTARAM = NULL;
+iNES_HEADER head;
 
+#ifdef __LIBRETRO__
+CartInfo iNESCart;
+#else
 static CartInfo iNESCart;
+#endif
 
-uint8 iNESMirroring;
-uint16 iNESCHRBankList[8];
-int32 iNESIRQLatch,iNESIRQCount;
-uint8 iNESIRQa;
+uint8 Mirroring = 0;
+uint32 ROM_size = 0;
+uint32 VROM_size = 0;
 
-uint32 ROM_size;
-uint32 VROM_size;
+static int CHRRAMSize = -1;
+static int iNES_Init(int num);
 
-static void iNESPower(void);
-static int NewiNES_Init(int num);
+static int MapperNo = 0;
 
-void (*MapClose)(void);
-void (*MapperReset)(void);
-
-static int MapperNo;
-
-static iNES_HEADER head;
-
-/*  MapperReset() is called when the NES is reset(with the reset button).
-    Mapperxxx_init is called when the NES has been powered on.
-*/
-
-static DECLFR(TrainerRead)
-{
- return(trainerpoo[A&0x1FF]);
+static DECLFR(TrainerRead) {
+	return(trainerpoo[A & 0x1FF]);
 }
 
-static void iNESGI(int h)
-{
- switch(h)
- {
-  case GI_RESETM2:
-    if(MapperReset)
-     MapperReset();
-    if(iNESCart.Reset)
-     iNESCart.Reset();
-    break;
-  case GI_POWER:
-    if(iNESCart.Power)
-     iNESCart.Power();
-    if(trainerpoo)
-    {
-     int x;
-     for(x=0;x<512;x++)
-     {
-      X6502_DMW(0x7000+x,trainerpoo[x]);
-      if(X6502_DMR(0x7000+x)!=trainerpoo[x])
-      {
-        SetReadHandler(0x7000,0x71FF,TrainerRead);
-        break;
-      }
-     }
-    }
-    break;
-  case GI_CLOSE:
-    {
-     FCEU_SaveGameSave(&iNESCart);
+static void iNES_ExecPower() {
+	if (iNESCart.Power)
+		iNESCart.Power();
 
-     if(iNESCart.Close) iNESCart.Close();
-      if(ROM) {free(ROM);ROM=0;}
-     if(VROM) {free(VROM);VROM=0;}
-     if(MapClose) MapClose();
-     if(trainerpoo) {FCEU_gfree(trainerpoo);trainerpoo=0;}
-    }
-    break;
-     }
+	if (trainerpoo) {
+		int x;
+		for (x = 0; x < 512; x++) {
+			X6502_DMW(0x7000 + x, trainerpoo[x]);
+			if (X6502_DMR(0x7000 + x) != trainerpoo[x]) {
+				SetReadHandler(0x7000, 0x71FF, TrainerRead);
+				break;
+			}
+		}
+	}
 }
 
-uint32 iNESGameCRC32;
+static void iNESGI(int h) {
+	switch (h) {
+	case GI_RESETM2:
+		if (iNESCart.Reset)
+			iNESCart.Reset();
+		break;
+	case GI_POWER:
+		iNES_ExecPower();
+		break;
+	case GI_CLOSE:
+	{
+		FCEU_SaveGameSave(&iNESCart);
+		if (iNESCart.Close)
+			iNESCart.Close();
+		if (ROM) {
+			free(ROM);
+			ROM = NULL;
+		}
+		if (VROM) {
+			free(VROM);
+			VROM = NULL;
+		}
+		if (trainerpoo) {
+			free(trainerpoo);
+			trainerpoo = NULL;
+		}
+		if (ExtraNTARAM) {
+			free(ExtraNTARAM);
+			ExtraNTARAM = NULL;
+		}
+	}
+	break;
+	}
+}
 
-struct CRCMATCH  {
-  uint32 crc;
-  char *name;
+uint32 iNESGameCRC32 = 0;
+
+struct CRCMATCH {
+	uint32 crc;
+	char *name;
 };
 
 struct INPSEL {
-  uint32 crc32;
-  int input1;
-  int input2;
-  int inputfc;
+	uint32 crc32;
+	int input1;
+	int input2;
+	int inputfc;
 };
 
-/* This is mostly for my personal use.  So HA. */
-static void SetInput(void)
-{
- static struct INPSEL moo[]=
-  {
-   {0x3a1694f9,SI_GAMEPAD,SI_GAMEPAD,SIFC_4PLAYER},       /* Nekketsu Kakutou Densetsu */
+static void SetInput(void) {
+	static struct INPSEL moo[] =
+	{
+		{0x19b0a9f1,	SI_GAMEPAD,		SI_ZAPPER,		SIFC_NONE		},	// 6-in-1 (MGC-023)(Unl)[!]
+		{0x29de87af,	SI_GAMEPAD,		SI_GAMEPAD,		SIFC_FTRAINERB	},	// Aerobics Studio
+		{0xd89e5a67,	SI_UNSET,		SI_UNSET,		SIFC_ARKANOID	},	// Arkanoid (J)
+		{0x0f141525,	SI_UNSET,		SI_UNSET,		SIFC_ARKANOID	},	// Arkanoid 2(J)
+		{0x32fb0583,	SI_UNSET,		SI_ARKANOID,	SIFC_NONE		},	// Arkanoid(NES)
+		{0x60ad090a,	SI_GAMEPAD,		SI_GAMEPAD,		SIFC_FTRAINERA	},	// Athletic World
+		{0x48ca0ee1,	SI_GAMEPAD,		SI_GAMEPAD,		SIFC_BWORLD		},	// Barcode World
+		{0x4318a2f8,	SI_UNSET,		SI_ZAPPER,		SIFC_NONE		},	// Barker Bill's Trick Shooting
+		{0x6cca1c1f,	SI_GAMEPAD,		SI_GAMEPAD,		SIFC_FTRAINERB	},	// Dai Undoukai
+		{0x24598791,	SI_UNSET,		SI_ZAPPER,		SIFC_NONE		},	// Duck Hunt
+		{0xd5d6eac4,	SI_UNSET,		SI_UNSET,		SIFC_SUBORKB	},	// Edu (As)
+		{0xe9a7fe9e,	SI_UNSET,		SI_MOUSE,		SIFC_NONE		},	// Educational Computer 2000
+		{0x8f7b1669,	SI_UNSET,		SI_UNSET,		SIFC_SUBORKB	},	// FP BASIC 3.3 by maxzhou88
+		{0xf7606810,	SI_UNSET,		SI_UNSET,		SIFC_FKB		},	// Family BASIC 2.0A
+		{0x895037bc,	SI_UNSET,		SI_UNSET,		SIFC_FKB		},	// Family BASIC 2.1a
+		{0xb2530afc,	SI_UNSET,		SI_UNSET,		SIFC_FKB		},	// Family BASIC 3.0
+		{0xea90f3e2,	SI_GAMEPAD,		SI_GAMEPAD,		SIFC_FTRAINERB	},	// Family Trainer:  Running Stadium
+		{0xbba58be5,	SI_GAMEPAD,		SI_GAMEPAD,		SIFC_FTRAINERB	},	// Family Trainer: Manhattan Police
+		{0x3e58a87e,	SI_UNSET,		SI_ZAPPER,		SIFC_NONE		},	// Freedom Force
+		{0xd9f45be9,	SI_GAMEPAD,		SI_GAMEPAD,		SIFC_QUIZKING	},	// Gimme a Break ...
+		{0x1545bd13,	SI_GAMEPAD,		SI_GAMEPAD,		SIFC_QUIZKING	},	// Gimme a Break ... 2
+		{0x4e959173,	SI_UNSET,		SI_ZAPPER,		SIFC_NONE		},	// Gotcha! - The Sport!
+		{0xbeb8ab01,	SI_UNSET,		SI_ZAPPER,		SIFC_NONE		},	// Gumshoe
+		{0xff24d794,	SI_UNSET,		SI_ZAPPER,		SIFC_NONE		},	// Hogan's Alley
+		{0x21f85681,	SI_GAMEPAD,		SI_GAMEPAD,		SIFC_HYPERSHOT	},	// Hyper Olympic (Gentei Ban)
+		{0x980be936,	SI_GAMEPAD,		SI_GAMEPAD,		SIFC_HYPERSHOT	},	// Hyper Olympic
+		{0x915a53a7,	SI_GAMEPAD,		SI_GAMEPAD,		SIFC_HYPERSHOT	},	// Hyper Sports
+		{0x9fae4d46,	SI_GAMEPAD,		SI_GAMEPAD,		SIFC_MAHJONG	},	// Ide Yousuke Meijin no Jissen Mahjong
+		{0x7b44fb2a,	SI_GAMEPAD,		SI_GAMEPAD,		SIFC_MAHJONG	},	// Ide Yousuke Meijin no Jissen Mahjong 2
+		{0x2f128512,	SI_GAMEPAD,		SI_GAMEPAD,		SIFC_FTRAINERA	},	// Jogging Race
+		{0xbb33196f,	SI_UNSET,		SI_UNSET,		SIFC_FKB		},	// Keyboard Transformer
+		{0x8587ee00,	SI_UNSET,		SI_UNSET,		SIFC_FKB		},	// Keyboard Transformer
+		{0x543ab532,	SI_UNSET,		SI_UNSET,		SIFC_SUBORKB	},	// LIKO Color Lines
+		{0x368c19a8,	SI_UNSET,		SI_UNSET,		SIFC_SUBORKB	},	// LIKO Study Cartridge
+		{0x5ee6008e,	SI_UNSET,		SI_ZAPPER,		SIFC_NONE		},	// Mechanized Attack
+		{0x370ceb65,	SI_GAMEPAD,		SI_GAMEPAD,		SIFC_FTRAINERB	},	// Meiro Dai Sakusen
+		{0x3a1694f9,	SI_GAMEPAD,		SI_GAMEPAD,		SIFC_4PLAYER	},	// Nekketsu Kakutou Densetsu
+		{0x9d048ea4,	SI_GAMEPAD,		SI_GAMEPAD,		SIFC_OEKAKIDS	},	// Oeka Kids
+		{0x2a6559a1,	SI_UNSET,		SI_ZAPPER,		SIFC_NONE		},	// Operation Wolf (J)
+		{0xedc3662b,	SI_UNSET,		SI_ZAPPER,		SIFC_NONE		},	// Operation Wolf
+		{0x912989dc,	SI_UNSET,		SI_UNSET,		SIFC_FKB		},	// Playbox BASIC
+		{0x9044550e,	SI_GAMEPAD,		SI_GAMEPAD,		SIFC_FTRAINERA	},	// Rairai Kyonshizu
+		{0xea90f3e2,	SI_GAMEPAD,		SI_GAMEPAD,		SIFC_FTRAINERB	},	// Running Stadium
+		{0x851eb9be,	SI_GAMEPAD,		SI_ZAPPER,		SIFC_NONE		},	// Shooting Range
+		{0x6435c095,	SI_GAMEPAD,		SI_POWERPADB,	SIFC_UNSET		},	// Short Order/Eggsplode
+		{0xc043a8df,	SI_UNSET,		SI_MOUSE,		SIFC_NONE		},	// Shu Qi Yu - Shu Xue Xiao Zhuan Yuan (Ch)
+		{0x2cf5db05,	SI_UNSET,		SI_MOUSE,		SIFC_NONE		},	// Shu Qi Yu - Zhi Li Xiao Zhuan Yuan (Ch)
+		{0xad9c63e2,	SI_GAMEPAD,		SI_UNSET,		SIFC_SHADOW		},	// Space Shadow
+		{0x61d86167,	SI_GAMEPAD,		SI_POWERPADB,	SIFC_UNSET		},	// Street Cop
+		{0xabb2f974,	SI_UNSET,		SI_UNSET,		SIFC_SUBORKB	},	// Study and Game 32-in-1
+		{0x41ef9ac4,	SI_UNSET,		SI_UNSET,		SIFC_SUBORKB	},	// Subor
+		{0x8b265862,	SI_UNSET,		SI_UNSET,		SIFC_SUBORKB	},	// Subor
+		{0x82f1fb96,	SI_UNSET,		SI_UNSET,		SIFC_SUBORKB	},	// Subor 1.0 Russian
+		{0x9f8f200a,	SI_GAMEPAD,		SI_GAMEPAD,		SIFC_FTRAINERA	},	// Super Mogura Tataki!! - Pokkun Moguraa
+		{0xd74b2719,	SI_GAMEPAD,		SI_POWERPADB,	SIFC_UNSET		},	// Super Team Games
+		{0x74bea652,	SI_GAMEPAD,		SI_ZAPPER,		SIFC_NONE		},	// Supergun 3-in-1
+		{0x5e073a1b,	SI_UNSET,		SI_UNSET,		SIFC_SUBORKB	},	// Supor English (Chinese)
+		{0x589b6b0d,	SI_UNSET,		SI_UNSET,		SIFC_SUBORKB	},	// SuporV20
+		{0x41401c6d,	SI_UNSET,		SI_UNSET,		SIFC_SUBORKB	},	// SuporV40
+		{0x23d17f5e,	SI_GAMEPAD,		SI_ZAPPER,		SIFC_NONE		},	// The Lone Ranger
+		{0xc3c0811d,	SI_GAMEPAD,		SI_GAMEPAD,		SIFC_OEKAKIDS	},	// The two "Oeka Kids" games
+		{0xde8fd935,	SI_UNSET,		SI_ZAPPER,		SIFC_NONE		},	// To the Earth
+		{0x47232739,	SI_GAMEPAD,		SI_GAMEPAD,		SIFC_TOPRIDER	},	// Top Rider
+		{0x8a12a7d9,	SI_GAMEPAD,		SI_GAMEPAD,		SIFC_FTRAINERB	},	// Totsugeki Fuuun Takeshi Jou
+		{0xb8b9aca3,	SI_UNSET,		SI_ZAPPER,		SIFC_NONE		},	// Wild Gunman
+		{0x5112dc21,	SI_UNSET,		SI_ZAPPER,		SIFC_NONE		},	// Wild Gunman
+		{0xaf4010ea,	SI_GAMEPAD,		SI_POWERPADB,	SIFC_UNSET		},	// World Class Track Meet
+		{0x00000000,	SI_UNSET,		SI_UNSET,		SIFC_UNSET		}
+	};
+	int x = 0;
 
-   {0xc3c0811d,SI_GAMEPAD,SI_GAMEPAD,SIFC_OEKAKIDS},  /* The two "Oeka Kids" games */
-   {0x9d048ea4,SI_GAMEPAD,SI_GAMEPAD,SIFC_OEKAKIDS},  /*           */
-
-   {0xaf4010ea,SI_GAMEPAD,SI_POWERPADB,-1},  /* World Class Track Meet */
-   {0xd74b2719,SI_GAMEPAD,SI_POWERPADB,-1},  /* Super Team Games */
-   {0x61d86167,SI_GAMEPAD,SI_POWERPADB,-1},  /* Street Cop */
-   {0x6435c095,SI_GAMEPAD,SI_POWERPADB,-1},      /* Short Order/Eggsplode */
-
-
-   {0x47232739,SI_GAMEPAD,SI_GAMEPAD,SIFC_TOPRIDER},  /* Top Rider */
-
-   {0x48ca0ee1,SI_GAMEPAD,SI_GAMEPAD,SIFC_BWORLD},    /* Barcode World */
-   {0x9f8f200a,SI_GAMEPAD,SI_GAMEPAD,SIFC_FTRAINERA}, /* Super Mogura Tataki!! - Pokkun Moguraa */
-   {0x9044550e,SI_GAMEPAD,SI_GAMEPAD,SIFC_FTRAINERA}, /* Rairai Kyonshizu */
-   {0x2f128512,SI_GAMEPAD,SI_GAMEPAD,SIFC_FTRAINERA}, /* Jogging Race */
-   {0x60ad090a,SI_GAMEPAD,SI_GAMEPAD,SIFC_FTRAINERA}, /* Athletic World */
-
-   {0x8a12a7d9,SI_GAMEPAD,SI_GAMEPAD,SIFC_FTRAINERB}, /* Totsugeki Fuuun Takeshi Jou */
-   {0xea90f3e2,SI_GAMEPAD,SI_GAMEPAD,SIFC_FTRAINERB}, /* Running Stadium */
-   {0x370ceb65,SI_GAMEPAD,SI_GAMEPAD,SIFC_FTRAINERB}, /* Meiro Dai Sakusen */
-   // Bad dump? {0x69ffb014,SI_GAMEPAD,SI_GAMEPAD,SIFC_FTRAINERB}, /* Fuun Takeshi Jou 2 */
-   {0x6cca1c1f,SI_GAMEPAD,SI_GAMEPAD,SIFC_FTRAINERB}, /* Dai Undoukai */
-   {0x29de87af,SI_GAMEPAD,SI_GAMEPAD,SIFC_FTRAINERB},  /* Aerobics Studio */
-   {0xbba58be5,SI_GAMEPAD,SI_GAMEPAD,SIFC_FTRAINERB},  /* Family Trainer: Manhattan Police */
-   {0xea90f3e2,SI_GAMEPAD,SI_GAMEPAD,SIFC_FTRAINERB},  /* Family Trainer:  Running Stadium */
-
-   {0xd9f45be9,SI_GAMEPAD,SI_GAMEPAD,SIFC_QUIZKING},  /* Gimme a Break ... */
-   {0x1545bd13,SI_GAMEPAD,SI_GAMEPAD,SIFC_QUIZKING},  /* Gimme a Break ... 2 */
-
-   {0x7b44fb2a,SI_GAMEPAD,SI_GAMEPAD,SIFC_MAHJONG},  /* Ide Yousuke Meijin no Jissen Mahjong 2 */
-   {0x9fae4d46,SI_GAMEPAD,SI_GAMEPAD,SIFC_MAHJONG},  /* Ide Yousuke Meijin no Jissen Mahjong */
-
-   {0x980be936,SI_GAMEPAD,SI_GAMEPAD,SIFC_HYPERSHOT}, /* Hyper Olympic */
-   {0x21f85681,SI_GAMEPAD,SI_GAMEPAD,SIFC_HYPERSHOT}, /* Hyper Olympic (Gentei Ban) */
-   {0x915a53a7,SI_GAMEPAD,SI_GAMEPAD,SIFC_HYPERSHOT}, /* Hyper Sports */
-   {0xad9c63e2,SI_GAMEPAD,-1,SIFC_SHADOW},  /* Space Shadow */
-
-   {0x24598791,-1,SI_ZAPPER,0},  /* Duck Hunt */
-   {0xff24d794,-1,SI_ZAPPER,0},   /* Hogan's Alley */
-   {0xbeb8ab01,-1,SI_ZAPPER,0},  /* Gumshoe */
-   {0xde8fd935,-1,SI_ZAPPER,0},  /* To the Earth */
-   {0xedc3662b,-1,SI_ZAPPER,0},  /* Operation Wolf */
-   {0x2a6559a1,-1,SI_ZAPPER,0},  /* Operation Wolf (J) */
-
-   {0x23d17f5e,SI_GAMEPAD,SI_ZAPPER,0},  /* The Lone Ranger */
-   {0xb8b9aca3,-1,SI_ZAPPER,0},  /* Wild Gunman */
-   {0x5112dc21,-1,SI_ZAPPER,0},  /* Wild Gunman */
-   {0x4318a2f8,-1,SI_ZAPPER,0},  /* Barker Bill's Trick Shooting */
-   {0x5ee6008e,-1,SI_ZAPPER,0},  /* Mechanized Attack */
-   {0x3e58a87e,-1,SI_ZAPPER,0},  /* Freedom Force */
-   {0xe9a7fe9e,-1,SI_MOUSE,0}, /* Educational Computer 2000 */
-   {0x851eb9be,SI_GAMEPAD,SI_ZAPPER,0},  /* Shooting Range */
-   {0x74bea652,SI_GAMEPAD,SI_ZAPPER,0},  /* Supergun 3-in-1 */
-   {0x32fb0583,-1,SI_ARKANOID,0}, /* Arkanoid(NES) */
-   {0xd89e5a67,-1,-1,SIFC_ARKANOID}, /* Arkanoid (J) */
-   {0x0f141525,-1,-1,SIFC_ARKANOID}, /* Arkanoid 2(J) */
-
-   {0x912989dc,-1,-1,SIFC_FKB},  /* Playbox BASIC */
-   {0xf7606810,-1,-1,SIFC_FKB},  /* Family BASIC 2.0A */
-   {0x895037bc,-1,-1,SIFC_FKB},  /* Family BASIC 2.1a */
-   {0xb2530afc,-1,-1,SIFC_FKB},  /* Family BASIC 3.0 */
-   {0x82f1fb96,-1,-1,SIFC_SUBORKB},  /* Subor 1.0 Russian */
-   {0xabb2f974,-1,-1,SIFC_SUBORKB},  /* Study and Game 32-in-1 */
-   {0xd5d6eac4,-1,-1,SIFC_SUBORKB},  /* Edu (As) */
-   {0x589b6b0d,-1,-1,SIFC_SUBORKB},  /* SuporV20 */
-   {0x5e073a1b,-1,-1,SIFC_SUBORKB},  /* Supor English (Chinese) */
-   {0x8b265862,-1,-1,SIFC_SUBORKB},
-   {0x41401c6d,-1,-1,SIFC_SUBORKB},  /* SuporV40 */
-   {0x41ef9ac4,-1,-1,SIFC_SUBORKB},
-   {0x368c19a8,-1,-1,SIFC_SUBORKB},   /* LIKO Study Cartridge */
-   {0x543ab532,-1,-1,SIFC_SUBORKB},   /* LIKO Color Lines */
-   {0,-1,-1,-1}
-  };
- int x=0;
-
- while(moo[x].input1>=0 || moo[x].input2>=0 || moo[x].inputfc>=0)
- {
-  if(moo[x].crc32==iNESGameCRC32)
-  {
-   FCEUGameInfo->input[0]=moo[x].input1;
-   FCEUGameInfo->input[1]=moo[x].input2;
-   FCEUGameInfo->inputfc=moo[x].inputfc;
-   break;
-  }
-  x++;
- }
+	while (moo[x].input1 >= 0 || moo[x].input2 >= 0 || moo[x].inputfc >= 0) {
+		if (moo[x].crc32 == iNESGameCRC32) {
+			GameInfo->input[0] = moo[x].input1;
+			GameInfo->input[1] = moo[x].input2;
+			GameInfo->inputfc = moo[x].inputfc;
+			break;
+		}
+		x++;
+	}
 }
 
 #define INESB_INCOMPLETE  1
@@ -231,1039 +222,621 @@ static void SetInput(void)
 #define INESB_HACKED      4
 
 struct BADINF {
-  uint64 md5partial;
-  char *name;
-  uint32 type;
+	uint64 md5partial;
+	uint8 *name;
+	uint32 type;
 };
 
-
-static struct BADINF BadROMImages[]=
+static struct BADINF BadROMImages[] =
 {
- #include "ines-bad.h"
+	#include "ines-bad.h"
 };
 
-void CheckBad(uint64 md5partial)
-{
- int x;
-
- x=0;
- //printf("0x%llx\n",md5partial);
- while(BadROMImages[x].name)
- {
-  if(BadROMImages[x].md5partial == md5partial)
-  {
-   FCEU_PrintError("The copy game you have loaded, \"%s\", is bad, and will not work properly on FCE Ultra.", BadROMImages[x].name);
-   return;
-  }
-  x++;
- }
-
+void CheckBad(uint64 md5partial) {
+	int32 x = 0;
+	while (BadROMImages[x].name) {
+		if (BadROMImages[x].md5partial == md5partial) {
+			FCEU_PrintError("The copy game you have loaded, \"%s\", is bad, and will not work properly in FCE Ultra.", BadROMImages[x].name);
+			return;
+		}
+		x++;
+	}
 }
 
 
 struct CHINF {
-  uint32 crc32;
-  int32 mapper;
-  int32 mirror;
+	uint32 crc32;
+	int32 mapper;
+	int32 mirror;
 };
 
-static void CheckHInfo(void)
-{
- /* ROM images that have the battery-backed bit set in the header that really
-    don't have battery-backed RAM is not that big of a problem, so I'll
-    treat this differently by only listing games that should have battery-backed RAM.
+static void CheckHInfo(void) {
+	/* ROM images that have the battery-backed bit set in the header that really
+	don't have battery-backed RAM is not that big of a problem, so I'll
+	treat this differently by only listing games that should have battery-backed RAM.
 
-    Lower 64 bits of the MD5 hash.
- */
+	Lower 64 bits of the MD5 hash.
+	*/
 
- static uint64 savie[]=
-  {
-   0x498c10dc463cfe95LL,  /* Battle Fleet */
-   0x6917ffcaca2d8466LL,  /* Famista '90 */
+	static uint64 savie[] =
+	{
+		0xc04361e499748382LL,	/* AD&D Heroes of the Lance */
+		0xb72ee2337ced5792LL,	/* AD&D Hillsfar */
+		0x2b7103b7a27bd72fLL,	/* AD&D Pool of Radiance */
+		0x498c10dc463cfe95LL,	/* Battle Fleet */
+		0x854d7947a3177f57LL,	/* Crystalis */
+		0x4a1f5336b86851b6LL,	/* DW */
+		0xb0bcc02c843c1b79LL,	/* DW */
+		0x2dcf3a98c7937c22LL,	/* DW 2 */
+		0x98e55e09dfcc7533LL,	/* DW 4*/
+		0x733026b6b72f2470LL,	/* Dw 3 */
+		0x6917ffcaca2d8466LL,	/* Famista '90 */
+		0x8da46db592a1fcf4LL,	/* Faria */
+		0xedba17a2c4608d20LL,	/* Final Fantasy */
+		0x91a6846d3202e3d6LL,	/* Final Fantasy */
+		0x012df596e2b31174LL,	/* Final Fantasy 1+2 */
+		0xf6b359a720549ecdLL,	/* Final Fantasy 2 */
+		0x5a30da1d9b4af35dLL,	/* Final Fantasy 3 */
+		0xd63dcc68c2b20adcLL,	/* Final Fantasy J */
+		0x2ee3417ba8b69706LL,	/* Hydlide 3*/
+		0xebbce5a54cf3ecc0LL,	/* Justbreed */
+		0x6a858da551ba239eLL,	/* Kaijuu Monogatari */
+		0x2db8f5d16c10b925LL,	/* Kyonshiizu 2 */
+		0x04a31647de80fdabLL,	/* Legend of Zelda */
+		0x94b9484862a26cbaLL,	/* Legend of Zelda */
+		0xa40666740b7d22feLL,	/* Mindseeker */
+		0x82000965f04a71bbLL,	/* Mirai Shinwa Jarvas */
+		0x77b811b2760104b9LL,	/* Mouryou Senki Madara */
+		0x11b69122efe86e8cLL,	/* RPG Jinsei Game */
+		0x9aa1dc16c05e7de5LL,	/* Startropics */
+		0x1b084107d0878bd0LL,	/* Startropics 2*/
+		0xa70b495314f4d075LL,	/* Ys 3 */
+		0x836c0ff4f3e06e45LL,	/* Zelda 2 */
+		0						/* Abandon all hope if the game has 0 in the lower 64-bits of its MD5 hash */
+	};
 
-     0xd63dcc68c2b20adcLL,    /* Final Fantasy J */
-     0x012df596e2b31174LL,    /* Final Fantasy 1+2 */
-     0xf6b359a720549ecdLL,    /* Final Fantasy 2 */
-     0x5a30da1d9b4af35dLL,    /* Final Fantasy 3 */
+	static struct CHINF moo[] =
+	{
+		#include "ines-correct.h"
+	};
+	int32 tofix = 0, x;
+	uint64 partialmd5 = 0;
 
-   0x2ee3417ba8b69706LL,  /* Hydlide 3*/
+	for (x = 0; x < 8; x++)
+		partialmd5 |= (uint64)iNESCart.MD5[15 - x] << (x * 8);
+	CheckBad(partialmd5);
 
-   0xebbce5a54cf3ecc0LL,  /* Justbreed */
+	x = 0;
+	do {
+		if (moo[x].crc32 == iNESGameCRC32) {
+			if (moo[x].mapper >= 0) {
+				if (moo[x].mapper & 0x800 && VROM_size) {
+					VROM_size = 0;
+					free(VROM);
+					VROM = NULL;
+					tofix |= 8;
+				}
+				if (MapperNo != (moo[x].mapper & 0xFF)) {
+					tofix |= 1;
+					MapperNo = moo[x].mapper & 0xFF;
+				}
+			}
+			if (moo[x].mirror >= 0) {
+				if (moo[x].mirror == 8) {
+					if (Mirroring == 2) {	/* Anything but hard-wired(four screen). */
+						tofix |= 2;
+						Mirroring = 0;
+					}
+				} else if (Mirroring != moo[x].mirror) {
+					if (Mirroring != (moo[x].mirror & ~4))
+						if ((moo[x].mirror & ~4) <= 2)	/* Don't complain if one-screen mirroring
+														needs to be set(the iNES header can't
+														hold this information).
+														*/
+							tofix |= 2;
+					Mirroring = moo[x].mirror;
+				}
+			}
+			break;
+		}
+		x++;
+	} while (moo[x].mirror >= 0 || moo[x].mapper >= 0);
 
-   0x6a858da551ba239eLL,  /* Kaijuu Monogatari */
-   0xa40666740b7d22feLL,  /* Mindseeker */
+	x = 0;
+	while (savie[x] != 0) {
+		if (savie[x] == partialmd5) {
+			if (!(head.ROM_type & 2)) {
+				tofix |= 4;
+				head.ROM_type |= 2;
+			}
+		}
+		x++;
+	}
 
-     0x77b811b2760104b9LL,    /* Mouryou Senki Madara */
+	/* Games that use these iNES mappers tend to have the four-screen bit set
+	when it should not be.
+	*/
+	if ((MapperNo == 118 || MapperNo == 24 || MapperNo == 26) && (Mirroring == 2)) {
+		Mirroring = 0;
+		tofix |= 2;
+	}
 
-   0x11b69122efe86e8cLL,  /* RPG Jinsei Game */
+	/* Four-screen mirroring implicitly set. */
+	if (MapperNo == 99)
+		Mirroring = 2;
 
-   0xa70b495314f4d075LL,  /* Ys 3 */
-
-
-   0xc04361e499748382LL,  /* AD&D Heroes of the Lance */
-   0xb72ee2337ced5792LL,  /* AD&D Hillsfar */
-   0x2b7103b7a27bd72fLL,  /* AD&D Pool of Radiance */
-
-    0x854d7947a3177f57LL,    /* Crystalis */
-
-   0xb0bcc02c843c1b79LL,  /* DW */
-   0x4a1f5336b86851b6LL,  /* DW */
-
-   0x2dcf3a98c7937c22LL,  /* DW 2 */
-   0x733026b6b72f2470LL,  /* Dw 3 */
-   0x98e55e09dfcc7533LL,  /* DW 4*/
-   0x8da46db592a1fcf4LL,  /* Faria */
-   0x91a6846d3202e3d6LL,  /* Final Fantasy */
-   0xedba17a2c4608d20LL,  /* ""    */
-
-     0x94b9484862a26cbaLL,    /* Legend of Zelda */
-     0x04a31647de80fdabLL,    /*      ""      */
-
-     0x9aa1dc16c05e7de5LL,    /* Startropics */
-     0x1b084107d0878bd0LL,    /* Startropics 2*/
-
-     0x836c0ff4f3e06e45LL,    /* Zelda 2 */
-
-   0      /* Abandon all hope if the game has 0 in the lower 64-bits of its MD5 hash */
- };
-
- static struct CHINF moo[]=
-  {
-  #include "ines-correct.h"
-  };
- int tofix=0;
- int x;
- uint64 partialmd5=0;
-
- for(x=0;x<8;x++)
- {
-  partialmd5 |= (uint64)iNESCart.MD5[15-x] << (x*8);
-  //printf("%16llx\n",partialmd5);
- }
- CheckBad(partialmd5);
-
- x=0;
-
-
- do
- {
-  if(moo[x].crc32==iNESGameCRC32)
-  {
-   if(moo[x].mapper>=0)
-   {
-    if(moo[x].mapper&0x800 && VROM_size)
-    {
-     VROM_size=0;
-     free(VROM);
-     VROM=0;
-     tofix|=8;
-    }
-    if(MapperNo!=(moo[x].mapper&0xFF))
-    {
-     tofix|=1;
-     MapperNo=moo[x].mapper&0xFF;
-    }
-   }
-   if(moo[x].mirror>=0)
-   {
-    if(moo[x].mirror==8)
-    {
-     if(Mirroring==2)  /* Anything but hard-wired(four screen). */
-     {
-      tofix|=2;
-      Mirroring=0;
-     }
-    }
-    else if(Mirroring!=moo[x].mirror)
-    {
-     if(Mirroring!=(moo[x].mirror&~4))
-      if((moo[x].mirror&~4)<=2)  /* Don't complain if one-screen mirroring
-           needs to be set(the iNES header can't
-           hold this information).
-        */
-       tofix|=2;
-     Mirroring=moo[x].mirror;
-    }
-   }
-   break;
-  }
-  x++;
- } while(moo[x].mirror>=0 || moo[x].mapper>=0);
-
- x=0;
- while(savie[x] != 0)
- {
-  if(savie[x] == partialmd5)
-  {
-   if(!(head.ROM_type&2))
-   {
-    tofix|=4;
-    head.ROM_type|=2;
-   }
-  }
-  x++;
- }
-
- /* Games that use these iNES mappers tend to have the four-screen bit set
-    when it should not be.
- */
- if((MapperNo==118 || MapperNo==24 || MapperNo==26) && (Mirroring==2))
- {
-  Mirroring=0;
-  tofix|=2;
- }
-
- /* Four-screen mirroring implicitly set. */
- if(MapperNo==99)
-  Mirroring=2;
-
- if(tofix)
- {
-  char gigastr[768];
-  strcpy(gigastr,"The iNES header contains incorrect information.  For now, the information will be corrected in RAM.  ");
-  if(tofix&1)
-   sprintf(gigastr+strlen(gigastr),"The mapper number should be set to %d.  ",MapperNo);
-  if(tofix&2)
-  {
-   char *mstr[3]={"Horizontal","Vertical","Four-screen"};
-   sprintf(gigastr+strlen(gigastr),"Mirroring should be set to \"%s\".  ",mstr[Mirroring&3]);
-  }
-  if(tofix&4)
-   strcat(gigastr,"The battery-backed bit should be set.  ");
-  if(tofix&8)
-   strcat(gigastr,"This game should not have any CHR ROM.  ");
-  strcat(gigastr,"\n");
-  FCEU_printf("%s",gigastr);
- }
+	if (tofix) {
+		char gigastr[768];
+		strcpy(gigastr, "The iNES header contains incorrect information.  For now, the information will be corrected in RAM.  ");
+		if (tofix & 1)
+			sprintf(gigastr + strlen(gigastr), "The mapper number should be set to %d.  ", MapperNo);
+		if (tofix & 2) {
+			uint8 *mstr[3] = { "Horizontal", "Vertical", "Four-screen" };
+			sprintf(gigastr + strlen(gigastr), "Mirroring should be set to \"%s\".  ", mstr[Mirroring & 3]);
+		}
+		if (tofix & 4)
+			strcat(gigastr, "The battery-backed bit should be set.  ");
+		if (tofix & 8)
+			strcat(gigastr, "This game should not have any CHR ROM.  ");
+		strcat(gigastr, "\n");
+		FCEU_printf("%s", gigastr);
+	}
 }
 
 typedef struct {
-  int mapper;
-  void (*init)(CartInfo *);
+	int32 mapper;
+	void (*init)(CartInfo *);
 } NewMI;
 
-
-extern char FileBase[2048];
-
-int iNESLoad(const char *name, FCEUFILE *fp)
-{
-  struct md5_context md5;
-
-  if(FCEU_fread(&head,1,16,fp)!=16)
-    return 0;
-
-  if(memcmp(&head,"NES\x1a",4))
-   return 0;
-
-  memset(&iNESCart,0,sizeof(iNESCart));
-
-  if(!memcmp((char *)(&head)+0x7,"DiskDude",8))
-  {
-   memset((char *)(&head)+0x7,0,0x9);
-  }
-
-  if(!memcmp((char *)(&head)+0x7,"demiforce",9))
-  {
-   memset((char *)(&head)+0x7,0,0x9);
-  }
-
-  if(!memcmp((char *)(&head)+0xA,"Ni03",4))
-  {
-   if(!memcmp((char *)(&head)+0x7,"Dis",3))
-    memset((char *)(&head)+0x7,0,0x9);
-   else
-    memset((char *)(&head)+0xA,0,0x6);
-  }
-
-//  int ROM_size=0;
-  if(!head.ROM_size)
-  {
-//   FCEU_PrintError("No PRG ROM!");
-//   return(0);
-   ROM_size=256;
-//   head.ROM_size=255;
-   //head.ROM_size++;
-  }
-  else
-   ROM_size=head.ROM_size;
-
-//    ROM_size = head.ROM_size;
-    VROM_size = head.VROM_size;
-
-    ROM_size=uppow2(ROM_size);
-    if(VROM_size)
-      VROM_size=uppow2(VROM_size);
-
-    MapperNo = (head.ROM_type>>4);
-    MapperNo|=(head.ROM_type2&0xF0);
-    Mirroring = (head.ROM_type&1);
-
-  if(head.ROM_type&8) Mirroring=2;
-
-  if(!(ROM=(uint8 *)FCEU_malloc(ROM_size<<14)))
-   return 0;
-
-  if(VROM_size)
-   if(!(VROM=(uint8 *)FCEU_malloc(VROM_size<<13)))
-   {
-    free(ROM);
-    return 0;
-   }
-
-  memset(ROM,0xFF,ROM_size<<14);
-  if(VROM_size) memset(VROM,0xFF,VROM_size<<13);
-  if(head.ROM_type&4)   /* Trainer */
-  {
-   trainerpoo=(uint8 *)FCEU_gmalloc(512);
-    FCEU_fread(trainerpoo,512,1,fp);
-  }
-
-  ResetCartMapping();
-  ResetExState(0,0);
-
-  SetupCartPRGMapping(0,ROM,ROM_size*0x4000,0);
-//    SetupCartPRGMapping(1,WRAM,8192,1);
-
-    FCEU_fread(ROM,0x4000,ROM_size,fp);
-
-  if(VROM_size)
-   FCEU_fread(VROM,0x2000,head.VROM_size,fp);
-
-    md5_starts(&md5);
-    md5_update(&md5,ROM,ROM_size<<14);
-
-  iNESGameCRC32=CalcCRC32(0,ROM,ROM_size<<14);
-
-  if(VROM_size)
-  {
-   iNESGameCRC32=CalcCRC32(iNESGameCRC32,VROM,VROM_size<<13);
-     md5_update(&md5,VROM,VROM_size<<13);
-  }
-  md5_finish(&md5,iNESCart.MD5);
-  memcpy(FCEUGameInfo->MD5,iNESCart.MD5,sizeof(iNESCart.MD5));
-
-  iNESCart.CRC32=iNESGameCRC32;
-  sprintf(FileBase,"%s%08X", FileBase, iNESGameCRC32);
-
-  FCEU_printf(" PRG ROM:  %3d x 16KiB\n CHR ROM:  %3d x  8KiB\n ROM CRC32:  0x%08lx\n",
-    ROM_size,head.VROM_size,iNESGameCRC32);
-
-  {
-   int x;
-   FCEU_printf(" ROM MD5:  0x");
-   for(x=0;x<16;x++)
-    FCEU_printf("%02x",iNESCart.MD5[x]);
-   FCEU_printf("\n");
-  }
-  FCEU_printf(" Mapper:  %d\n Mirroring: %s\n", MapperNo,Mirroring==2?"None(Four-screen)":Mirroring?"Vertical":"Horizontal");
-    if(head.ROM_type&2) FCEU_printf(" Battery-backed.\n");
-    if(head.ROM_type&4) FCEU_printf(" Trained.\n");
-
-  SetInput();
-  CheckHInfo();
-  {
-   int x;
-   uint64 partialmd5=0;
-
-   for(x=0;x<8;x++)
-   {
-    partialmd5 |= (uint64)iNESCart.MD5[7-x] << (x*8);
-   }
-
-   FCEU_VSUniCheck(partialmd5, &MapperNo, &Mirroring);
-  }
-  /* Must remain here because above functions might change value of
-     VROM_size and free(VROM).
-  */
-  if(VROM_size)
-      SetupCartCHRMapping(0,VROM,VROM_size*0x2000,0);
-
-    if(Mirroring==2)
-      SetupCartMirroring(4,1,ExtraNTARAM);
-    else if(Mirroring>=0x10)
-        SetupCartMirroring(2+(Mirroring&1),1,0);
-       else
-    SetupCartMirroring(Mirroring&1,(Mirroring&4)>>2,0);
-
-  iNESCart.battery=(head.ROM_type&2)?1:0;
-  iNESCart.mirror=Mirroring;
-
-  //if(MapperNo != 18) {
-  //  if(ROM) free(ROM);
-  //  if(VROM) free(VROM);
-  //  ROM=VROM=0;
-  //  return(0);
-  // }
-
-  if(NewiNES_Init(MapperNo))
-  {
-
-  }
-  else
-  {
-   iNESCart.Power=iNESPower;
-   if(head.ROM_type&2)
-   {
-    iNESCart.SaveGame[0]=WRAM;
-    iNESCart.SaveGameLen[0]=8192;
-   }
-  }
-  FCEU_LoadGameSave(&iNESCart);
-
-  GameInterface=iNESGI;
-  FCEU_printf("\n");
-  return 1;
-}
-
-void FASTAPASS(2) VRAM_BANK1(uint32 A, uint8 V)
-{
- V&=7;
- PPUCHRRAM|=(1<<(A>>10));
- CHRBankList[(A)>>10]=V;
- VPage[(A)>>10]=&CHRRAM[V<<10]-(A);
-}
-
-void FASTAPASS(2) VRAM_BANK4(uint32 A, uint32 V)
-{
- V&=1;
- PPUCHRRAM|=(0xF<<(A>>10));
- CHRBankList[(A)>>10]=(V<<2);
- CHRBankList[((A)>>10)+1]=(V<<2)+1;
- CHRBankList[((A)>>10)+2]=(V<<2)+2;
- CHRBankList[((A)>>10)+3]=(V<<2)+3;
- VPage[(A)>>10]=&CHRRAM[V<<10]-(A);
-}
-void FASTAPASS(2) VROM_BANK1(uint32 A,uint32 V)
-{
- setchr1(A,V);
- CHRBankList[(A)>>10]=V;
-}
-
-void FASTAPASS(2) VROM_BANK2(uint32 A,uint32 V)
-{
- setchr2(A,V);
- CHRBankList[(A)>>10]=(V<<1);
- CHRBankList[((A)>>10)+1]=(V<<1)+1;
-}
-
-void FASTAPASS(2) VROM_BANK4(uint32 A, uint32 V)
-{
- setchr4(A,V);
- CHRBankList[(A)>>10]=(V<<2);
- CHRBankList[((A)>>10)+1]=(V<<2)+1;
- CHRBankList[((A)>>10)+2]=(V<<2)+2;
- CHRBankList[((A)>>10)+3]=(V<<2)+3;
-}
-
-void FASTAPASS(1) VROM_BANK8(uint32 V)
-{
- setchr8(V);
- CHRBankList[0]=(V<<3);
- CHRBankList[1]=(V<<3)+1;
- CHRBankList[2]=(V<<3)+2;
- CHRBankList[3]=(V<<3)+3;
- CHRBankList[4]=(V<<3)+4;
- CHRBankList[5]=(V<<3)+5;
- CHRBankList[6]=(V<<3)+6;
- CHRBankList[7]=(V<<3)+7;
-}
-
-void FASTAPASS(2) ROM_BANK8(uint32 A, uint32 V)
-{
- setprg8(A,V);
- if(A>=0x8000)
-  PRGBankList[((A-0x8000)>>13)]=V;
-}
-
-void FASTAPASS(2) ROM_BANK16(uint32 A, uint32 V)
-{
- setprg16(A,V);
- if(A>=0x8000)
- {
-  PRGBankList[((A-0x8000)>>13)]=V<<1;
-  PRGBankList[((A-0x8000)>>13)+1]=(V<<1)+1;
- }
-}
-
-void FASTAPASS(1) ROM_BANK32(uint32 V)
-{
- setprg32(0x8000,V);
- PRGBankList[0]=V<<2;
- PRGBankList[1]=(V<<2)+1;
- PRGBankList[2]=(V<<2)+2;
- PRGBankList[3]=(V<<2)+3;
-}
-
-void FASTAPASS(1) onemir(uint8 V)
-{
-  if(Mirroring==2) return;
-  if(V>1)
-   V=1;
-  Mirroring=0x10|V;
-  setmirror(MI_0+V);
-}
-
-void FASTAPASS(1) MIRROR_SET2(uint8 V)
-{
-  if(Mirroring==2) return;
-  Mirroring=V;
-  setmirror(V);
-}
-
-void FASTAPASS(1) MIRROR_SET(uint8 V)
-{
-  if(Mirroring==2) return;
-  V^=1;
-  Mirroring=V;
-  setmirror(V);
-}
-
-static void NONE_init(void)
-{
-  ROM_BANK16(0x8000,0);
-  ROM_BANK16(0xC000,~0);
-
-  if(VROM_size)
-   VROM_BANK8(0);
-  else
-   setvram8(CHRRAM);
-}
-
-void (*MapInitTab[256])(void)=
-{
-    0,
-    0,
-    0, //Mapper2_init,
-    0, //Mapper3_init,
-    0,
-    0,
-    Mapper6_init,
-    0,//Mapper7_init,
-    Mapper8_init,
-    Mapper9_init,
-    Mapper10_init,
-    0, //Mapper11_init,
-    0,
-    0, //Mapper13_init,
-    0,
-    0, //Mapper15_init,
-    0, //Mapper16_init,
-    Mapper17_init,
-    Mapper18_init,
-    0,
-    0,
-    Mapper21_init,
-    Mapper22_init,
-    0, //Mapper23_init,
-    Mapper24_init,
-    Mapper25_init,
-    Mapper26_init,
-    Mapper27_init,
-    0,
-    0,
-    0,
-    0,
-    Mapper32_init,
-    Mapper33_init,
-    Mapper34_init,
-    0,
-    0,
-    0,
-    0,
-    0,
-    Mapper40_init,
-    Mapper41_init,
-    Mapper42_init,
-    0, //Mapper43_init,
-    0,
-    0,
-    Mapper46_init,
-    0,
-    Mapper48_init,
-    0,
-    Mapper50_init,
-    Mapper51_init,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,//    Mapper57_init,
-    0,//    Mapper58_init,
-    Mapper59_init,
-    0,// Mapper60_init,
-    Mapper61_init,
-    Mapper62_init,
-    0,
-    Mapper64_init,
-    Mapper65_init,
-    0,//Mapper66_init,
-    Mapper67_init,
-    0,//Mapper68_init,
-    Mapper69_init,
-    0,//Mapper70_init,
-    Mapper71_init,
-    Mapper72_init,
-    Mapper73_init,
-    0,
-    Mapper75_init,
-    Mapper76_init,
-    Mapper77_init,
-    0, //Mapper78_init,
-    Mapper79_init,
-    Mapper80_init,
-    0,
-    Mapper82_init,
-    Mapper83_init,
-    0,
-    Mapper85_init,
-    Mapper86_init,
-    0, //Mapper87_init,
-    0, //Mapper88_init,
-    Mapper89_init,
-    0,
-    Mapper91_init,
-    Mapper92_init,
-    0, //Mapper93_init,
-    0, //Mapper94_init,
-    0,
-    Mapper96_init,
-    Mapper97_init,
-    0,
-    Mapper99_init,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0, //Mapper107_init,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0, // Mapper113_init,
-    0,
-    0,
-    0, //Mapper116_init,
-    0, //Mapper117_init,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0, //Mapper140_init,
-    0,
-    0,
-    0,
-    0, //Mapper144_init,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    Mapper151_init,
-    0, //Mapper152_init,
-    0, //Mapper153_init,
-    0, //Mapper154_init,
-    0,
-    Mapper156_init,
-    Mapper157_init,
-    0, //Mapper158_init, removed
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    Mapper166_init,
-    Mapper167_init,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0, //Mapper180_init,
-    0,
-    0,
-    0,
-    0, //Mapper184_init,
-    0, //Mapper185_init,
-    0,
-    0,
-    0,
-    0, //Mapper189_init,
-    0,
-    0, //Mapper191_init,
-    0,
-    Mapper193_init,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0, //Mapper200_init,
-    Mapper201_init,
-    Mapper202_init,
-    Mapper203_init,
-    Mapper204_init,
-    0,
-    0,
-    Mapper207_init,
-    0,
-    0,
-    0,
-    0, //Mapper211_init,
-    Mapper212_init,
-    Mapper213_init,
-    Mapper214_init,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    Mapper225_init,
-    0, //Mapper226_init,
-    Mapper227_init,
-    Mapper228_init,
-    Mapper229_init,
-    Mapper230_init,
-    Mapper231_init,
-    Mapper232_init,
-    0,
-    Mapper234_init,
-    0, //Mapper235_init,
-    0,
-    0,
-    0,
-    0,
-    0, //Mapper240_init,
-    Mapper241_init,
-    Mapper242_init,
-    0,
-    Mapper244_init,
-    0,
-    Mapper246_init,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    Mapper255_init
-};
-
-static DECLFW(BWRAM)
-{
- WRAM[A-0x6000]=V;
-}
-
-static DECLFR(AWRAM)
-{
- return WRAM[A-0x6000];
-}
-
-
-void (*MapStateRestore)(int version);
-void iNESStateRestore(int version)
-{
- int x;
-
- if(!MapperNo) return;
-
- for(x=0;x<4;x++)
-  setprg8(0x8000+x*8192,PRGBankList[x]);
-
- if(VROM_size)
-  for(x=0;x<8;x++)
-    setchr1(0x400*x,CHRBankList[x]);
-
-if(0) switch(Mirroring)
- {
-   case 0:setmirror(MI_H);break;
-   case 1:setmirror(MI_V);break;
-   case 0x12:
-   case 0x10:setmirror(MI_0);break;
-   case 0x13:
-   case 0x11:setmirror(MI_1);break;
- }
- if(MapStateRestore) MapStateRestore(version);
-}
-
-static void iNESPower(void)
-{
-    int x;
-  int type=MapperNo;
-
-    SetReadHandler(0x8000,0xFFFF,CartBR);
-    GameStateRestore=iNESStateRestore;
-    MapClose=0;
-  MapperReset=0;
-    MapStateRestore=0;
-
-    setprg8r(1,0x6000,0);
-
-    SetReadHandler(0x6000,0x7FFF,AWRAM);
-    SetWriteHandler(0x6000,0x7FFF,BWRAM);
-    FCEU_CheatAddRAM(8,0x6000,WRAM);
-
-  /* This statement represents atrocious code.  I need to rewrite
-     all of the iNES mapper code... */
-  IRQCount=IRQLatch=IRQa=0;
-    if(head.ROM_type&2)
-      memset(GameMemBlock+8192,0,sizeof(GameMemBlock)-8192);
-  else
-      memset(GameMemBlock,0,sizeof(GameMemBlock));
-
-    NONE_init();
-
-    ResetExState(0,0);
-  if(FCEUGameInfo->type == GIT_VSUNI)
-    AddExState(FCEUVSUNI_STATEINFO, ~0, 0, 0);
-
-  AddExState(WRAM, 8192, 0, "WRAM");
-    if(type==19 || type==6 || type==69 || type==85 || type==96)
-       AddExState(MapperExRAM, 32768, 0, "MEXR");
-    if((!VROM_size || type==6 || type==19) && (type!=13 && type!=96))
-       AddExState(CHRRAM, 8192, 0, "CHRR");
-    if(head.ROM_type&8)
-       AddExState(ExtraNTARAM, 2048, 0, "EXNR");
-
-  /* Exclude some mappers whose emulation code handle save state stuff
-     themselves. */
-  if(type && type!=13 && type!=96)
-  {
-   AddExState(mapbyte1, 32, 0, "MPBY");
-   AddExState(&Mirroring, 1, 0, "MIRR");
-   AddExState(&IRQCount, 4, 1, "IRQC");
-   AddExState(&IRQLatch, 4, 1, "IQL1");
-   AddExState(&IRQa, 1, 0, "IRQA");
-   AddExState(PRGBankList, 4, 0, "PBL");
-   for(x=0;x<8;x++)
-   {
-    char tak[8];
-    sprintf(tak,"CBL%d",x);
-    AddExState(&CHRBankList[x], 2, 1,tak);
-   }
-  }
-
-  if(MapInitTab[type]) MapInitTab[type]();
-  else if(type)
-  {
-   FCEU_PrintError("iNES mapper #%d is not supported at all.",type);
-  }
-}
-
-
 typedef struct {
-     int number;
-     void (*init)(CartInfo *);
-} BMAPPING;
+	uint8 *name;
+	int32 number;
+	void (*init)(CartInfo *);
+} BMAPPINGLocal;
 
-static BMAPPING bmap[] = {
-    {0,   NROM_Init},
-    {1,   Mapper1_Init},
-    {2,   UNROM_Init},
-    {3,   CNROM_Init},
-    {4,   Mapper4_Init},
-    {5,   Mapper5_Init},
-    {7,   ANROM_Init},
-    {11,  Mapper11_Init},
-    {12,  Mapper12_Init},
-    {13,  CPROM_Init},
-    {15,  Mapper15_Init},
-    {16,  Mapper16_Init},
-    {19,  Mapper19_Init},
-    {23,  Mapper23_Init},
-    {36,  Mapper36_Init}, // TXC Policeman
-    {37,  Mapper37_Init},
-    {38,  Mapper38_Init}, // Bit Corp. Crime Busters
-    {43,  Mapper43_Init},
-    {44,  Mapper44_Init},
-    {45,  Mapper45_Init},
-    {47,  Mapper47_Init},
-    {49,  Mapper49_Init},
-    {52,  Mapper52_Init},
-    {57,  Mapper57_Init},
-    {58,  BMCGK192_Init},
-    {60,  BMCD1038_Init},
-    {66,  MHROM_Init},
-    {68,  Mapper68_Init},
-    {70,  Mapper70_Init},
-    {74,  Mapper74_Init},
-    {78,  Mapper78_Init},
-    {87,  Mapper87_Init},
-    {88,  Mapper88_Init},
-    {90,  Mapper90_Init},
-    {93,  SUNSOFT_UNROM_Init},
-    {94,  Mapper94_Init},
-    {95,  Mapper95_Init},
-    {103, Mapper103_Init},
-    {105, Mapper105_Init},
-    {106, Mapper106_Init},
-    {107, Mapper107_Init},
-    {108, Mapper108_Init},
-    {112, Mapper112_Init},
-    {113, Mapper113_Init},
-    {114, Mapper114_Init},
-    {115, Mapper115_Init},
-    {116, Mapper116_Init},
-//    {116, UNLSL1632_Init},
-    {117, Mapper117_Init},
-    {118, TKSROM_Init},
-    {119, Mapper119_Init},
-    {120, Mapper120_Init},
-    {121, Mapper121_Init},
-    {132, UNL22211_Init},
-    {133, SA72008_Init},
-    {134, Mapper134_Init},
-    {136, TCU02_Init},
-    {137, S8259D_Init},
-    {138, S8259B_Init},
-    {139, S8259C_Init},
-    {140, Mapper140_Init},
-    {141, S8259A_Init},
-    {142, UNLKS7032_Init},
-    {143, TCA01_Init},
-    {144, Mapper144_Init},
-    {145, SA72007_Init},
-    {146, SA0161M_Init},
-    {147, TCU01_Init},
-    {148, SA0037_Init},
-    {149, SA0036_Init},
-    {150, S74LS374N_Init},
-    {152, Mapper152_Init},
-    {153, Mapper153_Init},
-    {154, Mapper154_Init},
-    {155, Mapper155_Init},
-    {160, SA009_Init},
-    {163, Mapper163_Init},
-    {164, Mapper164_Init},
-    {165, Mapper165_Init},
-//    {169, Mapper169_Init},
-    {171, Mapper171_Init},
-    {172, Mapper172_Init},
-    {173, Mapper173_Init},
-    {177, Mapper177_Init},
-    {178, Mapper178_Init},
-    {179, Mapper179_Init},
-    {180, Mapper180_Init},
-    {181, Mapper181_Init},
-    {182, Mapper182_Init},
-    {183, Mapper183_Init},
-    {184, Mapper184_Init},
-    {185, Mapper185_Init},
-    {186, Mapper186_Init},
-    {187, Mapper187_Init},
-    {188, Mapper188_Init},
-    {189, Mapper189_Init},
-    {191, Mapper191_Init},
-    {192, Mapper192_Init},
-    {194, Mapper194_Init},
-    {195, Mapper195_Init},
-    {196, Mapper196_Init},
-    {197, Mapper197_Init},
-    {198, Mapper198_Init},
-    {199, Mapper199_Init},
-    {200, Mapper200_Init},
-    {205, Mapper205_Init},
-    {206, DEIROM_Init},
-    {208, Mapper208_Init},
-    {209, Mapper209_Init},
-    {210, Mapper210_Init},
-    {211, Mapper211_Init},
-    {215, Mapper215_Init},
-    {216, Mapper216_Init},
-    {217, Mapper217_Init},
-
-    {218, UNLA9711_Init},
-    {219, UNLA9746_Init},
-    {220, BMCFK23C_Init},
-//    {219, UNL3DBlock_Init},
-//    {219, BMCFK23C_Init},
-//    {219, UNLTF1201_Init},
-//    {219, TCU02_Init},
-//    {220, UNLCN22M_Init},
-    {221, UNLN625092_Init},
-
-    {222, Mapper222_Init},
-    {226, Mapper226_Init},
-    {235, Mapper235_Init},
-    {240, Mapper240_Init},
-    {243, S74LS374NA_Init},
-    {245, Mapper245_Init},
-    {249, Mapper249_Init},
-    {250, Mapper250_Init},
-    {254, Mapper254_Init},
-    {  0,        0}
+static BMAPPINGLocal bmap[] = {
+	{"NROM",				  0, NROM_Init},
+	{"MMC1",				  1, Mapper1_Init},
+	{"UNROM",				  2, UNROM_Init},
+	{"CNROM",				  3, CNROM_Init},
+	{"MMC3",				  4, Mapper4_Init},
+	{"MMC5",				  5, Mapper5_Init},
+	{"FFE Rev. A",			  6, Mapper6_Init},
+	{"ANROM",				  7, ANROM_Init},
+	{"",					  8, Mapper8_Init},		// Nogaems, it's worthless
+	{"MMC2",				  9, Mapper9_Init},
+	{"MMC4",				 10, Mapper10_Init},
+	{"Color Dreams",		 11, Mapper11_Init},
+	{"REX DBZ 5",			 12, Mapper12_Init},
+	{"CPROM",				 13, CPROM_Init},
+	{"REX SL-1632",			 14, UNLSL1632_Init},
+	{"100-in-1",			 15, Mapper15_Init},
+	{"BANDAI 24C02",		 16, Mapper16_Init},
+	{"FFE Rev. B",			 17, Mapper17_Init},
+	{"JALECO SS880006",		 18, Mapper18_Init},	// JF-NNX (EB89018-30007) boards
+	{"Namcot 106",			 19, Mapper19_Init},
+//	{"",					 20, Mapper20_Init},
+	{"Konami VRC2/VRC4 A",	 21, Mapper21_Init},
+	{"Konami VRC2/VRC4 B",	 22, Mapper22_Init},
+	{"Konami VRC2/VRC4 C",	 23, Mapper23_Init},
+	{"Konami VRC6 Rev. A",	 24, Mapper24_Init},
+	{"Konami VRC2/VRC4 D",	 25, Mapper25_Init},
+	{"Konami VRC6 Rev. B",	 26, Mapper26_Init},
+	{"CC-21 MI HUN CHE",	 27, UNLCC21_Init},		// Former dupe for VRC2/VRC4 mapper, redefined with crc to mihunche boards
+//	{"",					 28, Mapper28_Init},	// Custom Multidiscrete mapper for PDs
+//	{"",					 29, Mapper29_Init},
+//	{"",					 30, Mapper30_Init},
+//	{"",					 31, Mapper31_Init},
+	{"IREM G-101",			 32, Mapper32_Init},
+	{"TC0190FMC/TC0350FMR",	 33, Mapper33_Init},
+	{"IREM I-IM/BNROM",		 34, Mapper34_Init},
+	{"Wario Land 2",		 35, UNLSC127_Init},
+	{"TXC Policeman",		 36, Mapper36_Init},
+	{"PAL-ZZ SMB/TETRIS/NWC",37, Mapper37_Init},
+	{"Bit Corp.",			 38, Mapper38_Init},	// Crime Busters
+//	{"",					 39, Mapper39_Init},
+	{"SMB2j FDS",			 40, Mapper40_Init},
+	{"CALTRON 6-in-1",		 41, Mapper41_Init},
+	{"BIO MIRACLE FDS",		 42, Mapper42_Init},
+	{"FDS SMB2j LF36",		 43, Mapper43_Init},
+	{"MMC3 BMC PIRATE A",	 44, Mapper44_Init},
+	{"MMC3 BMC PIRATE B",	 45, Mapper45_Init},
+	{"RUMBLESTATION 15-in-1",46, Mapper46_Init},
+	{"NES-QJ SSVB/NWC",		 47, Mapper47_Init},
+	{"TAITO TCxxx",			 48, Mapper48_Init},
+	{"MMC3 BMC PIRATE C",	 49, Mapper49_Init},
+	{"SMB2j FDS Rev. A",	 50, Mapper50_Init},
+	{"11-in-1 BALL SERIES",	 51, Mapper51_Init},	// 1993 year version
+	{"MMC3 BMC PIRATE D",	 52, Mapper52_Init},
+	{"SUPERVISION 16-in-1",	 53, Supervision16_Init},
+//	{"",					 54, Mapper54_Init},
+//	{"",					 55, Mapper55_Init},
+//	{"",					 56, Mapper56_Init},
+	{"SIMBPLE BMC PIRATE A", 57, Mapper57_Init},
+	{"SIMBPLE BMC PIRATE B", 58, BMCGK192_Init},
+	{"",					 59, Mapper59_Init},	// Check this out
+	{"SIMBPLE BMC PIRATE C", 60, BMCD1038_Init},
+	{"20-in-1 KAISER Rev. A",61, Mapper61_Init},
+	{"700-in-1",			 62, Mapper62_Init},
+//	{"",					 63, Mapper63_Init},
+	{"TENGEN RAMBO1",		 64, Mapper64_Init},
+	{"IREM-H3001",			 65, Mapper65_Init},
+	{"MHROM",				 66, MHROM_Init},
+	{"SUNSOFT-FZII",		 67, Mapper67_Init},
+	{"Sunsoft Mapper #4",	 68, Mapper68_Init},
+	{"SUNSOFT-5/FME-7",		 69, Mapper69_Init},
+	{"BA KAMEN DISCRETE",	 70, Mapper70_Init},
+	{"CAMERICA BF9093",		 71, Mapper71_Init},
+	{"JALECO JF-17",		 72, Mapper72_Init},
+	{"KONAMI VRC3",			 73, Mapper73_Init},
+	{"TW MMC3+VRAM Rev. A",	 74, Mapper74_Init},
+	{"KONAMI VRC1",			 75, Mapper75_Init},
+	{"NAMCOT 108 Rev. A",	 76, Mapper76_Init},
+	{"IREM LROG017",		 77, Mapper77_Init},
+	{"Irem 74HC161/32",		 78, Mapper78_Init},
+	{"AVE/C&E/TXC BOARD",	 79, Mapper79_Init},
+	{"TAITO X1-005 Rev. A",	 80, Mapper80_Init},
+//	{"",					 81, Mapper81_Init},
+	{"TAITO X1-017",		 82, Mapper82_Init},
+	{"YOKO VRC Rev. B",		 83, Mapper83_Init},
+//	{"",					 84, Mapper84_Init},
+	{"KONAMI VRC7",			 85, Mapper85_Init},
+	{"JALECO JF-13",		 86, Mapper86_Init},
+	{"74*139/74 DISCRETE",	 87, Mapper87_Init},
+	{"NAMCO 3433",			 88, Mapper88_Init},
+	{"SUNSOFT-3",			 89, Mapper89_Init},	// SUNSOFT-2 mapper
+	{"HUMMER/JY BOARD",		 90, Mapper90_Init},
+	{"EARLY HUMMER/JY BOARD",91, Mapper91_Init},
+	{"JALECO JF-19",		 92, Mapper92_Init},
+	{"SUNSOFT-3R",			 93, SUNSOFT_UNROM_Init},// SUNSOFT-2 mapper with VRAM, different wiring
+	{"HVC-UN1ROM",			 94, Mapper94_Init},
+	{"NAMCOT 108 Rev. B",	 95, Mapper95_Init},
+	{"BANDAI OEKAKIDS",		 96, Mapper96_Init},
+	{"IREM TAM-S1",			 97, Mapper97_Init},
+//	{"",					 98, Mapper98_Init},
+	{"VS Uni/Dual- system",	 99, Mapper99_Init},
+//	{"",					100, Mapper100_Init},
+	{"",					101, Mapper101_Init},
+//	{"",					102, Mapper102_Init},
+	{"FDS DOKIDOKI FULL",	103, Mapper103_Init},
+//	{"",					104, Mapper104_Init},
+	{"NES-EVENT NWC1990",	105, Mapper105_Init},
+	{"SMB3 PIRATE A",		106, Mapper106_Init},
+	{"MAGIC CORP A",		107, Mapper107_Init},
+	{"FDS UNROM BOARD",		108, Mapper108_Init},
+//	{"",					109, Mapper109_Init},
+//	{"",					110, Mapper110_Init},
+//	{"",					111, Mapper111_Init},
+	{"ASDER/NTDEC BOARD",	112, Mapper112_Init},
+	{"HACKER/SACHEN BOARD",	113, Mapper113_Init},
+	{"MMC3 SG PROT. A",		114, Mapper114_Init},
+	{"MMC3 PIRATE A",		115, Mapper115_Init},
+	{"MMC1/MMC3/VRC PIRATE",116, UNLSL12_Init},
+	{"FUTURE MEDIA BOARD",	117, Mapper117_Init},
+	{"TSKROM",				118, TKSROM_Init},
+	{"NES-TQROM",			119, Mapper119_Init},
+	{"FDS TOBIDASE",		120, Mapper120_Init},
+	{"MMC3 PIRATE PROT. A",	121, Mapper121_Init},
+//	{"",					122, Mapper122_Init},
+	{"MMC3 PIRATE H2288",	123, UNLH2288_Init},
+//	{"",					124, Mapper124_Init},
+	{"FDS LH32",			125, LH32_Init},
+//	{"",					126, Mapper126_Init},
+//	{"",					127, Mapper127_Init},
+//	{"",					128, Mapper128_Init},
+//	{"",					129, Mapper129_Init},
+//	{"",					130, Mapper130_Init},
+//	{"",					131, Mapper131_Init},
+	{"TXC/MGENIUS 22111",	132, UNL22211_Init},
+	{"SA72008",				133, SA72008_Init},
+	{"MMC3 BMC PIRATE",		134, Mapper134_Init},
+//	{"",					135, Mapper135_Init},
+	{"TCU02",				136, TCU02_Init},
+	{"S8259D",				137, S8259D_Init},
+	{"S8259B",				138, S8259B_Init},
+	{"S8259C",				139, S8259C_Init},
+	{"JALECO JF-11/14",		140, Mapper140_Init},
+	{"S8259A",				141, S8259A_Init},
+	{"UNLKS7032",			142, UNLKS7032_Init},
+	{"TCA01",				143, TCA01_Init},
+	{"AGCI 50282",			144, Mapper144_Init},
+	{"SA72007",				145, SA72007_Init},
+	{"SA0161M",				146, SA0161M_Init},
+	{"TCU01",				147, TCU01_Init},
+	{"SA0037",				148, SA0037_Init},
+	{"SA0036",				149, SA0036_Init},
+	{"S74LS374N",			150, S74LS374N_Init},
+	{"",					151, Mapper151_Init},
+	{"",					152, Mapper152_Init},
+	{"BANDAI SRAM",			153, Mapper153_Init},	// Bandai board 16 with SRAM instead of EEPROM
+	{"",					154, Mapper154_Init},
+	{"",					155, Mapper155_Init},
+	{"",					156, Mapper156_Init},
+	{"BANDAI BARCODE",		157, Mapper157_Init},
+//	{"",					158, Mapper158_Init},
+	{"BANDAI 24C01",		159, Mapper159_Init},	// Different type of EEPROM on the  bandai board
+	{"SA009",				160, SA009_Init},
+//	{"",					161, Mapper161_Init},
+	{"",					162, UNLFS304_Init},
+	{"",					163, Mapper163_Init},
+	{"",					164, Mapper164_Init},
+	{"",					165, Mapper165_Init},
+	{"SUBOR Rev. A",		166, Mapper166_Init},
+	{"SUBOR Rev. B",		167, Mapper167_Init},
+	{"",					168, Mapper168_Init},
+//	{"",					169, Mapper169_Init},
+	{"",					170, Mapper170_Init},
+	{"",					171, Mapper171_Init},
+	{"",					172, Mapper172_Init},
+	{"",					173, Mapper173_Init},
+//	{"",					174, Mapper174_Init},
+	{"",					175, Mapper175_Init},
+	{"BMCFK23C",			176, BMCFK23C_Init},	// zero 26-may-2012 - well, i have some WXN junk games that use 176 for instance ????. i dont know what game uses this BMCFK23C as mapper 176. we'll have to make a note when we find it.
+	{"",					177, Mapper177_Init},
+	{"",					178, Mapper178_Init},
+//	{"",					179, Mapper179_Init},
+	{"",					180, Mapper180_Init},
+	{"",					181, Mapper181_Init},
+//	{"",					182, Mapper182_Init},	// Deprecated, dupe
+	{"",					183, Mapper183_Init},
+	{"",					184, Mapper184_Init},
+	{"",					185, Mapper185_Init},
+	{"",					186, Mapper186_Init},
+	{"",					187, Mapper187_Init},
+	{"",					188, Mapper188_Init},
+	{"",					189, Mapper189_Init},
+//	{"",					190, Mapper190_Init},
+	{"",					191, Mapper191_Init},
+	{"TW MMC3+VRAM Rev. B",	192, Mapper192_Init},
+	{"NTDEC TC-112",		193, Mapper193_Init},	// War in the Gulf
+	{"TW MMC3+VRAM Rev. C",	194, Mapper194_Init},
+	{"TW MMC3+VRAM Rev. D",	195, Mapper195_Init},
+	{"",					196, Mapper196_Init},
+	{"",					197, Mapper197_Init},
+	{"TW MMC3+VRAM Rev. E",	198, Mapper198_Init},
+	{"",					199, Mapper199_Init},
+	{"",					200, Mapper200_Init},
+	{"",					201, Mapper201_Init},
+	{"",					202, Mapper202_Init},
+	{"",					203, Mapper203_Init},
+	{"",					204, Mapper204_Init},
+	{"",					205, Mapper205_Init},
+	{"NAMCOT 108 Rev. C",	206, Mapper206_Init},	// Deprecated, Used to be "DEIROM" whatever it means, but actually simple version of MMC3
+	{"TAITO X1-005 Rev. B",	207, Mapper207_Init},
+	{"",					208, Mapper208_Init},
+	{"",					209, Mapper209_Init},
+	{"",					210, Mapper210_Init},
+	{"",					211, Mapper211_Init},
+	{"",					212, Mapper212_Init},
+	{"",					213, Mapper213_Init},
+	{"",					214, Mapper214_Init},
+	{"",					215, UNL8237_Init},
+	{"",					216, Mapper216_Init},
+	{"",					217, Mapper217_Init},	// Redefined to a new Discrete BMC mapper
+//	{"",					218, Mapper218_Init},
+	{"UNLA9746",			219, UNLA9746_Init},
+	{"Debug Mapper",		220, UNLPEC586Init}, // UNLKS7057_Init},
+	{"UNLN625092",			221, UNLN625092_Init},
+	{"",					222, Mapper222_Init},
+//	{"",					223, Mapper223_Init},
+//	{"",					224, Mapper224_Init},
+	{"",					225, Mapper225_Init},
+	{"BMC 22+20-in-1",		226, Mapper226_Init},
+	{"",					227, Mapper227_Init},
+	{"",					228, Mapper228_Init},
+	{"",					229, Mapper229_Init},
+	{"BMC Contra+22-in-1",	230, Mapper230_Init},
+	{"",					231, Mapper231_Init},
+	{"BMC QUATTRO",			232, Mapper232_Init},
+	{"BMC 22+20-in-1 RST",	233, Mapper233_Init},
+	{"BMC MAXI",			234, Mapper234_Init},
+	{"",					235, Mapper235_Init},
+//	{"",					236, Mapper236_Init},
+//	{"",					237, Mapper237_Init},
+	{"UNL6035052",			238, UNL6035052_Init},
+//	{"",					239, Mapper239_Init},
+	{"",					240, Mapper240_Init},
+	{"",					241, Mapper241_Init},
+	{"",					242, Mapper242_Init},
+	{"S74LS374NA",			243, S74LS374NA_Init},
+	{"DECATHLON",			244, Mapper244_Init},
+	{"",					245, Mapper245_Init},
+	{"FONG SHEN BANG",		246, Mapper246_Init},
+//	{"",					247, Mapper247_Init},
+//	{"",					248, Mapper248_Init},
+	{"",					249, Mapper249_Init},
+	{"",					250, Mapper250_Init},
+//	{"",					251, Mapper251_Init},	// No good dumps for this mapper, use UNIF version
+	{"SAN GUO ZHI PIRATE",	252, Mapper252_Init},
+	{"DRAGON BALL PIRATE",	253, Mapper253_Init},
+	{"",					254, Mapper254_Init},
+//	{"",					255, Mapper255_Init},	// No good dumps for this mapper
+	{"",					0, NULL}
 };
 
-static int NewiNES_Init(int num)
-{
- BMAPPING *tmp=bmap;
+int iNESLoad(const uint8 *name, FCEUFILE *fp) {
+	struct md5_context md5;
 
- if(FCEUGameInfo->type == GIT_VSUNI)
-  AddExState(FCEUVSUNI_STATEINFO, ~0, 0, 0);
+	if (FCEU_fread(&head, 1, 16, fp) != 16)
+		return 0;
 
- while(tmp->init)
- {
-  if(num==tmp->number)
-  {
-   UNIFchrrama=0; // need here for compatibility with UNIF mapper code
-   if(!VROM_size)
-   {
-    int CHRRAMSize;
-    if(num==13)
-      CHRRAMSize=16384;
-    else
-      CHRRAMSize=8192;
-    VROM=(uint8 *)malloc(CHRRAMSize);
-    UNIFchrrama=VROM;
-    SetupCartCHRMapping(0,VROM,CHRRAMSize,1);
-    AddExState(VROM,CHRRAMSize, 0, "CHRR");
-   }
-   if(head.ROM_type&8)
-     AddExState(ExtraNTARAM, 2048, 0, "EXNR");
-   tmp->init(&iNESCart);
-   return(1);
-  }
-  tmp++;
- }
- return(0);
+	if (memcmp(&head, "NES\x1a", 4))
+		return 0;
+
+	memset(&iNESCart, 0, sizeof(iNESCart));
+
+	if (!memcmp((char*)(&head) + 0x7, "DiskDude", 8)) {
+		memset((char*)(&head) + 0x7, 0, 0x9);
+	}
+
+	if (!memcmp((char*)(&head) + 0x7, "demiforce", 9)) {
+		memset((char*)(&head) + 0x7, 0, 0x9);
+	}
+
+	if (!memcmp((char*)(&head) + 0xA, "Ni03", 4)) {
+		if (!memcmp((char*)(&head) + 0x7, "Dis", 3))
+			memset((char*)(&head) + 0x7, 0, 0x9);
+		else
+			memset((char*)(&head) + 0xA, 0, 0x6);
+	}
+
+	MapperNo = (head.ROM_type >> 4);
+	MapperNo |= (head.ROM_type2 & 0xF0);
+	if (head.ROM_type & 8) {
+		Mirroring = 2;
+	} else
+		Mirroring = (head.ROM_type & 1);
+
+	if (!head.ROM_size)
+		ROM_size = 256;
+	else
+		ROM_size = uppow2(head.ROM_size);
+
+	VROM_size = uppow2(head.VROM_size);
+
+
+	if ((ROM = (uint8*)FCEU_malloc(ROM_size << 14)) == NULL)
+		return 0;
+	memset(ROM, 0xFF, ROM_size << 14);
+
+	if (VROM_size) {
+		if ((VROM = (uint8*)FCEU_malloc(VROM_size << 13)) == NULL) {
+			free(ROM);
+			ROM = NULL;
+			return 0;
+		}
+		memset(VROM, 0xFF, VROM_size << 13);
+	}
+
+	if (head.ROM_type & 4) {	/* Trainer */
+		trainerpoo = (uint8*)FCEU_gmalloc(512);
+		FCEU_fread(trainerpoo, 512, 1, fp);
+	}
+
+	ResetCartMapping();
+	ResetExState(0, 0);
+
+	SetupCartPRGMapping(0, ROM, ROM_size << 14, 0);
+
+	if (head.ROM_size)
+		FCEU_fread(ROM, 0x4000, head.ROM_size, fp);
+	else
+		FCEU_fread(ROM, 0x4000, ROM_size, fp);
+
+	if (VROM_size)
+		FCEU_fread(VROM, 0x2000, VROM_size, fp);
+
+	md5_starts(&md5);
+	md5_update(&md5, ROM, ROM_size << 14);
+
+	iNESGameCRC32 = CalcCRC32(0, ROM, ROM_size << 14);
+
+	if (VROM_size) {
+		iNESGameCRC32 = CalcCRC32(iNESGameCRC32, VROM, VROM_size << 13);
+		md5_update(&md5, VROM, VROM_size << 13);
+	}
+	md5_finish(&md5, iNESCart.MD5);
+	memcpy(&GameInfo->MD5, &iNESCart.MD5, sizeof(iNESCart.MD5));
+
+	iNESCart.CRC32 = iNESGameCRC32;
+
+	FCEU_printf(" PRG ROM:  %3d x 16KiB\n", ROM_size);
+	FCEU_printf(" CHR ROM:  %3d x  8KiB\n", head.VROM_size);
+	FCEU_printf(" ROM CRC32:  0x%08lx\n", iNESGameCRC32);
+	FCEU_printf(" ROM MD5:  0x%s\n", md5_asciistr(iNESCart.MD5));
+	char* mappername = "Not Listed";
+
+	uint32 mappertest;
+	for (mappertest = 0; mappertest < (sizeof bmap / sizeof bmap[0]) - 1; mappertest++) {
+		if (bmap[mappertest].number == MapperNo) {
+			mappername = bmap[mappertest].name;
+			break;
+		}
+	}
+
+	FCEU_printf(" Mapper #:  %d\n", MapperNo);
+	FCEU_printf(" Mapper name: %s\n", mappername);
+	FCEU_printf(" Mirroring: %s\n", Mirroring == 2 ? "None (Four-screen)" : Mirroring ? "Vertical" : "Horizontal");
+	FCEU_printf(" Battery-backed: %s\n", (head.ROM_type & 2) ? "Yes" : "No");
+	FCEU_printf(" Trained: %s\n", (head.ROM_type & 4) ? "Yes" : "No");
+
+	SetInput();
+	CheckHInfo();
+	{
+		int x;
+		uint64 partialmd5 = 0;
+
+		for (x = 0; x < 8; x++) {
+			partialmd5 |= (uint64)iNESCart.MD5[7 - x] << (x * 8);
+		}
+
+		FCEU_VSUniCheck(partialmd5, &MapperNo, &Mirroring);
+	}
+	/* Must remain here because above functions might change value of
+	VROM_size and free(VROM).
+	*/
+	if (VROM_size)
+		SetupCartCHRMapping(0, VROM, VROM_size * 0x2000, 0);
+
+	if (Mirroring == 2) {
+		ExtraNTARAM = (uint8*)FCEU_gmalloc(2048);
+		SetupCartMirroring(4, 1, ExtraNTARAM);
+	} else if (Mirroring >= 0x10)
+		SetupCartMirroring(2 + (Mirroring & 1), 1, 0);
+	else
+		SetupCartMirroring(Mirroring & 1, (Mirroring & 4) >> 2, 0);
+
+	iNESCart.battery = (head.ROM_type & 2) ? 1 : 0;
+	iNESCart.mirror = Mirroring;
+
+	if (!iNES_Init(MapperNo))
+		FCEU_PrintError("iNES mapper #%d is not supported at all.", MapperNo);
+
+	FCEU_LoadGameSave(&iNESCart);
+
+	GameInterface = iNESGI;
+	FCEU_printf("\n");
+
+	if (strstr(name, "(E)") || strstr(name, "(e)")
+		|| strstr(name, "(Europe)") || strstr(name, "(PAL)")
+		|| strstr(name, "(F)") || strstr(name, "(f)")
+		|| strstr(name, "(G)") || strstr(name, "(g)")
+		|| strstr(name, "(I)") || strstr(name, "(i)"))
+		GameInfo->vidsys = GIV_PAL;
+
+	return 1;
+}
+
+static int iNES_Init(int num) {
+	BMAPPINGLocal *tmp = bmap;
+
+	CHRRAMSize = -1;
+
+	if (GameInfo->type == GIT_VSUNI)
+		AddExState(FCEUVSUNI_STATEINFO, ~0, 0, 0);
+
+	while (tmp->init) {
+		if (num == tmp->number) {
+			UNIFchrrama = 0;	// need here for compatibility with UNIF mapper code
+			if (!VROM_size) {
+				switch (num) {	// FIXME, mapper or game data base with the board parameters and ROM/RAM sizes
+				case 13:  CHRRAMSize = 16 * 1024; break;
+				case 6:
+				case 96:  CHRRAMSize = 32 * 1024; break;
+				case 176: CHRRAMSize = 256 * 1024; break;
+				default:  CHRRAMSize = 8 * 1024; break;
+				}
+				if ((VROM = (uint8*)malloc(CHRRAMSize)) == NULL) return 0;
+				UNIFchrrama = VROM;
+				SetupCartCHRMapping(0, VROM, CHRRAMSize, 1);
+				AddExState(VROM, CHRRAMSize, 0, "CHRR");
+			}
+			if (head.ROM_type & 8)
+				AddExState(ExtraNTARAM, 2048, 0, "EXNR");
+			tmp->init(&iNESCart);
+			return 1;
+		}
+		tmp++;
+	}
+	return 0;
 }

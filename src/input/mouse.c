@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
 #include <string.h>
@@ -23,67 +23,64 @@
 #include "share.h"
 
 typedef struct {
-  int32 mzx, mzy, mzxold, mzyold;
-  uint32 readbit;
-  uint32 data;
+	int32 mzx, mzy, mzxold, mzyold;
+	uint32 readbit;
+	uint32 data;
 } MOUSE;
 
 static MOUSE Mouse;
 
-static void FP_FASTAPASS(1) StrobeMOUSE(int w)
-{
-  Mouse.readbit=0;
-  if((Mouse.mzxold-Mouse.mzx)>0)
-    Mouse.data|=0x0C;
-  else if((Mouse.mzxold-Mouse.mzx)<0)
-    Mouse.data|=0x04;
-  if((Mouse.mzyold-Mouse.mzy)>0)
-    Mouse.data|=0x30;
-  else if((Mouse.mzyold-Mouse.mzy)<0)
-    Mouse.data|=0x10;
+static void FP_FASTAPASS(1) StrobeMOUSE(int w) {
+	Mouse.readbit = 0;
+	if ((Mouse.mzxold - Mouse.mzx) > 0)
+		Mouse.data |= 0x0C;
+	else if ((Mouse.mzxold - Mouse.mzx) < 0)
+		Mouse.data |= 0x04;
+	if ((Mouse.mzyold - Mouse.mzy) > 0)
+		Mouse.data |= 0x30;
+	else if ((Mouse.mzyold - Mouse.mzy) < 0)
+		Mouse.data |= 0x10;
 }
 
-static uint8 FP_FASTAPASS(1) ReadMOUSE(int w)
-{
-  uint8 ret=0;
-  if(Mouse.readbit>=8)
-    ret|=1;
-  else
-  {
-    ret|=(Mouse.data>>Mouse.readbit)&1;
-    if(!fceuindbg)
-      Mouse.readbit++;
-  }
-  return(ret);
+static uint8 FP_FASTAPASS(1) ReadMOUSE(int w) {
+	uint8 ret = 0;
+	if (Mouse.readbit >= 8)
+		ret |= 1;
+	else {
+		ret |= (Mouse.data >> Mouse.readbit) & 1;
+	#ifdef FCEUDEF_DEBUGGER
+		if (!fceuindbg)
+	#endif
+		Mouse.readbit++;
+	}
+	return(ret);
 }
 
-static void FP_FASTAPASS(3) UpdateMOUSE(int w, void *data, int arg)
-{
-  uint32 *ptr=(uint32*)data;
-  Mouse.data=0;
-  Mouse.mzxold=Mouse.mzx;
-  Mouse.mzyold=Mouse.mzy;
-  Mouse.mzx=ptr[0];
-  Mouse.mzy=ptr[1];
-  Mouse.data|=ptr[2];
-  if((Mouse.mzxold-Mouse.mzx)>0)
-    Mouse.data|=0x0C;
-  else if((Mouse.mzxold-Mouse.mzx)<0)
-    Mouse.data|=0x04;
-  if((Mouse.mzyold-Mouse.mzy)>0)
-    Mouse.data|=0x30;
-  else if((Mouse.mzyold-Mouse.mzy)<0)
-    Mouse.data|=0x10;
+static void FP_FASTAPASS(3) UpdateMOUSE(int w, void *data, int arg) {
+	uint32 *ptr = (uint32*)data;
+	Mouse.data = 0;
+	Mouse.mzxold = Mouse.mzx;
+	Mouse.mzyold = Mouse.mzy;
+	Mouse.mzx = ptr[0];
+	Mouse.mzy = ptr[1];
+	Mouse.data |= ptr[2];
+	if ((Mouse.mzxold - Mouse.mzx) > 0)
+		Mouse.data |= 0x0C;
+	else if ((Mouse.mzxold - Mouse.mzx) < 0)
+		Mouse.data |= 0x04;
+	if ((Mouse.mzyold - Mouse.mzy) > 0)
+		Mouse.data |= 0x30;
+	else if ((Mouse.mzyold - Mouse.mzy) < 0)
+		Mouse.data |= 0x10;
 }
 
-static INPUTC MOUSEC={ReadMOUSE,0,StrobeMOUSE,UpdateMOUSE,0,0};
+static INPUTC MOUSEC = { ReadMOUSE, 0, StrobeMOUSE, UpdateMOUSE, 0, 0 };
 
-INPUTC *FCEU_InitMouse(int w)
-{
-  Mouse.mzx=0;
-  Mouse.mzy=0;
-  Mouse.mzxold=0;
-  Mouse.mzyold=0;
-  Mouse.data=0;
-  return(&MOUSEC);
+INPUTC *FCEU_InitMouse(int w) {
+	Mouse.mzx = 0;
+	Mouse.mzy = 0;
+	Mouse.mzxold = 0;
+	Mouse.mzyold = 0;
+	Mouse.data = 0;
+	return(&MOUSEC);
 }

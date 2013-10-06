@@ -50,44 +50,41 @@
 /**
  * Apply the Scale2x effect on a group of rows. Used internally.
  */
-static inline void stage_scale2x(void* dst0, void* dst1, const void* src0, const void* src1, const void* src2, unsigned pixel, unsigned pixel_per_row)
-{
-        switch (pixel) {
+static inline void stage_scale2x(void* dst0, void* dst1, const void* src0, const void* src1, const void* src2, unsigned pixel, unsigned pixel_per_row) {
+	switch (pixel) {
 #if defined(__GNUC__) && defined(__i386__)
-                case 1 : scale2x_8_mmx(dst0, dst1, src0, src1, src2, pixel_per_row); break;
-                case 2 : scale2x_16_mmx(dst0, dst1, src0, src1, src2, pixel_per_row); break;
-                case 4 : scale2x_32_mmx(dst0, dst1, src0, src1, src2, pixel_per_row); break;
+	case 1: scale2x_8_mmx(dst0, dst1, src0, src1, src2, pixel_per_row); break;
+	case 2: scale2x_16_mmx(dst0, dst1, src0, src1, src2, pixel_per_row); break;
+	case 4: scale2x_32_mmx(dst0, dst1, src0, src1, src2, pixel_per_row); break;
 #else
-                case 1 : scale2x_8_def(dst0, dst1, src0, src1, src2, pixel_per_row); break;
-                case 2 : scale2x_16_def(dst0, dst1, src0, src1, src2, pixel_per_row); break;
-                case 4 : scale2x_32_def(dst0, dst1, src0, src1, src2, pixel_per_row); break;
+	case 1: scale2x_8_def(dst0, dst1, src0, src1, src2, pixel_per_row); break;
+	case 2: scale2x_16_def(dst0, dst1, src0, src1, src2, pixel_per_row); break;
+	case 4: scale2x_32_def(dst0, dst1, src0, src1, src2, pixel_per_row); break;
 #endif
-        }
+	}
 }
 
 /**
  * Apply the Scale3x effect on a group of rows. Used internally.
  */
-static inline void stage_scale3x(void* dst0, void* dst1, void* dst2, const void* src0, const void* src1, const void* src2, unsigned pixel, unsigned pixel_per_row)
-{
-        switch (pixel) {
-                case 1 : scale3x_8_def(dst0, dst1, dst2, src0, src1, src2, pixel_per_row); break;
-                case 2 : scale3x_16_def(dst0, dst1, dst2, src0, src1, src2, pixel_per_row); break;
-                case 4 : scale3x_32_def(dst0, dst1, dst2, src0, src1, src2, pixel_per_row); break;
-        }
+static inline void stage_scale3x(void* dst0, void* dst1, void* dst2, const void* src0, const void* src1, const void* src2, unsigned pixel, unsigned pixel_per_row) {
+	switch (pixel) {
+	case 1: scale3x_8_def(dst0, dst1, dst2, src0, src1, src2, pixel_per_row); break;
+	case 2: scale3x_16_def(dst0, dst1, dst2, src0, src1, src2, pixel_per_row); break;
+	case 4: scale3x_32_def(dst0, dst1, dst2, src0, src1, src2, pixel_per_row); break;
+	}
 }
 
 /**
  * Apply the Scale4x effect on a group of rows. Used internally.
  */
-static inline void stage_scale4x(void* dst0, void* dst1, void* dst2, void* dst3, const void* src0, const void* src1, const void* src2, const void* src3, unsigned pixel, unsigned pixel_per_row)
-{
-        stage_scale2x(dst0, dst1, src0, src1, src2, pixel, 2 * pixel_per_row);
-        stage_scale2x(dst2, dst3, src1, src2, src3, pixel, 2 * pixel_per_row);
+static inline void stage_scale4x(void* dst0, void* dst1, void* dst2, void* dst3, const void* src0, const void* src1, const void* src2, const void* src3, unsigned pixel, unsigned pixel_per_row) {
+	stage_scale2x(dst0, dst1, src0, src1, src2, pixel, 2 * pixel_per_row);
+	stage_scale2x(dst2, dst3, src1, src2, src3, pixel, 2 * pixel_per_row);
 }
 
-#define SCDST(i) (dst+(i)*dst_slice)
-#define SCSRC(i) (src+(i)*src_slice)
+#define SCDST(i) (dst + (i) * dst_slice)
+#define SCSRC(i) (src + (i) * src_slice)
 #define SCMID(i) (mid[(i)])
 
 /**
@@ -104,34 +101,33 @@ static inline void stage_scale4x(void* dst0, void* dst1, void* dst2, void* dst3,
  * \param width Horizontal size in pixels of the source bitmap.
  * \param height Vertical size in pixels of the source bitmap.
  */
-static void scale2x(void* void_dst, unsigned dst_slice, const void* void_src, unsigned src_slice, unsigned pixel, unsigned width, unsigned height)
-{
-        unsigned char* dst = (unsigned char*)void_dst;
-        const unsigned char* src = (unsigned char*)void_src;
-        unsigned count;
+static void scale2x(void* void_dst, unsigned dst_slice, const void* void_src, unsigned src_slice, unsigned pixel, unsigned width, unsigned height) {
+	unsigned char* dst = (unsigned char*)void_dst;
+	const unsigned char* src = (unsigned char*)void_src;
+	unsigned count;
 
-        assert(height >= 2);
+	assert(height >= 2);
 
-        count = height;
+	count = height;
 
-        stage_scale2x(SCDST(0), SCDST(1), SCSRC(0), SCSRC(0), SCSRC(1), pixel, width);
+	stage_scale2x(SCDST(0), SCDST(1), SCSRC(0), SCSRC(0), SCSRC(1), pixel, width);
 
-        dst = SCDST(2);
+	dst = SCDST(2);
 
-        count -= 2;
-        while (count) {
-                stage_scale2x(SCDST(0), SCDST(1), SCSRC(0), SCSRC(1), SCSRC(2), pixel, width);
+	count -= 2;
+	while (count) {
+		stage_scale2x(SCDST(0), SCDST(1), SCSRC(0), SCSRC(1), SCSRC(2), pixel, width);
 
-                dst = SCDST(2);
-                src = SCSRC(1);
+		dst = SCDST(2);
+		src = SCSRC(1);
 
-                --count;
-        }
+		--count;
+	}
 
-        stage_scale2x(SCDST(0), SCDST(1), SCSRC(1-1), SCSRC(2-1), SCSRC(2-1), pixel, width);
+	stage_scale2x(SCDST(0), SCDST(1), SCSRC(1 - 1), SCSRC(2 - 1), SCSRC(2 - 1), pixel, width);
 
 #if defined(__GNUC__) && defined(__i386__)
-        scale2x_mmx_emms();
+	scale2x_mmx_emms();
 #endif
 }
 
@@ -149,31 +145,30 @@ static void scale2x(void* void_dst, unsigned dst_slice, const void* void_src, un
  * \param width Horizontal size in pixels of the source bitmap.
  * \param height Vertical size in pixels of the source bitmap.
  */
-static void scale3x(void* void_dst, unsigned dst_slice, const void* void_src, unsigned src_slice, unsigned pixel, unsigned width, unsigned height)
-{
-        unsigned char* dst = (unsigned char*)void_dst;
-        const unsigned char* src = (unsigned char*)void_src;
-        unsigned count;
+static void scale3x(void* void_dst, unsigned dst_slice, const void* void_src, unsigned src_slice, unsigned pixel, unsigned width, unsigned height) {
+	unsigned char* dst = (unsigned char*)void_dst;
+	const unsigned char* src = (unsigned char*)void_src;
+	unsigned count;
 
-        assert(height >= 2);
+	assert(height >= 2);
 
-        count = height;
+	count = height;
 
-        stage_scale3x(SCDST(0), SCDST(1), SCDST(2), SCSRC(0), SCSRC(0), SCSRC(1), pixel, width);
+	stage_scale3x(SCDST(0), SCDST(1), SCDST(2), SCSRC(0), SCSRC(0), SCSRC(1), pixel, width);
 
-        dst = SCDST(3);
+	dst = SCDST(3);
 
-        count -= 2;
-        while (count) {
-                stage_scale3x(SCDST(0), SCDST(1), SCDST(2), SCSRC(0), SCSRC(1), SCSRC(2), pixel, width);
+	count -= 2;
+	while (count) {
+		stage_scale3x(SCDST(0), SCDST(1), SCDST(2), SCSRC(0), SCSRC(1), SCSRC(2), pixel, width);
 
-                dst = SCDST(3);
-                src = SCSRC(1);
+		dst = SCDST(3);
+		src = SCSRC(1);
 
-                --count;
-        }
+		--count;
+	}
 
-        stage_scale3x(SCDST(0), SCDST(1), SCDST(2), SCSRC(1-1), SCSRC(2-1), SCSRC(2-1), pixel, width);
+	stage_scale3x(SCDST(0), SCDST(1), SCDST(2), SCSRC(1 - 1), SCSRC(2 - 1), SCSRC(2 - 1), pixel, width);
 }
 
 /**
@@ -197,67 +192,66 @@ static void scale3x(void* void_dst, unsigned dst_slice, const void* void_src, un
  * \param width Horizontal size in pixels of the source bitmap.
  * \param height Vertical size in pixels of the source bitmap.
  */
-static void scale4x_buf(void* void_dst, unsigned dst_slice, void* void_mid, unsigned mid_slice, const void* void_src, unsigned src_slice, unsigned pixel, unsigned width, unsigned height)
-{
-        unsigned char* dst = (unsigned char*)void_dst;
-        const unsigned char* src = (unsigned char*)void_src;
-        unsigned count;
-        unsigned char* mid[6];
+static void scale4x_buf(void* void_dst, unsigned dst_slice, void* void_mid, unsigned mid_slice, const void* void_src, unsigned src_slice, unsigned pixel, unsigned width, unsigned height) {
+	unsigned char* dst = (unsigned char*)void_dst;
+	const unsigned char* src = (unsigned char*)void_src;
+	unsigned count;
+	unsigned char* mid[6];
 
-        assert(height >= 4);
+	assert(height >= 4);
 
-        count = height;
+	count = height;
 
-        /* set the 6 buffer pointers */
-        mid[0] = (unsigned char*)void_mid;
-        mid[1] = mid[0] + mid_slice;
-        mid[2] = mid[1] + mid_slice;
-        mid[3] = mid[2] + mid_slice;
-        mid[4] = mid[3] + mid_slice;
-        mid[5] = mid[4] + mid_slice;
+	/* set the 6 buffer pointers */
+	mid[0] = (unsigned char*)void_mid;
+	mid[1] = mid[0] + mid_slice;
+	mid[2] = mid[1] + mid_slice;
+	mid[3] = mid[2] + mid_slice;
+	mid[4] = mid[3] + mid_slice;
+	mid[5] = mid[4] + mid_slice;
 
-        stage_scale2x(SCMID(-2+6), SCMID(-1+6), SCSRC(0), SCSRC(0), SCSRC(1), pixel, width);
-        stage_scale2x(SCMID(0), SCMID(1), SCSRC(0), SCSRC(1), SCSRC(2), pixel, width);
-        stage_scale2x(SCMID(2), SCMID(3), SCSRC(1), SCSRC(2), SCSRC(3), pixel, width);
-        stage_scale4x(SCDST(0), SCDST(1), SCDST(2), SCDST(3), SCMID(-2+6), SCMID(-2+6), SCMID(-1+6), SCMID(0), pixel, width);
+	stage_scale2x(SCMID(-2 + 6), SCMID(-1 + 6), SCSRC(0), SCSRC(0), SCSRC(1), pixel, width);
+	stage_scale2x(SCMID(0), SCMID(1), SCSRC(0), SCSRC(1), SCSRC(2), pixel, width);
+	stage_scale2x(SCMID(2), SCMID(3), SCSRC(1), SCSRC(2), SCSRC(3), pixel, width);
+	stage_scale4x(SCDST(0), SCDST(1), SCDST(2), SCDST(3), SCMID(-2 + 6), SCMID(-2 + 6), SCMID(-1 + 6), SCMID(0), pixel, width);
 
-        dst = SCDST(4);
+	dst = SCDST(4);
 
-        stage_scale4x(SCDST(0), SCDST(1), SCDST(2), SCDST(3), SCMID(-1+6), SCMID(0), SCMID(1), SCMID(2), pixel, width);
+	stage_scale4x(SCDST(0), SCDST(1), SCDST(2), SCDST(3), SCMID(-1 + 6), SCMID(0), SCMID(1), SCMID(2), pixel, width);
 
-        dst = SCDST(4);
+	dst = SCDST(4);
 
-        count -= 4;
-        while (count) {
-                unsigned char* tmp;
+	count -= 4;
+	while (count) {
+		unsigned char* tmp;
 
-                stage_scale2x(SCMID(4), SCMID(5), SCSRC(2), SCSRC(3), SCSRC(4), pixel, width);
-                stage_scale4x(SCDST(0), SCDST(1), SCDST(2), SCDST(3), SCMID(1), SCMID(2), SCMID(3), SCMID(4), pixel, width);
+		stage_scale2x(SCMID(4), SCMID(5), SCSRC(2), SCSRC(3), SCSRC(4), pixel, width);
+		stage_scale4x(SCDST(0), SCDST(1), SCDST(2), SCDST(3), SCMID(1), SCMID(2), SCMID(3), SCMID(4), pixel, width);
 
-                dst = SCDST(4);
-                src = SCSRC(1);
+		dst = SCDST(4);
+		src = SCSRC(1);
 
-                tmp = SCMID(0); /* shift by 2 position */
-                SCMID(0) = SCMID(2);
-                SCMID(2) = SCMID(4);
-                SCMID(4) = tmp;
-                tmp = SCMID(1);
-                SCMID(1) = SCMID(3);
-                SCMID(3) = SCMID(5);
-                SCMID(5) = tmp;
+		tmp = SCMID(0);			/* shift by 2 position */
+		SCMID(0) = SCMID(2);
+		SCMID(2) = SCMID(4);
+		SCMID(4) = tmp;
+		tmp = SCMID(1);
+		SCMID(1) = SCMID(3);
+		SCMID(3) = SCMID(5);
+		SCMID(5) = tmp;
 
-                --count;
-        }
+		--count;
+	}
 
-        stage_scale2x(SCMID(4), SCMID(5), SCSRC(2), SCSRC(3), SCSRC(3), pixel, width);
-        stage_scale4x(SCDST(0), SCDST(1), SCDST(2), SCDST(3), SCMID(1), SCMID(2), SCMID(3), SCMID(4), pixel, width);
+	stage_scale2x(SCMID(4), SCMID(5), SCSRC(2), SCSRC(3), SCSRC(3), pixel, width);
+	stage_scale4x(SCDST(0), SCDST(1), SCDST(2), SCDST(3), SCMID(1), SCMID(2), SCMID(3), SCMID(4), pixel, width);
 
-        dst = SCDST(4);
+	dst = SCDST(4);
 
-        stage_scale4x(SCDST(0), SCDST(1), SCDST(2), SCDST(3), SCMID(3), SCMID(4), SCMID(5), SCMID(5), pixel, width);
+	stage_scale4x(SCDST(0), SCDST(1), SCDST(2), SCDST(3), SCMID(3), SCMID(4), SCMID(5), SCMID(5), pixel, width);
 
 #if defined(__GNUC__) && defined(__i386__)
-        scale2x_mmx_emms();
+	scale2x_mmx_emms();
 #endif
 }
 
@@ -277,30 +271,29 @@ static void scale4x_buf(void* void_dst, unsigned dst_slice, void* void_mid, unsi
  * \param width Horizontal size in pixels of the source bitmap.
  * \param height Vertical size in pixels of the source bitmap.
  */
-static void scale4x(void* void_dst, unsigned dst_slice, const void* void_src, unsigned src_slice, unsigned pixel, unsigned width, unsigned height)
-{
-        unsigned mid_slice;
-        void* mid;
+static void scale4x(void* void_dst, unsigned dst_slice, const void* void_src, unsigned src_slice, unsigned pixel, unsigned width, unsigned height) {
+	unsigned mid_slice;
+	void* mid;
 
-        mid_slice = 2 * pixel * width; /* required space for 1 row buffer */
+	mid_slice = 2 * pixel * width;		/* required space for 1 row buffer */
 
-        mid_slice = (mid_slice + 0x7) & ~0x7; /* align to 8 bytes */
+	mid_slice = (mid_slice + 0x7) & ~0x7;		/* align to 8 bytes */
 
 #if HAVE_ALLOCA
-        mid = alloca(6 * mid_slice); /* allocate space for 6 row buffers */
+	mid = alloca(6 * mid_slice);	/* allocate space for 6 row buffers */
 
-        assert(mid != 0); /* alloca should never fails */
+	assert(mid != 0);		/* alloca should never fails */
 #else
-        mid = malloc(6 * mid_slice); /* allocate space for 6 row buffers */
+	mid = malloc(6 * mid_slice);	/* allocate space for 6 row buffers */
 
-        if(!mid)
-                return;
+	if (!mid)
+		return;
 #endif
 
-        scale4x_buf(void_dst, dst_slice, mid, mid_slice, void_src, src_slice, pixel, width, height);
+	scale4x_buf(void_dst, dst_slice, mid, mid_slice, void_src, src_slice, pixel, width, height);
 
 #if !HAVE_ALLOCA
-        free(mid);
+	free(mid);
 #endif
 }
 
@@ -314,46 +307,45 @@ static void scale4x(void* void_dst, unsigned dst_slice, const void* void_src, un
  *   - -1 on precondition violated.
  *   - 0 on success.
  */
-int scale_precondition(unsigned scale, unsigned pixel, unsigned width, unsigned height)
-{
-        if(scale != 2 && scale != 3 && scale != 4)
-                return -1;
+int scale_precondition(unsigned scale, unsigned pixel, unsigned width, unsigned height) {
+	if (scale != 2 && scale != 3 && scale != 4)
+		return -1;
 
-        if(pixel != 1 && pixel != 2 && pixel != 4)
-                return -1;
+	if (pixel != 1 && pixel != 2 && pixel != 4)
+		return -1;
 
-        switch (scale) {
-        case 2 :
-        case 3 :
-                if(height < 2)
-                        return -1;
-                break;
-        case 4 :
-                if(height < 4)
-                        return -1;
-                break;
-        }
+	switch (scale) {
+	case 2:
+	case 3:
+		if (height < 2)
+			return -1;
+		break;
+	case 4:
+		if (height < 4)
+			return -1;
+		break;
+	}
 
 #if defined(__GNUC__) && defined(__i386__)
-        switch (scale) {
-        case 2 :
-        case 4 :
-                if(width < (16 / pixel))
-                        return -1;
-                if(width % (8 / pixel) != 0)
-                        return -1;
-                break;
-        case 3 :
-                if(width < 2)
-                        return -1;
-                break;
-        }
+	switch (scale) {
+	case 2:
+	case 4:
+		if (width < (16 / pixel))
+			return -1;
+		if (width % (8 / pixel) != 0)
+			return -1;
+		break;
+	case 3:
+		if (width < 2)
+			return -1;
+		break;
+	}
 #else
-        if(width < 2)
-                return -1;
+	if (width < 2)
+		return -1;
 #endif
 
-        return 0;
+	return 0;
 }
 
 /**
@@ -368,18 +360,17 @@ int scale_precondition(unsigned scale, unsigned pixel, unsigned width, unsigned 
  * \param width Horizontal size in pixels of the source bitmap.
  * \param height Vertical size in pixels of the source bitmap.
  */
-void scale(unsigned scale, void* void_dst, unsigned dst_slice, const void* void_src, unsigned src_slice, unsigned pixel, unsigned width, unsigned height)
-{
-        switch (scale) {
-        case 2 :
-                scale2x(void_dst, dst_slice, void_src, src_slice, pixel, width, height);
-                break;
-        case 3 :
-                scale3x(void_dst, dst_slice, void_src, src_slice, pixel, width, height);
-                break;
-        case 4 :
-                scale4x(void_dst, dst_slice, void_src, src_slice, pixel, width, height);
-                break;
-        }
+void scale(unsigned scale, void* void_dst, unsigned dst_slice, const void* void_src, unsigned src_slice, unsigned pixel, unsigned width, unsigned height) {
+	switch (scale) {
+	case 2:
+		scale2x(void_dst, dst_slice, void_src, src_slice, pixel, width, height);
+		break;
+	case 3:
+		scale3x(void_dst, dst_slice, void_src, src_slice, pixel, width, height);
+		break;
+	case 4:
+		scale4x(void_dst, dst_slice, void_src, src_slice, pixel, width, height);
+		break;
+	}
 }
 

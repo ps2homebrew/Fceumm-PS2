@@ -1,5 +1,5 @@
 typedef struct {
-  uint8 r,g,b;
+	uint8 r, g, b;
 } pal;
 
 extern pal *palo;

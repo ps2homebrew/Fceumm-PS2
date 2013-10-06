@@ -4,7 +4,7 @@
 extern "C" {
 #endif
 
-#include "types.h"
+#include "fceu-types.h"
 #include "git.h"
 #include "debug.h"
 
@@ -16,7 +16,7 @@ void FCEU_printf(char *format, ...);
 
 /* Video interface */
 void FCEUD_SetPalette(uint8 index, uint8 r, uint8 g, uint8 b);
-void FCEUD_GetPalette(uint8 i,uint8 *r, uint8 *g, uint8 *b);
+void FCEUD_GetPalette(uint8 i, uint8 *r, uint8 *g, uint8 *b);
 
 /* Displays an error.  Can block or not. */
 void FCEUD_PrintError(char *s);
@@ -69,14 +69,16 @@ void FCEUI_SetInput(int port, int type, void *ptr, int attrib);
 void FCEUI_SetInputFC(int type, void *ptr, int attrib);
 void FCEUI_DisableFourScore(int s);
 
+#define SI_UNSET     -1
 #define SI_NONE      0
 #define SI_GAMEPAD   1
 #define SI_ZAPPER    2
-#define SI_POWERPADA  3
-#define SI_POWERPADB  4
-#define SI_ARKANOID   5
-#define SI_MOUSE   6
+#define SI_POWERPADA 3
+#define SI_POWERPADB 4
+#define SI_ARKANOID  5
+#define SI_MOUSE     6
 
+#define SIFC_UNSET     -1
 #define SIFC_NONE      0
 #define SIFC_ARKANOID  1
 #define SIFC_SHADOW      2
@@ -112,10 +114,13 @@ void FCEUI_SetRenderDisable(int sprites, int bg);
 /* name=path and file to load.  returns 0 on failure, 1 on success */
 FCEUGI *FCEUI_LoadGame(const char *name);
 
+#ifdef COPYFAMI
+/* Fake UNIF board to start new CFHI instance */
+FCEUGI *FCEUI_CopyFamiStart();
+#endif
+
 /* allocates memory.  0 on failure, 1 on success. */
 int FCEUI_Initialize(void);
-
-int FCEUI_PS2Init(void);
 
 /* Emulates a frame. */
 void FCEUI_Emulate(uint8 **, int32 **, int32 *, int);
@@ -193,7 +198,7 @@ void FCEUI_CheatSearchEnd(int type, uint8 v1, uint8 v2);
 void FCEUI_ListCheats(int (*callb)(char *name, uint32 a, uint8 v, int compare, int s, int type, void *data), void *data);
 
 int FCEUI_GetCheat(uint32 which, char **name, uint32 *a, uint8 *v, int *compare, int *s, int *type);
-int FCEUI_SetCheat(uint32 which, const char *name, int32 a, int32 v, int compare,int s, int type);
+int FCEUI_SetCheat(uint32 which, const char *name, int32 a, int32 v, int compare, int s, int type);
 
 void FCEUI_CheatSearchShowExcluded(void);
 void FCEUI_CheatSearchSetCurrentAsOriginal(void);

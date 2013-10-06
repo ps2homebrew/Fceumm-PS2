@@ -33,6 +33,7 @@
   boadr SHero new Sachen dump
   board T-262 new multigame cart dump
   DInput device mode changed to BACKGROUND. Now with enabled flag "Acvive while focus lost" it can be used for playing two or more FCEUs with one keyboard or joystic at same time.
+  "Fixed" low quality sound, broken "High" ;)
 
 19.03.06
 

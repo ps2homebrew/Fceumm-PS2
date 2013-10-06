@@ -15,60 +15,51 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
 #include <string.h>
 #include "share.h"
 
-static int seq,ptr,bit,cnt,have;
+static int seq, ptr, bit, cnt, have;
 static uint8 bdata[20];
 
 
-static uint8 FP_FASTAPASS(2) Read(int w, uint8 ret)
-{
- if(w && have)
- {
-  switch(seq)
-  {
-   case 0: seq++; ptr=0; ret|=0x4; break;
-   case 1: seq++; bit=bdata[ptr]; cnt=0; ret|=0x4; break;
-   case 2: ret|=((bit&0x01)^0x01)<<2; bit>>=1; if(++cnt > 7) seq++;
-           break;
-   case 3: if(++ptr > 19)
-           {
-            seq=-1;
-            have=0;
-           }
-           else
-            seq=1;
-   default: break;
-  }
- }
- return(ret);
+static uint8 FP_FASTAPASS(2) Read(int w, uint8 ret) {
+	if (w && have) {
+		switch (seq) {
+		case 0: seq++; ptr = 0; ret |= 0x4; break;
+		case 1: seq++; bit = bdata[ptr]; cnt = 0; ret |= 0x4; break;
+		case 2: ret |= ((bit & 0x01) ^ 0x01) << 2; bit >>= 1; if (++cnt > 7) seq++;
+			break;
+		case 3: if (++ptr > 19) {
+				seq = -1;
+				have = 0;
+		} else
+				seq = 1;
+		default: break;
+		}
+	}
+	return(ret);
 }
 
-static void FP_FASTAPASS(1) Write(uint8 V)
-{
- //printf("%02x\n",V);
+static void FP_FASTAPASS(1) Write(uint8 V) {
+	//printf("%02x\n",V);
 }
 
-static void FP_FASTAPASS(2) Update(void *data, int arg)
-{
- if(*(uint8 *)data)
- {
-  *(uint8 *)data=0;
-  seq=ptr=0;
-  have=1;
-  strcpy(bdata,(uint8 *)data+1);
-  strcpy(&bdata[13],"SUNSOFT");
- }
+static void FP_FASTAPASS(2) Update(void *data, int arg) {
+	if (*(uint8*)data) {
+		*(uint8*)data = 0;
+		seq = ptr = 0;
+		have = 1;
+		strcpy(bdata, (uint8*)data + 1);
+		strcpy(&bdata[13], "SUNSOFT");
+	}
 }
 
-static INPUTCFC BarcodeWorld={Read,Write,0,Update,0,0};
+static INPUTCFC BarcodeWorld = { Read, Write, 0, Update, 0, 0 };
 
-INPUTCFC *FCEU_InitBarcodeWorld(void)
-{
- return(&BarcodeWorld);
+INPUTCFC *FCEU_InitBarcodeWorld(void) {
+	return(&BarcodeWorld);
 }
 

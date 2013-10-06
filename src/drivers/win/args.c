@@ -15,25 +15,24 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
 #include "../common/args.h"
 
-char *ParseArgies(int argc, char *argv[])
-{
+char *ParseArgies(int argc, char *argv[]) {
 //        int x;
-        static ARGPSTRUCT FCEUArgs[]={
-         {"-pal",0,&palyo,0},
-         {"-gg",0,&genie,0},
-         {"-no8lim",0,&eoptions,0x8000|EO_NOSPRLIM},
-         //{"-nofs",0,&eoptions,0},
-         {"-clipsides",0,&eoptions,0x8000|EO_CLIPSIDES},
-         {"-nothrottle",0,&eoptions,0x8000|EO_NOTHROTTLE},
-        };
+	static ARGPSTRUCT FCEUArgs[] = {
+		{ "-pal", 0, &palyo, 0 },
+		{ "-gg", 0, &genie, 0 },
+		{ "-no8lim", 0, &eoptions, 0x8000 | EO_NOSPRLIM },
+		//{"-nofs",0,&eoptions,0},
+		{ "-clipsides", 0, &eoptions, 0x8000 | EO_CLIPSIDES },
+		{ "-nothrottle", 0, &eoptions, 0x8000 | EO_NOTHROTTLE },
+	};
 
-       if(argc<=1) return(0);
+	if (argc <= 1) return(0);
 
-       ParseArguments(argc-2, &argv[1], FCEUArgs);
-       return(argv[argc-1]);
+	ParseArguments(argc - 2, &argv[1], FCEUArgs);
+	return(argv[argc - 1]);
 }

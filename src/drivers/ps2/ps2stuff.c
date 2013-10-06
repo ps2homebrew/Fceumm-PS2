@@ -1,5 +1,5 @@
 #include <stdio.h>
-#include "../../types.h"
+#include "../../fceu-types.h"
 #include "../../driver.h"
 
 struct pcpal {

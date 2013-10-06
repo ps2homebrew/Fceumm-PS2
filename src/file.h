@@ -1,6 +1,6 @@
 typedef struct {
-  void *fp;       // FILE* or ptr to ZIPWRAP
-  uint32 type;    // 0=normal file, 1=gzip, 2=zip
+	void *fp;		// FILE* or ptr to ZIPWRAP
+	uint32 type;	// 0=normal file, 1=gzip, 2=zip
 } FCEUFILE;
 
 FCEUFILE *FCEU_fopen(const char *path, const char *ipsfn, char *mode, char *ext);

@@ -1,5 +1,0 @@
-The following irx modules are needed to compile fceultra for PS2:
-
-audsrv.irx
-usbd.irx
-usbhdfsd.irx

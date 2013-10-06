@@ -5,7 +5,7 @@
 
 //FCEUltra headers
 #include "../../driver.h"
-#include "../../types.h"
+#include "../../fceu-types.h"
 
 #include "ps2fceu.h"
 extern unsigned char path[4096];
@@ -24,14 +24,21 @@ int FONT_HEIGHT = 16;
   #define SAMPLERATE 0
 #endif
 FCEUGI *CurGame=NULL;
+const char * GetKeyboard(void) {
+	return "";
+}
+int PPUViewScanline = 0;
+int PPUViewer = 0;
+int UpdatePPUView = 0;
 
+//static unsigned int totallines, srendline, erendline;
 /************************************/
 /* gsKit Variables                  */
 /************************************/
 GSTEXTURE NES_TEX;
 GSTEXTURE BG_TEX;
 GSTEXTURE MENU_TEX;
-GSFONT *gsFont;
+GSFONTM *gsFontM;
 
 u8 menutex = 0;
 u8 bgtex = 0;
@@ -131,10 +138,10 @@ int main(int argc, char *argv[])
     jpgData *Jpg;
     u8 *ImgData;
     if(strstr(FCEUSkin.bgTexture,".png") != NULL) {
-        if(gsKit_texture_png(gsGlobal, &BG_TEX, FCEUSkin.bgTexture) < 0) {
+         if(gsKit_texture_png(gsGlobal, &BG_TEX, FCEUSkin.bgTexture) < 0) {
             printf("Error with browser background png!\n");
             bgtex = 1;
-        }
+         }
     }
     else if(strstr(FCEUSkin.bgTexture,".jpg") || strstr(FCEUSkin.bgTexture,".jpeg") != NULL){
         //if(gsKit_texture_jpeg(gsGlobal, &BG_TEX, FCEUSkin.bgTexture) < 0) {
@@ -168,10 +175,10 @@ int main(int argc, char *argv[])
     ImgData = 0;
 
     if(strstr(FCEUSkin.bgMenu,".png") != NULL) {
-        if(gsKit_texture_png(gsGlobal, &MENU_TEX, FCEUSkin.bgMenu) == -1) {
+          if(gsKit_texture_png(gsGlobal, &MENU_TEX, FCEUSkin.bgMenu) == -1) {
             printf("Error with menu background png!\n");
             menutex = 1;
-        }
+          }
     }
     else if(strstr(FCEUSkin.bgMenu,".jpg") || strstr(FCEUSkin.bgMenu,".jpeg") != NULL) {
         //if(gsKit_texture_jpeg(gsGlobal, &MENU_TEX, FCEUSkin.bgMenu) < 0) { //apparently didn't like the "myps2" libjpg
@@ -211,6 +218,9 @@ int main(int argc, char *argv[])
     FCEUI_SetVidSystem(Settings.emulation); //0=ntsc 1=pal
 	FCEUI_SetGameGenie(1);
 	FCEUI_DisableSpriteLimitation(1);
+//	FCEUI_SetRenderedLines(8, 231, 0, 239);
+//	FCEUI_GetCurrentVidSystem(&srendline, &erendline);
+//	totallines = erendline - srendline + 1;
 #ifdef SOUND_ON
 	FCEUI_SetSoundVolume(1024);
 #else

@@ -1,12 +1,12 @@
 #ifndef _DRIVERS_ARGH
 typedef struct {
-        char *name;
-        int *var;
+	char *name;
+	int *var;
 
-        void *subs;
-        int substype;
+	void *subs;
+	int substype;
 } ARGPSTRUCT;
 
-void ParseArguments(int argc, char *argv[], ARGPSTRUCT *argsps);
+void ParseArguments(int argc, char *argv[], ARGPSTRUCT * argsps);
 #define _DRIVERS_ARGH
 #endif

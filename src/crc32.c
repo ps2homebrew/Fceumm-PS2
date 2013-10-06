@@ -15,19 +15,17 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
-#include "types.h"
+#include "fceu-types.h"
 #include "crc32.h"
 
 #include <zlib.h>
-uint32 CalcCRC32(uint32 crc, uint8 *buf, uint32 len)
-{
- return(crc32(crc,buf,len));
+uint32 CalcCRC32(uint32 crc, uint8 *buf, uint32 len) {
+	return(crc32(crc, buf, len));
 }
 
-uint32 FCEUI_CRC32(uint32 crc, uint8 *buf, uint32 len)
-{
- return(CalcCRC32(crc,buf,len));
+uint32 FCEUI_CRC32(uint32 crc, uint8 *buf, uint32 len) {
+	return(CalcCRC32(crc, buf, len));
 }

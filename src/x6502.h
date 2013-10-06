@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
 #ifndef _X6502H
@@ -24,8 +24,8 @@
 
 #ifdef FCEUDEF_DEBUGGER
 void X6502_Debug(void (*CPUHook)(X6502 *),
-    uint8 (*ReadHook)(X6502 *, unsigned int),
-    void (*WriteHook)(X6502 *, unsigned int, uint8));
+				 uint8 (*ReadHook)(X6502 *, uint32),
+				 void (*WriteHook)(X6502 *, uint32, uint8));
 
 extern void (*X6502_Run)(int32 cycles);
 #else
@@ -53,7 +53,7 @@ extern void FP_FASTAPASS(1) (*MapIRQHook)(int a);
 #define FCEU_IQEXT2     0x002
 /* ... */
 #define FCEU_IQRESET    0x020
-#define FCEU_IQNMI2  0x040  // Delayed NMI, gets converted to *_IQNMI
+#define FCEU_IQNMI2  0x040	// Delayed NMI, gets converted to *_IQNMI
 #define FCEU_IQNMI  0x080
 #define FCEU_IQDPCM     0x100
 #define FCEU_IQFCOUNT   0x200
