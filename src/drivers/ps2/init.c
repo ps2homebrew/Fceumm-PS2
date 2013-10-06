@@ -8,7 +8,7 @@
 #include <stdio.h>
 #include <libpwroff.h>
 #include <sbv_patches.h>
-#include "cdvd_rpc.h"
+#include <cdvd_rpc.h>
 #include "cd.h"
 
 #include <gsKit.h>
@@ -52,6 +52,8 @@ extern void usbhdfsd_irx;
 extern int size_usbhdfsd_irx;
 extern void cdvd_irx;
 extern int size_cdvd_irx;
+extern void SMSUTILS_irx;
+extern int size_SMSUTILS_irx;
 
 int LoadBasicModules(void)
 {
@@ -113,11 +115,16 @@ void LoadExtraModules(void)
     }
 #endif
 
+    ret = SifExecModuleBuffer(&SMSUTILS_irx, size_SMSUTILS_irx,0, NULL, &ret);
+    if (ret < 0) {
+        printf("Failed to load module: SMSUTILS.IRX");
+    }
+
     ret = SifExecModuleBuffer(&usbd_irx, size_usbd_irx,0, NULL, &ret);
     if (ret < 0) {
         printf("Failed to load module: USBD.IRX");
     }
-    
+
     ret = SifExecModuleBuffer(&cdvd_irx, size_cdvd_irx, 0, NULL, &ret);
     if (ret < 0) {
         printf("Failed to load module: CDVD.IRX");
@@ -243,7 +250,6 @@ void InitPS2(void)
     mcInit(MC_TYPE_XMC);
     cdInit(CDVD_INIT_INIT);
     CDVD_Init();
-    
 
 #ifdef SOUND_ON
     audsrv_init();
@@ -272,7 +278,7 @@ void normalize_screen(void)
 
 void init_custom_screen(void)
 {
-    gsGlobal->StartX = defaultx + Settings.offset_x;
+    //init real non-interlaced mode
     if(Settings.display) {
         gsGlobal->Mode = GS_MODE_PAL;
         gsGlobal->Height = 512;
@@ -280,25 +286,25 @@ void init_custom_screen(void)
     }
     else {
         gsGlobal->Mode = GS_MODE_NTSC;
-        gsGlobal->Height = 478; // 448;
-        defaulty = 22; // 50;
+        gsGlobal->Height = 448;
+        defaulty = 50;
     }
-    gsGlobal->StartY = defaulty + Settings.offset_y;
 
-    if(Settings.interlace)
-        gsGlobal->StartY = gsGlobal->StartY + 22;
-    else
-        gsGlobal->StartY = gsGlobal->StartY + 11;
+    gsGlobal->StartX = defaultx + Settings.offset_x;
+    gsGlobal->StartY = defaulty + Settings.offset_y;
 
     if(!Settings.interlace) {
         gsGlobal->Interlace = GS_NONINTERLACED;
         gsGlobal->Field = GS_FRAME;
-        gsGlobal->StartY = gsGlobal->StartY/2 + 1;
+        //gsGlobal->StartY = gsGlobal->StartY/2 + 1;
     }
+    //else if (gsGlobal->Mode == GS_MODE_NTSC)
+        //gsGlobal->StartY = gsGlobal->StartY + 22;
+
+    SetGsCrt(gsGlobal->Interlace,gsGlobal->Mode,gsGlobal->Field);
 
     normalize_screen();
 
-    SetGsCrt(gsGlobal->Interlace,gsGlobal->Mode,gsGlobal->Field);
 }
 
 void DrawScreen(GSGLOBAL *gsGlobal)

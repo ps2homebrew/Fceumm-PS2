@@ -178,7 +178,28 @@ void Load_Global_CNF(char *CNF_path_p)
     char *temp1;
     char partpath[1024];
 
-    if(!strncmp(Settings.savepath,"hdd0:/", 6)) {
+    if(!strncmp(Settings.elfpath,"hdd0:/", 6)) {
+
+        temp1 = strchr(Settings.elfpath,'/');
+        temp1++;
+
+        while(*temp1 != '/') { temp1++; }
+
+        needed_path[0] = mountPartition(Settings.elfpath);
+
+        if(needed_path[0] == -1) {
+            strcpy(Settings.elfpath, "mc0:/BOOT/BOOT.ELF");
+        }
+        else {
+
+            sprintf(partpath,"pfs%d:", needed_path[0]);
+
+            sprintf(partpath,"%s%s",partpath, temp1);
+            strcpy(Settings.elfpath,partpath);
+        }
+
+        printf("partpath: %s\n", Settings.elfpath);
+    }  if(!strncmp(Settings.savepath,"hdd0:/", 6)) {
 
         temp1 = strchr(Settings.savepath,'/');
         temp1++;
@@ -186,13 +207,13 @@ void Load_Global_CNF(char *CNF_path_p)
         //all my paths have two /'s
         while(*temp1 != '/') { temp1++; }
 
-        needed_path[0] = mountPartition(Settings.savepath);
+        needed_path[1] = mountPartition(Settings.savepath);
 
-        if(needed_path[0] == -1) {
+        if(needed_path[1] == -1) {
             strcpy(Settings.savepath, "mc0:/FCEUMM/");
         }
         else {
-            sprintf(partpath,"pfs%d:", needed_path[0]);
+            sprintf(partpath,"pfs%d:", needed_path[1]);
 
             sprintf(partpath,"%s%s",partpath, temp1);
             strcpy(Settings.savepath,partpath);
@@ -200,27 +221,7 @@ void Load_Global_CNF(char *CNF_path_p)
             printf("partpath: %s\n", Settings.savepath);
         }
     }
-    if(!strncmp(Settings.elfpath,"hdd0:/", 6)) {
-        temp1 = strchr(Settings.elfpath,'/');
-        temp1++;
 
-        while(*temp1 != '/') { temp1++; }
-
-        needed_path[1] = mountPartition(Settings.elfpath);
-
-        if(needed_path[1] == -1) {
-            strcpy(Settings.elfpath, "mc0:/BOOT/BOOT.ELF");
-        }
-        else {
-
-            sprintf(partpath,"pfs%d:", needed_path[1]);
-
-            sprintf(partpath,"%s%s",partpath, temp1);
-            strcpy(Settings.elfpath,partpath);
-        }
-
-        printf("partpath: %s\n", Settings.elfpath);
-    }
     //end hdd path mounting
 
     if(strlen(CNF_p))  //Was there any unprocessed CNF remainder ?
@@ -399,23 +400,29 @@ void Save_Global_CNF(char *CNF_path_p)
     //begin hdd path conversion
     char temp1[1024];
     char temp2[1024];
-    char temp3[1024];
+    char temp4[1024];
+    char *temp3;
 
-    *temp1 = *temp2 = 0;
-    
+    strcpy(temp1,Settings.elfpath);
+    strcpy(temp2,Settings.savepath);
+
     if(needed_path[0] > -1) {
-        strcpy(temp1,Settings.savepath);
-        strcpy(temp3, strchr(Settings.savepath,'/'));
-        //temp3 = strchr(Settings.savepath,'/');
-        sprintf(Settings.savepath,"hdd0:/%s%s",mpartitions[needed_path[0]],temp3);
-        printf("Savepath: %s\n", Settings.savepath);
+        if(!strncmp(temp1,"pfs",3)) {
+            temp3 = strchr(temp1,'/');
+            memcpy(temp4,temp3,strlen(temp3));
+            temp3[strlen(temp3)] = 0;
+            sprintf(temp1,"hdd0:/%s%s",mpartitions[needed_path[0]],temp4);
+            printf("Savepath: %s\n", temp1);
+        }
     }
     if(needed_path[1] > -1) {
-        strcpy(temp2,Settings.elfpath);
-        strcpy(temp3, strchr(Settings.elfpath,'/'));
-        //temp3 = strchr(Settings.elfpath,'/');
-        sprintf(Settings.elfpath,"hdd0:/%s%s",mpartitions[needed_path[1]],temp3);
-        printf("Elfpath: %s\n", Settings.elfpath);
+        if(!strncmp(temp2,"pfs",3)) {
+            temp3 = strchr(temp2,'/');
+            memcpy(temp4,temp3,strlen(temp3));
+            temp3[strlen(temp3)] = 0;
+            sprintf(temp2,"hdd0:/%s%s",mpartitions[needed_path[1]],temp4);
+            printf("Elfpath: %s\n", temp2);
+        }
     }
     //end hdd path conversion
 
@@ -475,8 +482,8 @@ void Save_Global_CNF(char *CNF_path_p)
         Settings.filter,
         Settings.lowpass,
         Settings.turbo,
-        Settings.elfpath,
-        Settings.savepath,
+        temp1,
+        temp2,
         Settings.skinpath,
         Settings.PlayerInput[0][0],
         Settings.PlayerInput[0][1],
@@ -500,6 +507,7 @@ void Save_Global_CNF(char *CNF_path_p)
         Settings.PlayerInput[1][11],
         Settings.PlayerInput[1][12],
         &CNF_size);
+
 // Note that the final argument above measures accumulated string size,
 // used for fioWrite below, so it's not one of the config variables.
 
@@ -517,9 +525,11 @@ abort:
 
     if(*temp1)
         strcpy(Settings.savepath, temp1);
-    
-    if(*temp2)    
+
+    if(*temp2)
         strcpy(Settings.elfpath, temp2);
+
+
 }  //Ends Save_CNF
 //---------------------------------------------------------------------------
 

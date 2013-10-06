@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
 <CodeBlocks_layout_file>
 	<ActiveTarget name="default" />
-	<File name="Makefile" open="1" top="0" tabpos="7">
-		<Cursor position="2374" topLine="0" />
+	<File name="Makefile" open="0" top="0" tabpos="6">
+		<Cursor position="287" topLine="0" />
 	</File>
 	<File name="Makefile.eeglobal" open="0" top="0" tabpos="8">
-		<Cursor position="610" topLine="0" />
+		<Cursor position="614" topLine="0" />
 	</File>
 	<File name="boards\01-222.c" open="0" top="0" tabpos="0">
 		<Cursor position="884" topLine="2" />
@@ -22,11 +22,11 @@
 	<File name="boards\mmc1.c" open="0" top="0" tabpos="0">
 		<Cursor position="5001" topLine="185" />
 	</File>
-	<File name="boards\mmc3.c" open="0" top="0" tabpos="0">
+	<File name="boards\mmc3.c" open="0" top="0" tabpos="10">
 		<Cursor position="5049" topLine="214" />
 	</File>
 	<File name="boards\mmc5.c" open="0" top="0" tabpos="0">
-		<Cursor position="3181" topLine="57" />
+		<Cursor position="925" topLine="3" />
 	</File>
 	<File name="boards\tengen.c" open="0" top="0" tabpos="0">
 		<Cursor position="4340" topLine="157" />
@@ -46,32 +46,32 @@
 	<File name="drawing.h" open="0" top="0" tabpos="0">
 		<Cursor position="268" topLine="0" />
 	</File>
-	<File name="driver.h" open="0" top="0" tabpos="7">
-		<Cursor position="7068" topLine="202" />
+	<File name="driver.h" open="0" top="0" tabpos="8">
+		<Cursor position="3474" topLine="111" />
 	</File>
 	<File name="drivers\common\scale2x.c" open="0" top="0" tabpos="0">
 		<Cursor position="9361" topLine="253" />
 	</File>
 	<File name="drivers\ps2\Reboot_ELF.c" open="0" top="0" tabpos="0">
-		<Cursor position="178584" topLine="1900" />
+		<Cursor position="179503" topLine="1900" />
 	</File>
-	<File name="drivers\ps2\browser.c" open="1" top="0" tabpos="3">
-		<Cursor position="840" topLine="9" />
+	<File name="drivers\ps2\browser.c" open="0" top="0" tabpos="3">
+		<Cursor position="5718" topLine="162" />
 	</File>
-	<File name="drivers\ps2\cnfsettings.c" open="1" top="1" tabpos="5">
-		<Cursor position="10213" topLine="165" />
+	<File name="drivers\ps2\cnfsettings.c" open="0" top="0" tabpos="5">
+		<Cursor position="19054" topLine="389" />
 	</File>
 	<File name="drivers\ps2\init.c" open="1" top="0" tabpos="1">
-		<Cursor position="2568" topLine="257" />
+		<Cursor position="8013" topLine="253" />
 	</File>
-	<File name="drivers\ps2\main.c" open="1" top="0" tabpos="2">
-		<Cursor position="6894" topLine="168" />
+	<File name="drivers\ps2\main.c" open="1" top="1" tabpos="2">
+		<Cursor position="10376" topLine="81" />
 	</File>
-	<File name="drivers\ps2\menu.c" open="1" top="0" tabpos="4">
-		<Cursor position="8985" topLine="30" />
+	<File name="drivers\ps2\menu.c" open="1" top="0" tabpos="3">
+		<Cursor position="11337" topLine="623" />
 	</File>
-	<File name="drivers\ps2\ps2fceu.h" open="1" top="0" tabpos="6">
-		<Cursor position="295" topLine="0" />
+	<File name="drivers\ps2\ps2fceu.h" open="0" top="0" tabpos="7">
+		<Cursor position="80" topLine="0" />
 	</File>
 	<File name="drivers\ps2\ps2font.c" open="0" top="0" tabpos="8">
 		<Cursor position="3199" topLine="9" />
@@ -80,7 +80,7 @@
 		<Cursor position="6863" topLine="0" />
 	</File>
 	<File name="fceu.c" open="0" top="0" tabpos="9">
-		<Cursor position="5027" topLine="234" />
+		<Cursor position="9447" topLine="469" />
 	</File>
 	<File name="fceu.h" open="0" top="0" tabpos="8">
 		<Cursor position="1746" topLine="61" />
@@ -100,8 +100,8 @@
 	<File name="filter.c" open="0" top="0" tabpos="8">
 		<Cursor position="3968" topLine="0" />
 	</File>
-	<File name="general.c" open="0" top="0" tabpos="8">
-		<Cursor position="7331" topLine="138" />
+	<File name="general.c" open="0" top="0" tabpos="9">
+		<Cursor position="7027" topLine="200" />
 	</File>
 	<File name="git.h" open="0" top="0" tabpos="0">
 		<Cursor position="312" topLine="0" />
@@ -119,7 +119,7 @@
 		<Cursor position="700" topLine="0" />
 	</File>
 	<File name="input\pads.c" open="0" top="0" tabpos="8">
-		<Cursor position="3251" topLine="105" />
+		<Cursor position="3302" topLine="105" />
 	</File>
 	<File name="mappers\217.c" open="0" top="0" tabpos="0">
 		<Cursor position="1638" topLine="54" />
@@ -136,14 +136,14 @@
 	<File name="palette.c" open="0" top="0" tabpos="0">
 		<Cursor position="2115" topLine="131" />
 	</File>
-	<File name="ppu.c" open="0" top="0" tabpos="11">
-		<Cursor position="23041" topLine="794" />
+	<File name="ppu.c" open="0" top="0" tabpos="9">
+		<Cursor position="24053" topLine="986" />
 	</File>
 	<File name="ppu.h" open="0" top="0" tabpos="0">
 		<Cursor position="477" topLine="0" />
 	</File>
 	<File name="pputile.h" open="0" top="0" tabpos="9">
-		<Cursor position="751" topLine="9" />
+		<Cursor position="485" topLine="54" />
 	</File>
 	<File name="ppuview.h" open="0" top="0" tabpos="0">
 		<Cursor position="29" topLine="0" />
@@ -175,10 +175,10 @@
 	<File name="wave.c" open="0" top="0" tabpos="0">
 		<Cursor position="539" topLine="4" />
 	</File>
-	<File name="x6502.c" open="0" top="0" tabpos="9">
-		<Cursor position="13148" topLine="664" />
+	<File name="x6502.c" open="0" top="0" tabpos="8">
+		<Cursor position="13738" topLine="566" />
 	</File>
-	<File name="x6502.h" open="0" top="0" tabpos="0">
-		<Cursor position="1863" topLine="34" />
+	<File name="x6502.h" open="0" top="0" tabpos="11">
+		<Cursor position="1450" topLine="34" />
 	</File>
 </CodeBlocks_layout_file>

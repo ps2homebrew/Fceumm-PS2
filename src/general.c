@@ -209,22 +209,6 @@ void GetFileBase(const char *f)
       tp1++;
      }
 
-     /*if(((tp3=strrchr(f,'.'))!=NULL) && (tp3>tp1))
-     {
-      if((tp3-tp1)<27)
-      {
-       memcpy(FileBase,tp1,tp3-tp1);
-       FileBase[tp3-tp1]=0;
-       strcpy(FileExt,tp3);
-      }
-      else
-      {
-       strzncpy(FileBase,tp1,27);
-       FileExt[0]=0;
-      }
-     }
-     else
-     {*/
      if(((tp3=strrchr(f,'.'))!=NULL) && (tp3>tp1))
      {
       if((tp3-tp1)<=20)
