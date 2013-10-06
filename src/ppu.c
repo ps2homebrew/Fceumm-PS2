@@ -54,7 +54,7 @@
 #define Pal     (PALRAM)
 
 static void FetchSpriteData(void);
-static void FASTAPASS(1) RefreshLine(int lastpixel);
+static void FASTAPASS(1) RefreshLine( int lastpixel );
 static void RefreshSprites(void);
 static void CopySprites(uint8 *target);
 

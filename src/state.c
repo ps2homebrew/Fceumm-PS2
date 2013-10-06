@@ -411,8 +411,8 @@ void FCEUI_SelectState(int w)
  FCEUI_SelectMovie(-1);
 
  CurrentState=w;
- StateShow=180;
- FCEU_DispMessage("-select state-");
+ StateShow=0;//180;
+ //FCEU_DispMessage("-select state-");
 }
 
 void FCEUI_SaveState(char *fname)

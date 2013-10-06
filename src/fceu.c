@@ -280,13 +280,13 @@ FCEUGI *FCEUI_LoadGame(const char *name)
   PowerNES();
   FCEUSS_CheckStates();
   //FCEUMOV_CheckMovies();
-/*
+
   if(FCEUGameInfo->type!=GIT_NSF)
   {
-   FCEU_LoadGamePalette();
+   //FCEU_LoadGamePalette();
    FCEU_LoadGameCheats(0);
   }
-*/
+
   FCEU_ResetPalette();
   FCEU_ResetMessages();  // Save state, status messages, etc.
 

@@ -1,9 +1,18 @@
 #include <stdio.h>
 #include <string.h>
+#include <libpad.h>
 
 #include "ps2fceu.h"
 
+extern GSGLOBAL *gsGlobal;
+
 vars Settings;
+skin FCEUSkin;
+char control_name[256];
+extern int needed_path[2];
+extern char mpartitions[4][256];
+
+int mountPartition(char *name);
 
 /**
 //---------------------------------------------------------------------------
@@ -79,7 +88,8 @@ start_line:
     while((*tp<=' ') && (*tp>'\0')) tp+=1; //Skip post-name whitespace, if any
     if(*tp!='=') return false;             //exit (syntax error) if '=' missing
     tp += 1;                               //skip '='
-    while((*tp<=' ') && (*tp>'\0')) tp+=1; //Skip pre-value whitespace, if any
+    while((*tp<=' ') && (*tp>'\0')         //Skip pre-value whitespace, if any
+    && (*tp!='\r') && (*tp!='\n'))tp+=1;   //but do not pass the end of the line
     if(*tp=='\0') return false;            //but exit at EOF
     vp = tp;                               //Current pos is potential value
 
@@ -109,7 +119,7 @@ void Load_Global_CNF(char *CNF_path_p)
     }
     CNF_size = fioLseek(fd, 0, SEEK_END);
     fioLseek(fd, 0, SEEK_SET);
-    CNF_p = (RAM_p = (char *)malloc(CNF_size+1));
+    CNF_p = (RAM_p = (unsigned char *)malloc(CNF_size+1));
     if(CNF_p==NULL) {
         printf("Load_CNF failed malloc(%d).\r\n", CNF_size);
         return;
@@ -121,40 +131,96 @@ void Load_Global_CNF(char *CNF_path_p)
     for(var_cnt = 0; get_CNF_string(&CNF_p, &name, &value); var_cnt++) {
         // A variable was found, now we dispose of its value.
         printf("Found variable \"%s\" with value \"%s\"\r\n", name, value);
-        if(!strcmp(name,"OffsetX"))             { Settings.offset_x  = atoi(value); }
-        else if(!strcmp(name,"OffsetY"))        { Settings.offset_y  = atoi(value); }
-        else if(!strcmp(name,"Display"))        { Settings.display   = atoi(value); }
-        else if(!strcmp(name,"Emulation"))      { Settings.emulation = atoi(value); }
-        else if(!strcmp(name,"Interlace"))      { Settings.interlace = atoi(value); }
-        else if(!strcmp(name,"Elfpath"))        { strcpy(Settings.elfpath,value);    }
-        else if(!strcmp(name,"Savepath"))       { strcpy(Settings.savepath,value);   }
+        if(!strcmp(name,"OffsetX"))               { Settings.offset_x  = atoi(value); }
+        else if(!strcmp(name,"OffsetY"))          { Settings.offset_y  = atoi(value); }
+        else if(!strcmp(name,"Display"))          { Settings.display   = atoi(value); }
+        else if(!strcmp(name,"Emulation"))        { Settings.emulation = atoi(value); }
+        else if(!strcmp(name,"Interlace"))        { Settings.interlace = atoi(value); }
+        else if(!strcmp(name,"LowPass"))          { Settings.lowpass   = atoi(value); }
+        else if(!strcmp(name,"Turbo"))            { Settings.turbo     = atoi(value); }
+        else if(!strcmp(name,"Elfpath"))          { strcpy(Settings.elfpath,value);   }
+        else if(!strcmp(name,"Savepath"))         { strcpy(Settings.savepath,value);  }
+        else if(!strcmp(name,"Skinpath"))         { strcpy(Settings.skinpath,value);  }
         //Player 1 Settings
-        else if(!strcmp(name,"JOY1_Menu"))      { Settings.PlayerInput[0][0]  = (u16)strtoul(value,NULL,16); }
-        else if(!strcmp(name,"JOY1_SaveState")) { Settings.PlayerInput[0][1]  = (u16)strtoul(value,NULL,16); }
-        else if(!strcmp(name,"JOY1_LoadState")) { Settings.PlayerInput[0][2]  = (u16)strtoul(value,NULL,16); }
-        else if(!strcmp(name,"JOY1_A"))         { Settings.PlayerInput[0][3]  = (u16)strtoul(value,NULL,16); }
-        else if(!strcmp(name,"JOY1_B"))         { Settings.PlayerInput[0][4]  = (u16)strtoul(value,NULL,16); }
-        else if(!strcmp(name,"JOY1_Select"))    { Settings.PlayerInput[0][5]  = (u16)strtoul(value,NULL,16); }
-        else if(!strcmp(name,"JOY1_Start"))     { Settings.PlayerInput[0][6]  = (u16)strtoul(value,NULL,16); }
-        else if(!strcmp(name,"JOY1_Up"))        { Settings.PlayerInput[0][7]  = (u16)strtoul(value,NULL,16); }
-        else if(!strcmp(name,"JOY1_Down"))      { Settings.PlayerInput[0][8]  = (u16)strtoul(value,NULL,16); }
-        else if(!strcmp(name,"JOY1_Left"))      { Settings.PlayerInput[0][9]  = (u16)strtoul(value,NULL,16); }
-        else if(!strcmp(name,"JOY1_Right"))     { Settings.PlayerInput[0][10] = (u16)strtoul(value,NULL,16); }
+        else if(!strcmp(name,"JOY1_Menu"))        { Settings.PlayerInput[0][0]  = (u16)strtoul(value,NULL,16); }
+        else if(!strcmp(name,"JOY1_SaveState"))   { Settings.PlayerInput[0][1]  = (u16)strtoul(value,NULL,16); }
+        else if(!strcmp(name,"JOY1_LoadState"))   { Settings.PlayerInput[0][2]  = (u16)strtoul(value,NULL,16); }
+        else if(!strcmp(name,"JOY1_FDS_DiskSwap")){ Settings.PlayerInput[0][3]  = (u16)strtoul(value,NULL,16); }
+        else if(!strcmp(name,"JOY1_FDS_SideSwap")){ Settings.PlayerInput[0][4]  = (u16)strtoul(value,NULL,16); }
+        else if(!strcmp(name,"JOY1_A"))           { Settings.PlayerInput[0][5]  = (u16)strtoul(value,NULL,16); }
+        else if(!strcmp(name,"JOY1_B"))           { Settings.PlayerInput[0][6]  = (u16)strtoul(value,NULL,16); }
+        else if(!strcmp(name,"JOY1_Select"))      { Settings.PlayerInput[0][7]  = (u16)strtoul(value,NULL,16); }
+        else if(!strcmp(name,"JOY1_Start"))       { Settings.PlayerInput[0][8]  = (u16)strtoul(value,NULL,16); }
+        else if(!strcmp(name,"JOY1_Up"))          { Settings.PlayerInput[0][9]  = (u16)strtoul(value,NULL,16); }
+        else if(!strcmp(name,"JOY1_Down"))        { Settings.PlayerInput[0][10] = (u16)strtoul(value,NULL,16); }
+        else if(!strcmp(name,"JOY1_Left"))        { Settings.PlayerInput[0][11] = (u16)strtoul(value,NULL,16); }
+        else if(!strcmp(name,"JOY1_Right"))       { Settings.PlayerInput[0][12] = (u16)strtoul(value,NULL,16); }
         //Player 2 Settings
-        else if(!strcmp(name,"JOY2_A"))         { Settings.PlayerInput[1][3]  = (u16)strtoul(value,NULL,16); }
-        else if(!strcmp(name,"JOY2_B"))         { Settings.PlayerInput[1][4]  = (u16)strtoul(value,NULL,16); }
-        else if(!strcmp(name,"JOY2_Select"))    { Settings.PlayerInput[1][5]  = (u16)strtoul(value,NULL,16); }
-        else if(!strcmp(name,"JOY2_Start"))     { Settings.PlayerInput[1][6]  = (u16)strtoul(value,NULL,16); }
-        else if(!strcmp(name,"JOY2_Up"))        { Settings.PlayerInput[1][7]  = (u16)strtoul(value,NULL,16); }
-        else if(!strcmp(name,"JOY2_Down"))      { Settings.PlayerInput[1][8]  = (u16)strtoul(value,NULL,16); }
-        else if(!strcmp(name,"JOY2_Left"))      { Settings.PlayerInput[1][9]  = (u16)strtoul(value,NULL,16); }
-        else if(!strcmp(name,"JOY2_Right"))     { Settings.PlayerInput[1][10] = (u16)strtoul(value,NULL,16); }
+        else if(!strcmp(name,"JOY2_A"))           { Settings.PlayerInput[1][5]  = (u16)strtoul(value,NULL,16); }
+        else if(!strcmp(name,"JOY2_B"))           { Settings.PlayerInput[1][6]  = (u16)strtoul(value,NULL,16); }
+        else if(!strcmp(name,"JOY2_Select"))      { Settings.PlayerInput[1][7]  = (u16)strtoul(value,NULL,16); }
+        else if(!strcmp(name,"JOY2_Start"))       { Settings.PlayerInput[1][8]  = (u16)strtoul(value,NULL,16); }
+        else if(!strcmp(name,"JOY2_Up"))          { Settings.PlayerInput[1][9]  = (u16)strtoul(value,NULL,16); }
+        else if(!strcmp(name,"JOY2_Down"))        { Settings.PlayerInput[1][10] = (u16)strtoul(value,NULL,16); }
+        else if(!strcmp(name,"JOY2_Left"))        { Settings.PlayerInput[1][11] = (u16)strtoul(value,NULL,16); }
+        else if(!strcmp(name,"JOY2_Right"))       { Settings.PlayerInput[1][12] = (u16)strtoul(value,NULL,16); }
     }
 
     //Set so only first player controls emulator controls
     Settings.PlayerInput[1][0] = 0xFFFF;
     Settings.PlayerInput[1][1] = 0xFFFF;
     Settings.PlayerInput[1][2] = 0xFFFF;
+    Settings.PlayerInput[1][3] = 0xFFFF;
+    Settings.PlayerInput[1][4] = 0xFFFF;
+
+    //begin hdd path mounting
+    char *temp1;
+    char partpath[1024];
+
+    if(!strncmp(Settings.savepath,"hdd0:/", 6)) {
+
+        temp1 = strchr(Settings.savepath,'/');
+        temp1++;
+
+        //all my paths have two /'s
+        while(*temp1 != '/') { temp1++; }
+
+        needed_path[0] = mountPartition(Settings.savepath);
+
+        if(needed_path[0] == -1) {
+            strcpy(Settings.savepath, "mc0:/FCEUMM/");
+        }
+        else {
+            sprintf(partpath,"pfs%d:", needed_path[0]);
+
+            sprintf(partpath,"%s%s",partpath, temp1);
+            strcpy(Settings.savepath,partpath);
+
+            printf("partpath: %s\n", Settings.savepath);
+        }
+    }
+    if(!strncmp(Settings.elfpath,"hdd0:/", 6)) {
+        temp1 = strchr(Settings.elfpath,'/');
+        temp1++;
+
+        while(*temp1 != '/') { temp1++; }
+
+        needed_path[1] = mountPartition(Settings.elfpath);
+
+        if(needed_path[1] == -1) {
+            strcpy(Settings.elfpath, "mc0:/BOOT/BOOT.ELF");
+        }
+        else {
+
+            sprintf(partpath,"pfs%d:", needed_path[1]);
+
+            sprintf(partpath,"%s%s",partpath, temp1);
+            strcpy(Settings.elfpath,partpath);
+        }
+
+        printf("partpath: %s\n", Settings.elfpath);
+    }
+    //end hdd path mounting
 
     if(strlen(CNF_p))  //Was there any unprocessed CNF remainder ?
         CNF_edited = false;  //false == current settings match CNF file
@@ -171,6 +237,7 @@ char* Load_Control_CNF(char *CNF_path_p, int port)
     int fd, var_cnt = 0;
     size_t TST_size, CNF_size;
     unsigned char  *RAM_p, *CNF_p, *name, *value;
+
 
     fd = fioOpen(CNF_path_p,O_RDONLY);
     if(fd < 0)	{
@@ -191,24 +258,28 @@ char* Load_Control_CNF(char *CNF_path_p, int port)
     for(var_cnt = 0; get_CNF_string(&CNF_p, &name, &value); var_cnt++) {
         // A variable was found, now we dispose of its value.
         printf("Found variable \"%s\" with value \"%s\"\r\n", name, value);
-        if(!strcmp(name,"JOY_Menu"))           { Settings.PlayerInput[port][0]  = (u16)strtoul(value,NULL,16); }
-        else if(!strcmp(name,"JOY_SaveState")) { Settings.PlayerInput[port][1]  = (u16)strtoul(value,NULL,16); }
-        else if(!strcmp(name,"JOY_LoadState")) { Settings.PlayerInput[port][2]  = (u16)strtoul(value,NULL,16); }
-        else if(!strcmp(name,"JOY_A"))         { Settings.PlayerInput[port][3]  = (u16)strtoul(value,NULL,16); }
-        else if(!strcmp(name,"JOY_B"))         { Settings.PlayerInput[port][4]  = (u16)strtoul(value,NULL,16); }
-        else if(!strcmp(name,"JOY_Select"))    { Settings.PlayerInput[port][5]  = (u16)strtoul(value,NULL,16); }
-        else if(!strcmp(name,"JOY_Start"))     { Settings.PlayerInput[port][6]  = (u16)strtoul(value,NULL,16); }
-        else if(!strcmp(name,"JOY_Up"))        { Settings.PlayerInput[port][7]  = (u16)strtoul(value,NULL,16); }
-        else if(!strcmp(name,"JOY_Down"))      { Settings.PlayerInput[port][8]  = (u16)strtoul(value,NULL,16); }
-        else if(!strcmp(name,"JOY_Left"))      { Settings.PlayerInput[port][9]  = (u16)strtoul(value,NULL,16); }
-        else if(!strcmp(name,"JOY_Right"))     { Settings.PlayerInput[port][10] = (u16)strtoul(value,NULL,16); }
-        else if(!strcmp(name,"name"))          { strcpy(name,value); }
+        if(!strcmp(name,"JOY_Menu"))             { Settings.PlayerInput[port][0]  = (u16)strtoul(value,NULL,16); }
+        else if(!strcmp(name,"JOY_SaveState"))   { Settings.PlayerInput[port][1]  = (u16)strtoul(value,NULL,16); }
+        else if(!strcmp(name,"JOY_LoadState"))   { Settings.PlayerInput[port][2]  = (u16)strtoul(value,NULL,16); }
+        else if(!strcmp(name,"JOY_FDS_DiskSwap")){ Settings.PlayerInput[port][3]  = (u16)strtoul(value,NULL,16); }
+        else if(!strcmp(name,"JOY_FDS_SideSwap")){ Settings.PlayerInput[port][4]  = (u16)strtoul(value,NULL,16); }
+        else if(!strcmp(name,"JOY_A"))           { Settings.PlayerInput[port][3]  = (u16)strtoul(value,NULL,16); }
+        else if(!strcmp(name,"JOY_B"))           { Settings.PlayerInput[port][4]  = (u16)strtoul(value,NULL,16); }
+        else if(!strcmp(name,"JOY_Select"))      { Settings.PlayerInput[port][5]  = (u16)strtoul(value,NULL,16); }
+        else if(!strcmp(name,"JOY_Start"))       { Settings.PlayerInput[port][6]  = (u16)strtoul(value,NULL,16); }
+        else if(!strcmp(name,"JOY_Up"))          { Settings.PlayerInput[port][7]  = (u16)strtoul(value,NULL,16); }
+        else if(!strcmp(name,"JOY_Down"))        { Settings.PlayerInput[port][8]  = (u16)strtoul(value,NULL,16); }
+        else if(!strcmp(name,"JOY_Left"))        { Settings.PlayerInput[port][9]  = (u16)strtoul(value,NULL,16); }
+        else if(!strcmp(name,"JOY_Right"))       { Settings.PlayerInput[port][10] = (u16)strtoul(value,NULL,16); }
+        else if(!strcmp(name,"name"))            { strcpy(control_name,value); }
     }
 
     //Set so only first player controls emulator controls
     Settings.PlayerInput[1][0] = 0xFFFF;
     Settings.PlayerInput[1][1] = 0xFFFF;
     Settings.PlayerInput[1][2] = 0xFFFF;
+    Settings.PlayerInput[1][3] = 0xFFFF;
+    Settings.PlayerInput[1][4] = 0xFFFF;
 
     /*if(strlen(CNF_p))  //Was there any unprocessed CNF remainder ?
         CNF_edited = false;  //false == current settings match CNF file
@@ -222,7 +293,55 @@ char* Load_Control_CNF(char *CNF_path_p, int port)
 }  //Ends Load_Control_CNF
 
 //---------------------------------------------------------------------------
-void Save_Global_CNF(char *CNF_path_p)
+void Load_Skin_CNF(char *CNF_path_p)
+{
+    int fd, var_cnt = 0;
+    size_t TST_size, CNF_size;
+    unsigned char  *RAM_p, *CNF_p, *name, *value;
+
+    fd = fioOpen(CNF_path_p,O_RDONLY);
+    if(fd < 0)	{
+        printf("Load_CNF %s Open failed %d.\r\n", CNF_path_p, fd);
+        return;
+    }
+    CNF_size = fioLseek(fd, 0, SEEK_END);
+    fioLseek(fd, 0, SEEK_SET);
+    CNF_p = (RAM_p = (char *)malloc(CNF_size+1));
+    if(CNF_p==NULL) {
+        printf("Load_CNF failed malloc(%d).\r\n", CNF_size);
+        return;
+    }
+    TST_size = fioRead(fd, CNF_p, CNF_size);
+    fioClose(fd);
+    CNF_p[CNF_size] = '\0';
+
+    for(var_cnt = 0; get_CNF_string(&CNF_p, &name, &value); var_cnt++) {
+        // A variable was found, now we dispose of its value.
+        printf("Found variable \"%s\" with value \"%s\"\r\n", name, value);
+        if(!strcmp(name,"FrameColor"))          { FCEUSkin.frame = strtoul(value,NULL,16); }
+        else if(!strcmp(name,"TextColor"))      { FCEUSkin.textcolor  = strtoul(value,NULL,16); }
+        else if(!strcmp(name,"Highlight"))      { FCEUSkin.highlight  = strtoul(value,NULL,16); }
+        else if(!strcmp(name,"BGColor1"))       { FCEUSkin.bgColor1   = strtoul(value,NULL,16); }
+        else if(!strcmp(name,"BGColor2"))       { FCEUSkin.bgColor2   = strtoul(value,NULL,16); }
+        else if(!strcmp(name,"BGColor3"))       { FCEUSkin.bgColor3   = strtoul(value,NULL,16); }
+        else if(!strcmp(name,"BGColor4"))       { FCEUSkin.bgColor4   = strtoul(value,NULL,16); }
+        else if(!strcmp(name,"BGTexture"))      { strcpy(FCEUSkin.bgTexture,value);   }
+        else if(!strcmp(name,"BGMenu"))         { strcpy(FCEUSkin.bgMenu, value);     }
+    }
+
+    //Set so only first player controls emulator controls
+
+    /*if(strlen(CNF_p))  //Was there any unprocessed CNF remainder ?
+        CNF_edited = false;  //false == current settings match CNF file
+    else
+	printf("Syntax error in CNF file at position %d.\r\n", (CNF_p-RAM_p));*/
+
+    free(RAM_p);
+
+}  //Ends Load_Control_CNF
+
+//---------------------------------------------------------------------------
+void Save_Skin_CNF(char *CNF_path_p)
 {
     int fd, CNF_error;
     size_t CNF_size = 4096; //safe preliminary value
@@ -232,66 +351,30 @@ void Save_Global_CNF(char *CNF_path_p)
     CNF_p = (char *)malloc(CNF_size);
     if(CNF_p == NULL) return;
     sprintf(CNF_p,
-        "# FCEULTRA.CNF == Configuration file for the emulator FCEUltra\r\n"
-        "# CNF Handling Code (c)2006 Ronald Andersson aka dlanor       \r\n"
-        "# ------------------------------------------------------------\r\n"
-        "OffsetX     = %d\r\n"
-        "OffsetY     = %d\r\n"
-        "Display     = %d\r\n"
-        "Emulation   = %d\r\n"
-        "Interlace   = %d\r\n"
-        "Elfpath     = %s\r\n"
-        "Savepath    = %s\r\n"
-        ";Player 1 Controls\r\n"
-        "JOY1_Menu      = 0x%04x\r\n"
-        "JOY1_SaveState = 0x%04x\r\n"
-        "JOY1_LoadState = 0x%04x\r\n"
-        "JOY1_A         = 0x%04x\r\n"
-        "JOY1_B         = 0x%04x\r\n"
-        "JOY1_Select    = 0x%04x\r\n"
-        "JOY1_Start     = 0x%04x\r\n"
-        "JOY1_Up        = 0x%04x\r\n"
-        "JOY1_Down      = 0x%04x\r\n"
-        "JOY1_Left      = 0x%04x\r\n"
-        "JOY1_Right     = 0x%04x\r\n"
-        ";Player 2 Controls\r\n"
-        "JOY2_A         = 0x%04x\r\n"
-        "JOY2_B         = 0x%04x\r\n"
-        "JOY2_Select    = 0x%04x\r\n"
-        "JOY2_Start     = 0x%04x\r\n"
-        "JOY2_Up        = 0x%04x\r\n"
-        "JOY2_Down      = 0x%04x\r\n"
-        "JOY2_Left      = 0x%04x\r\n"
-        "JOY2_Right     = 0x%04x\r\n"
-        "# ------------------------------------------------------------\r\n"
-        "# End-Of-File for FCEUltra.CNF\r\n"
+        "# SKIN.CNF == Skin configuration file for the emulator FCEUltra\r\n"
+        "# CNF Handling Code (c)2006 Ronald Andersson aka dlanor        \r\n"
+        "# -------------------------------------------------------------\r\n"
+        "FrameColor  = 0x%08lx\r\n"
+        "TextColor   = 0x%08lx\r\n"
+        "Highlight   = 0x%08lx\r\n"
+        "BGColor1    = 0x%08lx\r\n"
+        "BGColor2    = 0x%08lx\r\n"
+        "BGColor3    = 0x%08lx\r\n"
+        "BGColor4    = 0x%08lx\r\n"
+        "BGTexture   = %s\r\n"
+        "BGMenu      = %s\r\n"
+        "# -------------------------------------------------------------\r\n"
+        "# End-Of-File for SKIN.CNF\r\n"
         "%n", //NB: The %n specifier causes NO output, but only a measurement
-        Settings.offset_x,
-        Settings.offset_y,
-        Settings.display,
-        Settings.emulation,
-        Settings.interlace,
-        Settings.elfpath,
-        Settings.savepath,
-        Settings.PlayerInput[0][0],
-        Settings.PlayerInput[0][1],
-        Settings.PlayerInput[0][2],
-        Settings.PlayerInput[0][3],
-        Settings.PlayerInput[0][4],
-        Settings.PlayerInput[0][5],
-        Settings.PlayerInput[0][6],
-        Settings.PlayerInput[0][7],
-        Settings.PlayerInput[0][8],
-        Settings.PlayerInput[0][9],
-        Settings.PlayerInput[0][10],
-        Settings.PlayerInput[1][3],
-        Settings.PlayerInput[1][4],
-        Settings.PlayerInput[1][5],
-        Settings.PlayerInput[1][6],
-        Settings.PlayerInput[1][7],
-        Settings.PlayerInput[1][8],
-        Settings.PlayerInput[1][9],
-        Settings.PlayerInput[1][10],
+        FCEUSkin.frame,
+        FCEUSkin.textcolor,
+        FCEUSkin.highlight,
+        FCEUSkin.bgColor1,
+        FCEUSkin.bgColor2,
+        FCEUSkin.bgColor3,
+        FCEUSkin.bgColor4,
+        FCEUSkin.bgTexture,
+        FCEUSkin.bgMenu,
         &CNF_size);
 // Note that the final argument above measures accumulated string size,
 // used for fioWrite below, so it's not one of the config variables.
@@ -310,3 +393,181 @@ abort:
 }  //Ends Save_CNF
 
 //---------------------------------------------------------------------------
+void Save_Global_CNF(char *CNF_path_p)
+{
+    //begin hdd path conversion
+    char temp1[1024];
+    char temp2[1024];
+    char *temp3;
+
+    if(needed_path[0] > -1) {
+        strcpy(temp1,Settings.savepath);
+        temp3 = strchr(Settings.savepath,'/');
+        sprintf(Settings.savepath,"hdd0:/%s%s",mpartitions[needed_path[0]],temp3);
+        printf("Savepath: %s\n", Settings.savepath);
+    }
+    if(needed_path[1] > -1) {
+        strcpy(temp2,Settings.elfpath);
+        temp3 = strchr(Settings.elfpath,'/');
+        sprintf(Settings.elfpath,"hdd0:/%s%s",mpartitions[needed_path[1]],temp3);
+        printf("Elfpath: %s\n", Settings.elfpath);
+    }
+    //end hdd path conversion
+
+    int fd, CNF_error;
+    size_t CNF_size = 4096; //safe preliminary value
+    char  *CNF_p;
+
+    CNF_error = true;
+    CNF_p = (char *)malloc(CNF_size);
+    if(CNF_p == NULL) return;
+    sprintf(CNF_p,
+        "# FCEULTRA.CNF == Configuration file for the emulator FCEUltra\r\n"
+        "# CNF Handling Code (c)2006 Ronald Andersson aka dlanor       \r\n"
+        "# ------------------------------------------------------------\r\n"
+        "OffsetX     = %d\r\n"
+        "OffsetY     = %d\r\n"
+        "Display     = %d\r\n"
+        "Emulation   = %d\r\n"
+        "Interlace   = %d\r\n"
+        "Filter      = %d\r\n"
+        "LowPass     = %d\r\n"
+        "Turbo       = %d\r\n"
+        "Elfpath     = %s\r\n"
+        "Savepath    = %s\r\n"
+        "Skinpath    = %s\r\n"
+        ";Player 1 Controls\r\n"
+        "JOY1_Menu         = 0x%04x\r\n"
+        "JOY1_SaveState    = 0x%04x\r\n"
+        "JOY1_LoadState    = 0x%04x\r\n"
+        "JOY1_FDS_DiskSwap = 0x%04x\r\n"
+        "JOY1_FDS_SideSwap = 0x%04x\r\n"
+        "JOY1_A            = 0x%04x\r\n"
+        "JOY1_B            = 0x%04x\r\n"
+        "JOY1_Select       = 0x%04x\r\n"
+        "JOY1_Start        = 0x%04x\r\n"
+        "JOY1_Up           = 0x%04x\r\n"
+        "JOY1_Down         = 0x%04x\r\n"
+        "JOY1_Left         = 0x%04x\r\n"
+        "JOY1_Right        = 0x%04x\r\n"
+        ";Player 2 Controls\r\n"
+        "JOY2_A            = 0x%04x\r\n"
+        "JOY2_B            = 0x%04x\r\n"
+        "JOY2_Select       = 0x%04x\r\n"
+        "JOY2_Start        = 0x%04x\r\n"
+        "JOY2_Up           = 0x%04x\r\n"
+        "JOY2_Down         = 0x%04x\r\n"
+        "JOY2_Left         = 0x%04x\r\n"
+        "JOY2_Right        = 0x%04x\r\n"
+        "# ------------------------------------------------------------\r\n"
+        "# End-Of-File for FCEUltra.CNF\r\n"
+        "%n", //NB: The %n specifier causes NO output, but only a measurement
+        Settings.offset_x,
+        Settings.offset_y,
+        Settings.display,
+        Settings.emulation,
+        Settings.filter,
+        Settings.interlace,
+        Settings.lowpass,
+        Settings.turbo,
+        Settings.elfpath,
+        Settings.savepath,
+        Settings.skinpath,
+        Settings.PlayerInput[0][0],
+        Settings.PlayerInput[0][1],
+        Settings.PlayerInput[0][2],
+        Settings.PlayerInput[0][3],
+        Settings.PlayerInput[0][4],
+        Settings.PlayerInput[0][5],
+        Settings.PlayerInput[0][6],
+        Settings.PlayerInput[0][7],
+        Settings.PlayerInput[0][8],
+        Settings.PlayerInput[0][9],
+        Settings.PlayerInput[0][10],
+        Settings.PlayerInput[0][11],
+        Settings.PlayerInput[0][12],
+        Settings.PlayerInput[1][5],
+        Settings.PlayerInput[1][6],
+        Settings.PlayerInput[1][7],
+        Settings.PlayerInput[1][8],
+        Settings.PlayerInput[1][9],
+        Settings.PlayerInput[1][10],
+        Settings.PlayerInput[1][11],
+        Settings.PlayerInput[1][12],
+        &CNF_size);
+// Note that the final argument above measures accumulated string size,
+// used for fioWrite below, so it's not one of the config variables.
+
+    fd = fioOpen(CNF_path_p,O_CREAT|O_WRONLY|O_TRUNC);
+    if(fd < 0)
+        goto abort;
+
+    if(CNF_size == fioWrite(fd, CNF_p, CNF_size))
+        CNF_edited = false;
+
+    fioClose(fd);
+
+abort:
+    free(CNF_p);
+
+    strcpy(Settings.savepath, temp1);
+    strcpy(Settings.elfpath, temp2);
+}  //Ends Save_CNF
+//---------------------------------------------------------------------------
+
+
+void Default_Global_CNF(void)
+{
+    Settings.offset_x  = 0;
+    Settings.offset_y  = 0;
+    Settings.interlace = 0;
+    Settings.filter    = 0;
+    Settings.lowpass   = 0;
+    Settings.turbo     = 0;
+    Settings.display   = 0;
+    Settings.emulation = 0;
+    strcpy(Settings.elfpath, "mc0:/BOOT/BOOT.ELF");
+    strcpy(Settings.savepath,"mc0:/FCEUMM/");
+    strcpy(Settings.skinpath,"mc0:/FCEUMM/skin.cnf");
+    Settings.PlayerInput[0][0]  = PAD_TRIANGLE;
+    Settings.PlayerInput[0][1]  = PAD_R2;
+    Settings.PlayerInput[0][2]  = PAD_L2;
+    Settings.PlayerInput[0][3]  = PAD_L3;
+    Settings.PlayerInput[0][4]  = PAD_R3;
+    Settings.PlayerInput[0][5]  = PAD_CROSS;
+    Settings.PlayerInput[0][6]  = PAD_SQUARE;
+    Settings.PlayerInput[0][7]  = PAD_SELECT;
+    Settings.PlayerInput[0][8]  = PAD_START;
+    Settings.PlayerInput[0][9]  = PAD_UP;
+    Settings.PlayerInput[0][10] = PAD_DOWN;
+    Settings.PlayerInput[0][11] = PAD_LEFT;
+    Settings.PlayerInput[0][12] = PAD_RIGHT;
+    Settings.PlayerInput[1][0]  = 0xFFFF;
+    Settings.PlayerInput[1][1]  = 0xFFFF;
+    Settings.PlayerInput[1][2]  = 0xFFFF;
+    Settings.PlayerInput[1][3]  = 0xFFFF;
+    Settings.PlayerInput[1][4]  = 0xFFFF;
+    Settings.PlayerInput[1][5]  = PAD_CROSS;
+    Settings.PlayerInput[1][6]  = PAD_SQUARE;
+    Settings.PlayerInput[1][7]  = PAD_SELECT;
+    Settings.PlayerInput[1][8]  = PAD_START;
+    Settings.PlayerInput[1][9]  = PAD_UP;
+    Settings.PlayerInput[1][10] = PAD_DOWN;
+    Settings.PlayerInput[1][11] = PAD_LEFT;
+    Settings.PlayerInput[1][12] = PAD_RIGHT;
+
+}
+
+void Default_Skin_CNF(void)
+{
+    FCEUSkin.frame     = GS_SETREG_RGBAQ(0xFF,0xFF,0xFF,0x80,0x00);
+    FCEUSkin.textcolor = GS_SETREG_RGBAQ(0xFF,0xFF,0xFF,0x80,0x00);
+    FCEUSkin.highlight = GS_SETREG_RGBAQ(0x80,0x80,0x40,0x80,0x00);
+    FCEUSkin.bgColor1  = GS_SETREG_RGBAQ(0x80,0x00,0x00,0x80,0x00);
+    FCEUSkin.bgColor2  = GS_SETREG_RGBAQ(0x00,0x00,0x00,0x80,0x00);
+    FCEUSkin.bgColor3  = GS_SETREG_RGBAQ(0x00,0x00,0x00,0x80,0x00);
+    FCEUSkin.bgColor4  = GS_SETREG_RGBAQ(0x80,0x00,0x00,0x80,0x00);
+    strcpy(FCEUSkin.bgTexture,"mc0:/FCEUMM/backg.jpg");
+    strcpy(FCEUSkin.bgMenu,"mc0:/FCEUMM/strtg.jpg");
+}
+

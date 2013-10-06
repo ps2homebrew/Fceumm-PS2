@@ -1,22 +1,19 @@
 #include <stdio.h>
-#include <tamtypes.h>
-#include <kernel.h>
-#include <sifrpc.h>
-#include <loadfile.h>
 #include <fileio.h>
-#include <malloc.h>
-#include <libmc.h>
-#include <libpad.h>
 #include <string.h>
-
-#include <gsKit.h>
+#include <libjpg.h>
 
 //FCEUltra headers
 #include "../../driver.h"
 #include "../../types.h"
 
 #include "ps2fceu.h"
+extern unsigned char path[4096];
 extern vars Settings;
+extern skin FCEUSkin;
+extern u8 partitions[2];
+char mpartitions[4][256];
+int FONT_HEIGHT = 16;
 /************************************/
 /* FCEUltra Variables               */
 /************************************/
@@ -32,7 +29,13 @@ FCEUGI *CurGame=NULL;
 /* gsKit Variables                  */
 /************************************/
 GSTEXTURE NES_TEX;
+GSTEXTURE BG_TEX;
+GSTEXTURE MENU_TEX;
 GSFONT *gsFont;
+
+u8 menutex = 0;
+u8 bgtex = 0;
+
 extern GSGLOBAL *gsGlobal;
 //unsigned int ps2palette[256];
 /* normal palette
@@ -80,65 +83,125 @@ void DoFun();
 
 int main(int argc, char *argv[])
 {
-    int ret;
+    int ret,sometime;
+    char *temp;
+
+    mpartitions[0][0] = 0;
+    mpartitions[1][0] = 0;
+    mpartitions[2][0] = 0;
 
     //Setup PS2 here
     InitPS2();
-    SetupGSKit();
     setupPS2Pad();
 
-    Settings.offset_x = -1;
+    //Init Settings
+    Default_Global_CNF();
 
     Load_Global_CNF("mc0:/FCEUMM/FCEUltra.cnf");
 
-    if((Settings.offset_x == -1)) { //initialize default values and try to save them
-        printf("Load Settings Failed\n");
-        Settings.offset_x = gsGlobal->StartX;
-        Settings.offset_y = gsGlobal->StartY;
-        Settings.interlace = 0;
-        //Settings.display already defined
-        //Settings.emulation already defined
-        strcpy(Settings.elfpath, "mc0:/BOOT/BOOT.ELF");
-        strcpy(Settings.savepath,"mc0:/FCEUMM/");
-        Settings.PlayerInput[0][0]  = PAD_TRIANGLE;
-        Settings.PlayerInput[0][1]  = PAD_R2;
-        Settings.PlayerInput[0][2]  = PAD_L2;
-        Settings.PlayerInput[0][3]  = PAD_CROSS;
-        Settings.PlayerInput[0][4]  = PAD_SQUARE;
-        Settings.PlayerInput[0][5]  = PAD_SELECT;
-        Settings.PlayerInput[0][6]  = PAD_START;
-        Settings.PlayerInput[0][7]  = PAD_UP;
-        Settings.PlayerInput[0][8]  = PAD_DOWN;
-        Settings.PlayerInput[0][9]  = PAD_LEFT;
-        Settings.PlayerInput[0][10] = PAD_RIGHT;
-        Settings.PlayerInput[1][0]  = 0xFFFF;
-        Settings.PlayerInput[1][1]  = 0xFFFF;
-        Settings.PlayerInput[1][2]  = 0xFFFF;
-        Settings.PlayerInput[1][3]  = PAD_CROSS;
-        Settings.PlayerInput[1][4]  = PAD_SQUARE;
-        Settings.PlayerInput[1][5]  = PAD_SELECT;
-        Settings.PlayerInput[1][6]  = PAD_START;
-        Settings.PlayerInput[1][7]  = PAD_UP;
-        Settings.PlayerInput[1][8]  = PAD_DOWN;
-        Settings.PlayerInput[1][9]  = PAD_LEFT;
-        Settings.PlayerInput[1][10] = PAD_RIGHT;
+    for (ret  = 0; ret < 3; ret++) {
+        sometime = 0x10000;
+        while(sometime--) asm("nop\nnop\nnop\nnop");
+	}
+
+    SetupGSKit();
+
+    gsKit_init_screen(gsGlobal); //initialize everything
+    init_custom_screen(); //init user screen settings
+
+    loadFont(0);
+
+    //Init Skin
+    FCEUSkin.textcolor = 0;
+    Load_Skin_CNF(Settings.skinpath);
+    for (ret  = 0; ret < 3; ret++) {
+        sometime = 0x10000;
+		while(sometime--) asm("nop\nnop\nnop\nnop");
+	}
+    if(!FCEUSkin.textcolor) { //initialize default values
+        printf("Load Skin Failed\n");
+        Default_Skin_CNF();
     }
 
-    gsGlobal->StartX = Settings.offset_x;
-    gsGlobal->StartY = Settings.offset_y;
+    //Setup GUI Textures
+    jpgData *Jpg;
+    u8 *ImgData;
+    if(strstr(FCEUSkin.bgTexture,".png") != NULL) {
+        if(gsKit_texture_png(gsGlobal, &BG_TEX, FCEUSkin.bgTexture) < 0) {
+            printf("Error with browser background png!\n");
+            bgtex = 1;
+        }
+    }
+    else if(strstr(FCEUSkin.bgTexture,".jpg") || strstr(FCEUSkin.bgTexture,".jpeg") != NULL){
+        //if(gsKit_texture_jpeg(gsGlobal, &BG_TEX, FCEUSkin.bgTexture) < 0) {
+        FILE *File = fopen(FCEUSkin.bgTexture, "r");
+        if(File != NULL) {
+            Jpg = jpgOpenFILE( File, JPG_WIDTH_FIX);// > 0)
+            ImgData = malloc ( Jpg->width * Jpg->height * (Jpg->bpp / 8) );// > 0)
+            jpgReadImage( Jpg, ImgData  );
+            BG_TEX.PSM = GS_PSM_CT24;
+            BG_TEX.Clut = NULL;
+            BG_TEX.VramClut = 0;
+	        BG_TEX.Width = Jpg->width;
+	        BG_TEX.Height = Jpg->height;
+	        BG_TEX.Filter = GS_FILTER_LINEAR;
+            BG_TEX.Mem = memalign(128, gsKit_texture_size_ee(BG_TEX.Width, BG_TEX.Height, BG_TEX.PSM));
+            BG_TEX.Mem = (void*)ImgData;
+            BG_TEX.Vram = gsKit_vram_alloc(gsGlobal, gsKit_texture_size(BG_TEX.Width, BG_TEX.Height, BG_TEX.PSM), GSKIT_ALLOC_USERBUFFER);
+            gsKit_texture_upload(gsGlobal, &BG_TEX);
+            free(BG_TEX.Mem);
+        }
+        else {
+            printf("Error with browser background jpg!\n");
+            bgtex = 1;
+        }
+    }
+    else {
+        bgtex = 1;
+    }
 
-    gsKit_init_screen(gsGlobal);
+    Jpg = 0;
+    ImgData = 0;
 
-    gsFont = gsKit_init_font(GSKIT_FTYPE_FONTM, NULL);
-    //gsFont = gsKit_init_font(GSKIT_FTYPE_BMP_DAT, "host:arial.fnt"); //I couldn't get this to work...
-    gsFont->FontM_Spacing = 0.90f;
-    gsKit_font_upload(gsGlobal, gsFont); //upload once
+    if(strstr(FCEUSkin.bgMenu,".png") != NULL) {
+        if(gsKit_texture_png(gsGlobal, &MENU_TEX, FCEUSkin.bgMenu) == -1) {
+            printf("Error with menu background png!\n");
+            menutex = 1;
+        }
+    }
+    else if(strstr(FCEUSkin.bgMenu,".jpg") || strstr(FCEUSkin.bgMenu,".jpeg") != NULL) {
+        //if(gsKit_texture_jpeg(gsGlobal, &MENU_TEX, FCEUSkin.bgMenu) < 0) { //apparently didn't like the "myps2" libjpg
+        FILE *File = fopen(FCEUSkin.bgMenu, "r");
+        if(File != NULL) {
+            Jpg = jpgOpenFILE( File, JPG_WIDTH_FIX);// > 0)
+            ImgData = malloc ( Jpg->width * Jpg->height * (Jpg->bpp / 8) );// > 0)
+            jpgReadImage( Jpg, ImgData  );
+            MENU_TEX.PSM = GS_PSM_CT24;
+            MENU_TEX.Clut = NULL;
+            MENU_TEX.VramClut = 0;
+	        MENU_TEX.Width = Jpg->width;
+	        MENU_TEX.Height = Jpg->height;
+	        MENU_TEX.Filter = GS_FILTER_LINEAR;
+            MENU_TEX.Mem = memalign(128, gsKit_texture_size_ee(MENU_TEX.Width, MENU_TEX.Height, MENU_TEX.PSM));
+            MENU_TEX.Mem = (void*)ImgData;
+            MENU_TEX.Vram = gsKit_vram_alloc(gsGlobal, gsKit_texture_size(MENU_TEX.Width, MENU_TEX.Height, MENU_TEX.PSM), GSKIT_ALLOC_USERBUFFER);
+            gsKit_texture_upload(gsGlobal, &MENU_TEX);
+            free(MENU_TEX.Mem);
+        }
+        else {
+            printf("Error with menu background jpg!\n");
+            menutex =1;
+        }
+    }
+    else {
+        menutex = 1;
+    }
 
-    if(!(ret=FCEUI_Initialize())) {
+
+    if(!(ret=FCEUI_Initialize())) { //allocates all memory for FCEU* functions
 		printf("FCEUltra did not initialize.\n");
 		return(0);
 	}
-	//printf("%s\n",Settings.savepath);
 
     //Setup FCEUltra here
     FCEUI_SetVidSystem(Settings.emulation); //0=ntsc 1=pal
@@ -150,9 +213,8 @@ int main(int argc, char *argv[])
 	FCEUI_SetSoundVolume(0);
 #endif
 	FCEUI_SetSoundQuality(0);
-	FCEUI_SetLowPass(0);
+	FCEUI_SetLowPass(Settings.lowpass);
 	FCEUI_Sound(SAMPLERATE);
-
 
 #ifdef SOUND_ON
 	struct audsrv_fmt_t format;
@@ -167,7 +229,9 @@ int main(int argc, char *argv[])
 
 //main emulation loop
 Start_PS2Browser:
-    if(PS2_LoadGame((char *)Browser(1,0)) == 0) {
+    strcpy(path,Browser(1,0));
+
+    if(PS2_LoadGame(path) == 0) {
         goto Start_PS2Browser;
     }
 
@@ -180,6 +244,10 @@ Start_PS2Browser:
 #ifdef SOUND_ON
     audsrv_stop_audio();
 #endif
+    temp = strrchr(path,'/');
+    temp++;
+    *temp = 0;
+
     goto Start_PS2Browser;
 
     return(0);
@@ -214,8 +282,7 @@ void SetupNESTexture()
 	NES_TEX.Width = 256;
 	NES_TEX.Height = 240;
 	NES_TEX.TBW = 4;
-	NES_TEX.Filter = GS_FILTER_LINEAR;
-    NES_TEX.Mem = memalign(128, gsKit_texture_size_ee(NES_TEX.Width, NES_TEX.Height, NES_TEX.PSM));
+    //NES_TEX.Mem = memalign(128, gsKit_texture_size_ee(NES_TEX.Width, NES_TEX.Height, NES_TEX.PSM));
     NES_TEX.Vram = gsKit_vram_alloc(gsGlobal, gsKit_texture_size(NES_TEX.Width, NES_TEX.Height, NES_TEX.PSM), GSKIT_ALLOC_USERBUFFER);
 
     //Setup NES Clut
@@ -237,9 +304,16 @@ void SetupNESGS(void)
 {
     gsGlobal->DrawOrder = GS_OS_PER;
     gsKit_mode_switch(gsGlobal, GS_PERSISTENT);
-
-    gsKit_clear(gsGlobal, GS_SETREG_RGBA(0x00,0x00,0x00,0x00));
     gsKit_queue_reset(gsGlobal->Per_Queue);
+
+    gsKit_clear(gsGlobal, GS_SETREG_RGBA(0x00,0x00,0x00,0x80));
+
+    if(Settings.filter) {
+        NES_TEX.Filter = GS_FILTER_LINEAR;
+    }
+    else {
+        NES_TEX.Filter = GS_FILTER_NEAREST;
+    }
 
     //gsKit_prim_sprite_striped_texture( gsGlobal, &NES_TEX,  //thought this might be needed for different modes, but it just looks bad
     gsKit_prim_sprite_texture( gsGlobal, &NES_TEX,
@@ -251,7 +325,7 @@ void SetupNESGS(void)
 						gsGlobal->Height, /* Y2 */ //stretch to screen height
 						NES_TEX.Width, /* U2 */
 						NES_TEX.Height, /* V2*/
-						1, /* Z */
+						2, /* Z */
 						GS_SETREG_RGBA(0x80,0x80,0x80,0x80) /* RGBA */
 						);
 
@@ -335,3 +409,5 @@ void DoFun()
     FCEUI_Emulate(&gfx, &sound, &ssize, 0);
     FCEUD_Update(gfx, sound, ssize);
 }
+
+

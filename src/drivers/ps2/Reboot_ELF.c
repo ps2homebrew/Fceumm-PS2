@@ -1652,8 +1652,8 @@ static unsigned char ELF_Loader[] __attribute__((aligned(16))) = {
 #ifndef __fakehost_irx__
 #define __fakehost_irx__
 
-//static unsigned int size_fakehost_irx = 3317;
-/*static unsigned char fakehost_irx[] __attribute__((aligned(16))) = {
+static unsigned int size_fakehost_irx = 3317;
+static unsigned char fakehost_irx[] __attribute__((aligned(16))) = {
 	0x7f, 0x45, 0x4c, 0x46, 0x01, 0x01, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 	0x80, 0xff, 0x08, 0x00, 0x01, 0x00, 0x00, 0x00, 0xf0, 0x01, 0x00, 0x00, 0x34, 0x00, 0x00, 0x00,
 	0x24, 0x08, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x34, 0x00, 0x20, 0x00, 0x02, 0x00, 0x28, 0x00,
@@ -1862,7 +1862,7 @@ static unsigned char ELF_Loader[] __attribute__((aligned(16))) = {
 	0x03, 0x00, 0x06, 0x00, 0x00, 0x00, 0x00, 0x00, 0x50, 0x07, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 	0x03, 0x00, 0x07, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 	0x03, 0x00, 0x08, 0x00, 0x00,
-};*/
+};
 
 #endif
 //--------------------------------------------------------------
@@ -1879,11 +1879,10 @@ void RunLoaderElf(char *filename, char *party)
 	elf_header_t *eh;
 	elf_pheader_t *eph;
 	void *pdata;
-	int i;//,ret;
+	int i,ret;
 	char *argv[2];
 
-    //no hdd support
-	/*if((!strncmp(party, "hdd0:", 5)) && (!strncmp(filename, "pfs0:", 5))){
+	if((!strncmp(party, "hdd0:", 5)) && (!strncmp(filename, "pfs0:", 5))){
 		char fakepath[128], *p;
 		if(0 > fileXioMount("pfs0:", party, FIO_MT_RDONLY))
 			return;
@@ -1899,7 +1898,7 @@ void RunLoaderElf(char *filename, char *party)
 		//printf("Faking for path \"%s\" on partition \"%s\"\n", fakepath, party);
 		SifExecModuleBuffer(&fakehost_irx, size_fakehost_irx, strlen(fakepath), fakepath, &ret);
 
-	}*/
+	}
 
 /* NB: LOADER.ELF is embedded  */
 	boot_elf = (u8 *)&ELF_Loader;

@@ -442,6 +442,9 @@ typedef struct {
   void (*init)(CartInfo *);
 } NewMI;
 
+
+extern char FileBase[2048];
+
 int iNESLoad(const char *name, FCEUFILE *fp)
 {
   struct md5_context md5;
@@ -540,6 +543,7 @@ int iNESLoad(const char *name, FCEUFILE *fp)
   memcpy(FCEUGameInfo->MD5,iNESCart.MD5,sizeof(iNESCart.MD5));
 
   iNESCart.CRC32=iNESGameCRC32;
+  sprintf(FileBase,"%s%08X", FileBase, iNESGameCRC32);
 
   FCEU_printf(" PRG ROM:  %3d x 16KiB\n CHR ROM:  %3d x  8KiB\n ROM CRC32:  0x%08lx\n",
     ROM_size,head.VROM_size,iNESGameCRC32);
@@ -739,7 +743,7 @@ void (*MapInitTab[256])(void)=
     Mapper9_init,
     Mapper10_init,
     0, //Mapper11_init,
-    0, 
+    0,
     0, //Mapper13_init,
     0,
     0, //Mapper15_init,

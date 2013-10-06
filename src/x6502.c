@@ -588,7 +588,8 @@ void X6502_Run(int32 cycles)
   /* Gives a nice little speed boost. */
   register uint16 pbackus asm ("edi");
   #else
-  uint16 pbackus;
+  //uint16 pbackus;
+  register uint16 pbackus asm("s0");
   #endif
 
   pbackus=_PC;

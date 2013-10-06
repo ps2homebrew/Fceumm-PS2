@@ -38,15 +38,19 @@
 
 #include "md5.h"
 
+#include <dmaKit.h>
+#include <gsKit.h>
 #include "drivers/ps2/ps2fceu.h"
 
 extern vars Settings;
 
 static char BaseDirectory[2048];
-static char FileBase[2048];
+char FileBase[2048];
 static char FileExt[2048];  /* Includes the . character, as in ".nes" */
 
 static char FileBaseDirectory[2048];
+
+static inline char* strzncpy(char *d, const char *s, int l) { d[0] = 0; return strncat(d, s, l); }
 
 void FCEUI_SetBaseDirectory(char *dir)
 {
@@ -157,12 +161,13 @@ char *FCEU_MakeFName(int type, int id1, char *cd1)
        asprintf(&ret,"%s""%s.%s",Settings.savepath,FileBase,cd1);
        break;
   case FCEUMKF_CHEAT:
-         if(odirs[FCEUIOD_CHEATS])
+        /*if(odirs[FCEUIOD_CHEATS])
           asprintf(&ret,"%s"PSS"%s.cht",odirs[FCEUIOD_CHEATS],FileBase);
          else
-          asprintf(&ret,"%s"PSS"cheats"PSS"%s.cht",BaseDirectory,FileBase);
+          asprintf(&ret,"%s"PSS"cheats"PSS"%s.cht",BaseDirectory,FileBase);*/
+          asprintf(&ret,"%s""%s.cht",Settings.savepath,FileBase);
          break;
-  case FCEUMKF_IPS:  asprintf(&ret,"%s""%s%s.ips",FileBaseDirectory,FileBase,FileExt);
+  case FCEUMKF_IPS:  asprintf(&ret,"%s""%s.ips",Settings.savepath,FileBase);
          break;
   //case FCEUMKF_GGROM:asprintf(&ret,"%s"PSS"gg.rom",BaseDirectory);break;
   case FCEUMKF_GGROM:asprintf(&ret,"%s""gg.rom",Settings.savepath);break;
@@ -204,15 +209,38 @@ void GetFileBase(const char *f)
       tp1++;
      }
 
+     /*if(((tp3=strrchr(f,'.'))!=NULL) && (tp3>tp1))
+     {
+      if((tp3-tp1)<27)
+      {
+       memcpy(FileBase,tp1,tp3-tp1);
+       FileBase[tp3-tp1]=0;
+       strcpy(FileExt,tp3);
+      }
+      else
+      {
+       strzncpy(FileBase,tp1,27);
+       FileExt[0]=0;
+      }
+     }
+     else
+     {*/
      if(((tp3=strrchr(f,'.'))!=NULL) && (tp3>tp1))
      {
-      memcpy(FileBase,tp1,tp3-tp1);
-      FileBase[tp3-tp1]=0;
-      strcpy(FileExt,tp3);
+      if((tp3-tp1)<=20)
+      {
+       memcpy(FileBase,tp1,tp3-tp1);
+       FileBase[tp3-tp1]=0;
+      }
+      else
+      {
+       strzncpy(FileBase,tp1,20);
+      }
+      FileExt[0]=0;
      }
      else
      {
-      strcpy(FileBase,tp1);
+      strzncpy(FileBase,tp1,20);
       FileExt[0]=0;
      }
 }

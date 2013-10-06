@@ -104,6 +104,6 @@ typedef s64 int64;
  #define FASTAPASS(x)
 #endif
 
-typedef void (FP_FASTAPASS(2) *writefunc)(uint32 A, uint8 V);
-typedef uint8 (FP_FASTAPASS(1) *readfunc)(uint32 A);
+typedef void (FP_FASTAPASS(2) *writefunc)( uint32 A, uint8 V);
+typedef uint8 (FP_FASTAPASS(1) *readfunc)( uint32 A);
 #endif

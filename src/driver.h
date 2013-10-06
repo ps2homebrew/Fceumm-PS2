@@ -115,6 +115,8 @@ FCEUGI *FCEUI_LoadGame(const char *name);
 /* allocates memory.  0 on failure, 1 on success. */
 int FCEUI_Initialize(void);
 
+int FCEUI_PS2Init(void);
+
 /* Emulates a frame. */
 void FCEUI_Emulate(uint8 **, int32 **, int32 *, int);
 

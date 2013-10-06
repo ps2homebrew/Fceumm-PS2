@@ -1,229 +1,184 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
 <CodeBlocks_layout_file>
 	<ActiveTarget name="default" />
-	<File name="Makefile" open="0" top="0" tabpos="2">
-		<Cursor position="1018" topLine="0" />
+	<File name="Makefile" open="1" top="0" tabpos="7">
+		<Cursor position="2374" topLine="0" />
 	</File>
-	<File name="Makefile.base" open="0" top="0" tabpos="0">
-		<Cursor position="245" topLine="0" />
+	<File name="Makefile.eeglobal" open="0" top="0" tabpos="8">
+		<Cursor position="610" topLine="0" />
 	</File>
 	<File name="boards\01-222.c" open="0" top="0" tabpos="0">
-		<Cursor position="1377" topLine="30" />
+		<Cursor position="884" topLine="2" />
 	</File>
-	<File name="boards\112.c" open="0" top="0" tabpos="0">
-		<Cursor position="893" topLine="2" />
-	</File>
-	<File name="boards\187.c" open="0" top="0" tabpos="0">
-		<Cursor position="1947" topLine="62" />
-	</File>
-	<File name="boards\43.c" open="0" top="0" tabpos="5">
-		<Cursor position="1654" topLine="46" />
-	</File>
-	<File name="boards\68.c" open="0" top="0" tabpos="5">
-		<Cursor position="4002" topLine="133" />
+	<File name="boards\106.c" open="0" top="0" tabpos="0">
+		<Cursor position="2239" topLine="65" />
 	</File>
 	<File name="boards\90.c" open="0" top="0" tabpos="0">
-		<Cursor position="12816" topLine="237" />
-	</File>
-	<File name="boards\__dummy_mapper.c" open="0" top="0" tabpos="0">
-		<Cursor position="2111" topLine="54" />
+		<Cursor position="12746" topLine="458" />
 	</File>
 	<File name="boards\a9711.c" open="0" top="0" tabpos="0">
-		<Cursor position="1114" topLine="0" />
+		<Cursor position="887" topLine="0" />
+	</File>
+	<File name="boards\mmc1.c" open="0" top="0" tabpos="0">
+		<Cursor position="5001" topLine="185" />
 	</File>
 	<File name="boards\mmc3.c" open="0" top="0" tabpos="0">
-		<Cursor position="4080" topLine="151" />
+		<Cursor position="5049" topLine="214" />
 	</File>
 	<File name="boards\mmc5.c" open="0" top="0" tabpos="0">
-		<Cursor position="13814" topLine="480" />
-	</File>
-	<File name="boards\n106.c" open="0" top="0" tabpos="0">
-		<Cursor position="3547" topLine="155" />
+		<Cursor position="3181" topLine="57" />
 	</File>
 	<File name="boards\tengen.c" open="0" top="0" tabpos="0">
-		<Cursor position="4339" topLine="157" />
+		<Cursor position="4340" topLine="157" />
 	</File>
-	<File name="cart.c" open="0" top="0" tabpos="5">
-		<Cursor position="2897" topLine="120" />
+	<File name="cart.c" open="0" top="0" tabpos="0">
+		<Cursor position="12237" topLine="649" />
 	</File>
-	<File name="cart.h" open="0" top="0" tabpos="0">
-		<Cursor position="1159" topLine="12" />
-	</File>
-	<File name="cheat.c" open="0" top="0" tabpos="8">
-		<Cursor position="6305" topLine="253" />
+	<File name="cheat.c" open="0" top="0" tabpos="0">
+		<Cursor position="3857" topLine="189" />
 	</File>
 	<File name="crc32.c" open="0" top="0" tabpos="0">
-		<Cursor position="909" topLine="0" />
+		<Cursor position="884" topLine="0" />
 	</File>
 	<File name="debug.c" open="0" top="0" tabpos="0">
-		<Cursor position="1560" topLine="35" />
+		<Cursor position="9696" topLine="0" />
 	</File>
 	<File name="drawing.h" open="0" top="0" tabpos="0">
-		<Cursor position="24007" topLine="61" />
+		<Cursor position="268" topLine="0" />
 	</File>
-	<File name="driver.h" open="0" top="0" tabpos="9">
-		<Cursor position="3058" topLine="108" />
+	<File name="driver.h" open="0" top="0" tabpos="7">
+		<Cursor position="7068" topLine="202" />
 	</File>
-	<File name="drivers\common\cheat.c" open="0" top="0" tabpos="0">
-		<Cursor position="6017" topLine="308" />
-	</File>
-	<File name="drivers\common\config.c" open="0" top="0" tabpos="0">
-		<Cursor position="2447" topLine="74" />
-	</File>
-	<File name="drivers\common\scale2x.c" open="0" top="0" tabpos="7">
-		<Cursor position="28875" topLine="821" />
+	<File name="drivers\common\scale2x.c" open="0" top="0" tabpos="0">
+		<Cursor position="9361" topLine="253" />
 	</File>
 	<File name="drivers\ps2\Reboot_ELF.c" open="0" top="0" tabpos="0">
-		<Cursor position="178194" topLine="1859" />
+		<Cursor position="178584" topLine="1900" />
 	</File>
-	<File name="drivers\ps2\browser.c" open="1" top="1" tabpos="3">
-		<Cursor position="10357" topLine="254" />
+	<File name="drivers\ps2\browser.c" open="1" top="0" tabpos="3">
+		<Cursor position="840" topLine="9" />
 	</File>
-	<File name="drivers\ps2\cnfsettings.c" open="1" top="0" tabpos="6">
-		<Cursor position="13050" topLine="237" />
+	<File name="drivers\ps2\cnfsettings.c" open="1" top="1" tabpos="5">
+		<Cursor position="10213" topLine="165" />
 	</File>
-	<File name="drivers\ps2\init.c" open="1" top="0" tabpos="2">
-		<Cursor position="1998" topLine="158" />
+	<File name="drivers\ps2\init.c" open="1" top="0" tabpos="1">
+		<Cursor position="2568" topLine="257" />
 	</File>
-	<File name="drivers\ps2\main.c" open="1" top="0" tabpos="1">
-		<Cursor position="3418" topLine="0" />
+	<File name="drivers\ps2\main.c" open="1" top="0" tabpos="2">
+		<Cursor position="6894" topLine="168" />
 	</File>
 	<File name="drivers\ps2\menu.c" open="1" top="0" tabpos="4">
-		<Cursor position="6485" topLine="118" />
+		<Cursor position="8985" topLine="30" />
 	</File>
-	<File name="drivers\ps2\ps2fceu.h" open="1" top="0" tabpos="5">
-		<Cursor position="386" topLine="0" />
+	<File name="drivers\ps2\ps2fceu.h" open="1" top="0" tabpos="6">
+		<Cursor position="295" topLine="0" />
 	</File>
-	<File name="drivers\ps2\ps2input.c" open="1" top="0" tabpos="7">
-		<Cursor position="4154" topLine="136" />
+	<File name="drivers\ps2\ps2font.c" open="0" top="0" tabpos="8">
+		<Cursor position="3199" topLine="9" />
 	</File>
-	<File name="drivers\ps2\ps2stuff.c" open="0" top="0" tabpos="10">
-		<Cursor position="270" topLine="0" />
+	<File name="drivers\ps2\ps2input.c" open="0" top="0" tabpos="9">
+		<Cursor position="6863" topLine="0" />
 	</File>
-	<File name="endian.c" open="0" top="0" tabpos="0">
-		<Cursor position="1568" topLine="48" />
+	<File name="fceu.c" open="0" top="0" tabpos="9">
+		<Cursor position="5027" topLine="234" />
 	</File>
-	<File name="fceu.c" open="0" top="0" tabpos="6">
-		<Cursor position="5915" topLine="0" />
+	<File name="fceu.h" open="0" top="0" tabpos="8">
+		<Cursor position="1746" topLine="61" />
 	</File>
-	<File name="fceu.h" open="0" top="0" tabpos="3">
-		<Cursor position="2262" topLine="61" />
+	<File name="fceustr.c" open="0" top="0" tabpos="0">
+		<Cursor position="390" topLine="0" />
+	</File>
+	<File name="fcoeffs.h" open="0" top="0" tabpos="0">
+		<Cursor position="62" topLine="0" />
 	</File>
 	<File name="fds.c" open="0" top="0" tabpos="0">
-		<Cursor position="14085" topLine="744" />
+		<Cursor position="14842" topLine="807" />
 	</File>
 	<File name="file.c" open="0" top="0" tabpos="0">
-		<Cursor position="6870" topLine="330" />
+		<Cursor position="6328" topLine="426" />
 	</File>
-	<File name="filter.c" open="0" top="0" tabpos="7">
-		<Cursor position="680" topLine="32" />
+	<File name="filter.c" open="0" top="0" tabpos="8">
+		<Cursor position="3968" topLine="0" />
 	</File>
-	<File name="filter.h" open="0" top="0" tabpos="0">
-		<Cursor position="106" topLine="0" />
+	<File name="general.c" open="0" top="0" tabpos="8">
+		<Cursor position="7331" topLine="138" />
 	</File>
-	<File name="general.c" open="0" top="0" tabpos="2">
-		<Cursor position="2204" topLine="126" />
+	<File name="git.h" open="0" top="0" tabpos="0">
+		<Cursor position="312" topLine="0" />
 	</File>
-	<File name="general.h" open="0" top="0" tabpos="0">
-		<Cursor position="407" topLine="0" />
+	<File name="ines.c" open="0" top="0" tabpos="4">
+		<Cursor position="12437" topLine="424" />
 	</File>
-	<File name="git.h" open="0" top="0" tabpos="7">
-		<Cursor position="1039" topLine="0" />
-	</File>
-	<File name="ines-correct.h" open="0" top="0" tabpos="0">
-		<Cursor position="1065" topLine="182" />
-	</File>
-	<File name="ines.c" open="0" top="0" tabpos="8">
-		<Cursor position="9148" topLine="295" />
+	<File name="ines.h" open="0" top="0" tabpos="0">
+		<Cursor position="908" topLine="3" />
 	</File>
 	<File name="input.c" open="0" top="0" tabpos="0">
-		<Cursor position="874" topLine="183" />
+		<Cursor position="10233" topLine="388" />
 	</File>
-	<File name="input\fkb.h" open="0" top="0" tabpos="0">
-		<Cursor position="569" topLine="30" />
+	<File name="input.h" open="0" top="0" tabpos="0">
+		<Cursor position="700" topLine="0" />
 	</File>
-	<File name="input\pads.c" open="0" top="0" tabpos="0">
-		<Cursor position="3302" topLine="105" />
-	</File>
-	<File name="input\share.h" open="0" top="0" tabpos="0">
-		<Cursor position="281" topLine="0" />
-	</File>
-	<File name="input\suborkb.h" open="0" top="0" tabpos="0">
-		<Cursor position="509" topLine="0" />
+	<File name="input\pads.c" open="0" top="0" tabpos="8">
+		<Cursor position="3251" topLine="105" />
 	</File>
 	<File name="mappers\217.c" open="0" top="0" tabpos="0">
-		<Cursor position="1637" topLine="54" />
-	</File>
-	<File name="mappers\24and26.c" open="0" top="0" tabpos="6">
-		<Cursor position="6773" topLine="307" />
-	</File>
-	<File name="mappers\43.c" open="0" top="0" tabpos="0">
-		<Cursor position="1777" topLine="35" />
-	</File>
-	<File name="mappers\69.c" open="0" top="0" tabpos="0">
-		<Cursor position="1400" topLine="41" />
-	</File>
-	<File name="mappers\__226.c" open="0" top="0" tabpos="0">
-		<Cursor position="1746" topLine="34" />
-	</File>
-	<File name="mappers\emu2413.c" open="0" top="0" tabpos="0">
-		<Cursor position="8419" topLine="269" />
-	</File>
-	<File name="mappers\mmc2and4.c" open="0" top="0" tabpos="0">
-		<Cursor position="2327" topLine="79" />
-	</File>
-	<File name="mappers\simple.c" open="0" top="0" tabpos="0">
-		<Cursor position="1196" topLine="22" />
+		<Cursor position="1638" topLine="54" />
 	</File>
 	<File name="memory.c" open="0" top="0" tabpos="0">
-		<Cursor position="1146" topLine="0" />
+		<Cursor position="1776" topLine="0" />
 	</File>
-	<File name="netplay.c" open="0" top="0" tabpos="3">
-		<Cursor position="3570" topLine="147" />
+	<File name="netplay.h" open="0" top="0" tabpos="0">
+		<Cursor position="318" topLine="0" />
 	</File>
-	<File name="nsf.c" open="0" top="0" tabpos="0">
-		<Cursor position="9102" topLine="459" />
+	<File name="ops.h" open="0" top="0" tabpos="0">
+		<Cursor position="8073" topLine="0" />
 	</File>
 	<File name="palette.c" open="0" top="0" tabpos="0">
-		<Cursor position="6897" topLine="313" />
+		<Cursor position="2115" topLine="131" />
 	</File>
-	<File name="ppu.c" open="0" top="0" tabpos="4">
-		<Cursor position="1215" topLine="1128" />
+	<File name="ppu.c" open="0" top="0" tabpos="11">
+		<Cursor position="23041" topLine="794" />
+	</File>
+	<File name="ppu.h" open="0" top="0" tabpos="0">
+		<Cursor position="477" topLine="0" />
+	</File>
+	<File name="pputile.h" open="0" top="0" tabpos="9">
+		<Cursor position="751" topLine="9" />
 	</File>
 	<File name="ppuview.h" open="0" top="0" tabpos="0">
 		<Cursor position="29" topLine="0" />
 	</File>
-	<File name="sound.c" open="0" top="0" tabpos="6">
-		<Cursor position="18146" topLine="965" />
+	<File name="sound.c" open="0" top="0" tabpos="7">
+		<Cursor position="22480" topLine="0" />
 	</File>
-	<File name="sound.h" open="0" top="0" tabpos="4">
-		<Cursor position="1808" topLine="0" />
+	<File name="sound.h" open="0" top="0" tabpos="0">
+		<Cursor position="825" topLine="20" />
 	</File>
 	<File name="soundexp.c" open="0" top="0" tabpos="0">
-		<Cursor position="20" topLine="0" />
+		<Cursor position="184" topLine="0" />
 	</File>
-	<File name="state.c" open="1" top="0" tabpos="8">
-		<Cursor position="8666" topLine="416" />
+	<File name="state.c" open="0" top="0" tabpos="8">
+		<Cursor position="8142" topLine="392" />
 	</File>
-	<File name="types.h" open="0" top="0" tabpos="0">
-		<Cursor position="1076" topLine="12" />
+	<File name="types.h" open="0" top="0" tabpos="10">
+		<Cursor position="949" topLine="67" />
 	</File>
-	<File name="unif.c" open="0" top="0" tabpos="0">
-		<Cursor position="11447" topLine="508" />
+	<File name="unif.c" open="0" top="0" tabpos="10">
+		<Cursor position="12018" topLine="529" />
 	</File>
-	<File name="unzip.h" open="0" top="0" tabpos="0">
-		<Cursor position="1060" topLine="180" />
+	<File name="unif.h" open="0" top="0" tabpos="0">
+		<Cursor position="793" topLine="83" />
 	</File>
 	<File name="video.c" open="0" top="0" tabpos="0">
-		<Cursor position="1588" topLine="276" />
+		<Cursor position="5815" topLine="276" />
 	</File>
 	<File name="wave.c" open="0" top="0" tabpos="0">
-		<Cursor position="1677" topLine="0" />
+		<Cursor position="539" topLine="4" />
 	</File>
-	<File name="x6502.c" open="0" top="0" tabpos="0">
-		<Cursor position="990" topLine="381" />
+	<File name="x6502.c" open="0" top="0" tabpos="9">
+		<Cursor position="13148" topLine="664" />
 	</File>
 	<File name="x6502.h" open="0" top="0" tabpos="0">
-		<Cursor position="108" topLine="0" />
+		<Cursor position="1863" topLine="34" />
 	</File>
 </CodeBlocks_layout_file>

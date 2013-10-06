@@ -1000,6 +1000,8 @@ int FlushEmulateSound(void)
   //DoNoise();
   DoPCM();
 
+
+
   /*if(FSettings.soundq>=1)
   {
    int32 *tmpo=&WaveHi[soundtsoffs];
@@ -1021,16 +1023,16 @@ int FlushEmulateSound(void)
    for(x=0;x<5;x++)
     ChannelBC[x]=left;
   }
-  else
-  {*/
+  else*/
+  //{
    end=(SOUNDTS<<16)/soundtsinc;
    if(GameExpSound.Fill)
     GameExpSound.Fill(end&0xF);
 
    SexyFilter(Wave,WaveFinal,end>>4);
 
-   //if(FSettings.lowpass)
-   // SexyFilter2(WaveFinal,end>>4);
+   if(FSettings.lowpass)
+    SexyFilter2(WaveFinal,end>>4);
    if(end&0xF)
     Wave[0]=Wave[(end>>4)];
    Wave[end>>4]=0;
@@ -1038,12 +1040,12 @@ int FlushEmulateSound(void)
 #ifdef SOUND_OFF
   nosoundo:
 #endif
-  /*if(FSettings.soundq>=1)
+ /* if(FSettings.soundq>=1)
   {
    soundtsoffs=left;
   }
-  else
-  {*/
+  else*/
+  //{
    for(x=0;x<5;x++)
     ChannelBC[x]=end&0xF;
    soundtsoffs = (soundtsinc*(end&0xF))>>16;
