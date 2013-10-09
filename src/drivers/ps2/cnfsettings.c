@@ -1,8 +1,10 @@
 #include <stdio.h>
 #include <string.h>
 #include <libpad.h>
+#include <fileXio_rpc.h>
 
 #include "ps2fceu.h"
+#include "../../driver.h"
 
 extern GSGLOBAL *gsGlobal;
 
@@ -111,12 +113,52 @@ void Load_Global_CNF(char *CNF_path_p)
     int fd, var_cnt = 0;
     size_t TST_size, CNF_size;
     unsigned char  *RAM_p, *CNF_p, *name, *value;
+	char *p;
+	char *temp1;
+    char partpath[1024];
+	sprintf(CNF_path_p, "%sFCEUltra.cnf", CNF_path_p);
+	
+	if(!strncmp(CNF_path_p,"hdd0:/", 6)) {
 
-    fd = fioOpen(CNF_path_p,O_RDONLY);
+        temp1 = strchr(CNF_path_p,'/');
+        temp1++;
+
+        //all my paths have two /'s
+        while(*temp1 != '/') { temp1++; }
+
+        fd = mountPartition(CNF_path_p);
+		needed_path[1] = fd;
+        if(needed_path[1] == -1) {
+            strcpy(CNF_path_p, "mc0:/FCEUMM/FCEUltra.cnf");
+        }
+        else {
+            sprintf(partpath, "pfs%d:", needed_path[1]);
+
+            sprintf(partpath, "%s%s", partpath, temp1);
+            strcpy(CNF_path_p, partpath);
+
+            printf("partpath: %s\n", CNF_path_p);
+			fd = fileXioOpen(CNF_path_p, O_RDONLY, 0);
+        }
+    } else
+		fd = fioOpen(CNF_path_p,O_RDONLY);
     if(fd < 0)	{
         printf("Load_CNF %s Open failed %d.\r\n", CNF_path_p, fd);
-        return;
+		strcpy(CNF_path_p,"mc0:/FCEUMM/FCEUltra.cnf");
+		fd = fioOpen(CNF_path_p,O_RDONLY);
+		if(fd < 0)	{
+			printf("Load_CNF %s Open failed %d.\r\n", CNF_path_p, fd);
+			return;
+		}
     }
+	
+	if	(((p=strrchr(CNF_path_p, '/'))==NULL)&&((p=strrchr(CNF_path_p, '\\'))==NULL))
+		p=strrchr(CNF_path_p, ':');
+	if	(p!=NULL)
+		*(p)=0;
+	//The above cuts away the cnf filename from CNF_path_p and last '/', leaving a pure path
+	FCEUI_SetBaseDirectory(CNF_path_p);
+
     CNF_size = fioLseek(fd, 0, SEEK_END);
     fioLseek(fd, 0, SEEK_SET);
     CNF_p = (RAM_p = (unsigned char *)malloc(CNF_size+1));
@@ -175,8 +217,6 @@ void Load_Global_CNF(char *CNF_path_p)
     Settings.PlayerInput[1][4] = 0xFFFF;
 
     //begin hdd path mounting
-    char *temp1;
-    char partpath[1024];
 
     if(!strncmp(Settings.elfpath,"hdd0:/", 6)) {
 

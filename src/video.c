@@ -40,7 +40,7 @@
 uint8 *XBuf = NULL;
 static uint8 *xbsave = NULL;
 
-#ifndef __LIBRETRO__
+#if !defined(__LIBRETRO__) && !defined(__PS2__)
 #define SNAPSHOTS_ENABLED
 #endif
 

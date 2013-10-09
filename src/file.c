@@ -252,10 +252,11 @@ FCEUFILE * FCEU_fopen(const char *path, const char *ipsfn, char *mode, char *ext
 		magic |= fgetc((FILE*)t) << 8;
 		magic |= fgetc((FILE*)t) << 16;
 
-		//if (magic != 0x088b1f)	/* Not gzip... */
+#ifndef __PS2__
+		if (magic != 0x088b1f)	/* Not gzip... */
 			fclose((FILE*)t);
-		//else {	/* Probably gzip */
-		/*	int fd;
+		else {	/* Probably gzip */
+			int fd;
 
 			fd = dup(fileno((FILE*)t));
 
@@ -281,7 +282,10 @@ FCEUFILE * FCEU_fopen(const char *path, const char *ipsfn, char *mode, char *ext
 				return(fceufp);
 			}
 			close(fd);
-		}*/
+		}
+#else
+		fclose((FILE*)t);
+#endif
 #endif
 	}
 

@@ -96,6 +96,8 @@ int main(int argc, char *argv[])
 {
     int ret,sometime;
     char *temp;
+	char boot_path[256];
+	char *p;
 
     mpartitions[0][0] = 0;
     mpartitions[1][0] = 0;
@@ -106,9 +108,29 @@ int main(int argc, char *argv[])
     setupPS2Pad();
 
     //Init Settings
-    Default_Global_CNF();
 
-    Load_Global_CNF("mc0:/FCEUMM/FCEUltra.cnf");
+	strcpy(boot_path, argv[0]);
+	if	(((p=strrchr(boot_path, '/'))==NULL)&&((p=strrchr(boot_path, '\\'))==NULL))
+		p=strrchr(boot_path, ':');
+	if	(p!=NULL)
+		*(p+1)=0;
+	//The above cuts away the ELF filename from argv[0], leaving a pure path
+	if(!strncmp(boot_path,"hdd0:", 5)) {
+		char hdd_path[256];
+		char *t;
+		sprintf(hdd_path, "%s", boot_path+5);
+		t=strchr(hdd_path, ':');
+		if	(t!=NULL)
+			*(t)=0;
+		//hdd0:HDDPATH:pfs:PFSPATH
+		sprintf(boot_path, "hdd0:/%s%s", hdd_path, boot_path+5+strlen(hdd_path)+5);//
+		if (boot_path[5+1+strlen(hdd_path)]!='/')
+			sprintf(boot_path, "hdd0:/%s/", hdd_path);
+		//hdd0:/HDDPATHPFSPATH
+	}
+
+	Default_Global_CNF();
+    Load_Global_CNF(boot_path);
 
     for (ret  = 0; ret < 3; ret++) {
         sometime = 0x10000;
@@ -324,7 +346,7 @@ void SetupNESGS(void)
         NES_TEX.Filter = GS_FILTER_LINEAR;
     }
     else {
-        NES_TEX.Filter = NULL;
+        NES_TEX.Filter = GS_FILTER_NEAREST;
     }
 
     gsKit_clear(gsGlobal, GS_SETREG_RGBA(0x00,0x00,0x00,0x80));

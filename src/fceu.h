@@ -91,7 +91,9 @@ void FCEU_PutImage(void);
 void FCEU_PutImageDummy(void);
 #endif
 
-//extern uint8 Exit;
+#ifndef __PS2__
+extern uint8 Exit;
+#endif
 extern uint8 pale;
 extern uint8 vsdip;
 

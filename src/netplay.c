@@ -36,7 +36,7 @@
 #include "input.h"
 #include "endian.h"
 
-#ifndef __LIBRETRO__
+#if !defined(__LIBRETRO__) && !defined(__PS2__)
 #define NETPLAY_ENABLED
 #endif
 
@@ -96,7 +96,6 @@ void FCEUI_NetplayText(uint8 *text) {
 	len = strlen(text);
 
 	if (!FCEUNET_SendCommand(FCEUNPCMD_TEXT, len)) return;
-
 	if (!FCEUD_SendData(text, len))
 		NetError();
 }

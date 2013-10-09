@@ -22,6 +22,7 @@
 #ifndef __FCEU_TYPES
 #define __FCEU_TYPES
 
+#ifdef __PS2__
 #include <tamtypes.h>
 
 typedef s8 int8;
@@ -38,7 +39,7 @@ typedef s64 int64;
 #define INLINE inline
 #define GINLINE inline
 
-/*
+#else
 #include <inttypes.h>
 typedef int8_t int8;
 typedef int16_t int16;
@@ -65,7 +66,8 @@ typedef unsigned __int64 uint64;
 typedef unsigned long long uint64;
 typedef long long int64;
 #endif
-*/
+#endif
+
 #if PSS_STYLE == 2
 
 #define PSS "\\"
