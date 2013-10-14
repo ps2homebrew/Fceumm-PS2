@@ -576,6 +576,7 @@ abort:
 
 void Default_Global_CNF(void)
 {
+	Settings.current_palette = 1;
     Settings.offset_x  = 0;
     Settings.offset_y  = 0;
     Settings.interlace = 0;

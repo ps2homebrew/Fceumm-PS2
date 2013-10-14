@@ -212,7 +212,7 @@ void SetupGSKit(void)
 	if(gsGlobal!=NULL) gsKit_deinit_global(gsGlobal);
 	gsGlobal=gsKit_init_global();
 	
-    gsGlobal->Height = 512;
+    //gsGlobal->Height = 512;//no need for it
 
     defaultx = gsGlobal->StartX;
     defaulty = gsGlobal->StartY;
@@ -230,7 +230,7 @@ void SetupGSKit(void)
 
     //640x448, ntsc, tv
     //640x512, pal, tv
-    gsGlobal->Width  = 640;
+    //gsGlobal->Width  = 640;//no need for it
 
 }
 
@@ -283,15 +283,15 @@ void normalize_screen(void)
         gsGlobal->StartY,		// Y position in the display area (in Raster u
         gsGlobal->MagH,			// Horizontal Magnification
         gsGlobal->MagV,			// Vertical Magnification
-        (gsGlobal->Width * 4) -1,	// Display area width
-        (gsGlobal->Height-1));		// Display area height
+        gsGlobal->DW - 1,	// Display area width
+        gsGlobal->DH - 1);		// Display area height
 
     GS_SET_DISPLAY2(gsGlobal->StartX,		// X position in the display area (in VCK units)
         gsGlobal->StartY,		// Y position in the display area (in Raster units)
         gsGlobal->MagH,			// Horizontal Magnification
         gsGlobal->MagV,			// Vertical Magnification
-        (gsGlobal->Width * 4) -1,	// Display area width
-        (gsGlobal->Height-1));		// Display area height
+        gsGlobal->DW - 1,	// Display area width
+        gsGlobal->DH - 1);		// Display area height
 }
 
 void init_custom_screen(void)
@@ -307,22 +307,25 @@ void init_custom_screen(void)
         gsGlobal->Height = 448;
         defaulty = 50;
     }
-
+	gsGlobal->Field = GS_FIELD;
+	gsGlobal->Width = 640;
+	
     gsGlobal->StartX = defaultx + Settings.offset_x;
     gsGlobal->StartY = defaulty + Settings.offset_y;
 
     if(!Settings.interlace) {
         gsGlobal->Interlace = GS_NONINTERLACED;
-        gsGlobal->Field = GS_FRAME;
-//	gsGlobal->Height = gsGlobal->Height /2 + 1;
-//      gsGlobal->StartY = gsGlobal->StartY/2 + 1;
+		gsGlobal->Height = gsGlobal->Height /2;
+		gsGlobal->StartY = gsGlobal->StartY/2 + 1;
     }
     //else if (gsGlobal->Mode == GS_MODE_NTSC)
         //gsGlobal->StartY = gsGlobal->StartY + 22;
 
-    SetGsCrt(gsGlobal->Interlace,gsGlobal->Mode,gsGlobal->Field);
+//    SetGsCrt(gsGlobal->Interlace,gsGlobal->Mode,gsGlobal->Field);
+	gsKit_init_screen(gsGlobal);	/* Apply settings. */
+	gsKit_mode_switch(gsGlobal, GS_ONESHOT);
 
-    normalize_screen();
+//    normalize_screen();
 
 }
 

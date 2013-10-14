@@ -30,6 +30,28 @@ extern char path[4096];
 extern char partitions[4][256];
 extern u8 h;
 
+/*palette for FCEU*/
+#define MAXPAL 13
+struct st_palette_names {
+	char name[32];
+};
+
+struct st_palette_names palette_names[] = {
+	{"AspiringSquire's Real"},
+	{"Loopy's"},
+	{"Quor's"},
+	{"Chris Covell's"},
+	{"Matthew Conte's"},
+	{"PasoFami/99"},
+	{"CrashMan's"},
+	{"MESS"},
+	{"Zaphod's VS Castlevania"},
+	{"Zaphod's VS SMB"},
+	{"VS Dr. Mario"},
+	{"VS Castlevania"},
+	{"VS SMB/VS Ice Climber"}
+};
+
 int statenum=0;
 u8 power_off = 0;
 
@@ -237,10 +259,10 @@ int Browser_Menu(void)
     int option_changed = 0;
 
     int menu_x1 = gsGlobal->Width*0.25;
-    int menu_y1 = gsGlobal->Height*0.25;
+    int menu_y1 = gsGlobal->Height*0.15;
     int menu_x2 = gsGlobal->Width*0.75;
-    int menu_y2 = gsGlobal->Height*0.75+FONT_HEIGHT;
-    int text_line = menu_y1 + 40;
+    int menu_y2 = gsGlobal->Height*0.85+FONT_HEIGHT;
+    int text_line = menu_y1 + 4;
 
     char options[12][39] = {
         { "Display: " },
@@ -365,41 +387,65 @@ int Browser_Menu(void)
                         *temp = 0;
                         strcat(options[i],"NTSC");
                     }
-                    gsGlobal->StartY = defaulty + Settings.offset_y;
+					gsGlobal->Width = 640;
+					gsGlobal->Field = GS_FIELD;
+					if (gsGlobal->Interlace == GS_NONINTERLACED) {
+						gsGlobal->Height = gsGlobal->Height/2;
+						gsGlobal->StartY = gsGlobal->StartY/2 -1 ;
+					}
+
+                    gsGlobal->StartY = gsGlobal->StartY + Settings.offset_y;
                     //if(Settings.interlace && (gsGlobal->Mode == GS_MODE_NTSC))
                         //gsGlobal->StartY = gsGlobal->StartY + 22;
                     //else
                         //gsGlobal->StartY = gsGlobal->StartY + 11;
-                    normalize_screen();
+                    //normalize_screen();
+					gsKit_init_screen(gsGlobal);	/* Apply settings. */
+					gsKit_mode_switch(gsGlobal, GS_ONESHOT);
+
                     menu_x1 = gsGlobal->Width*0.25;
-                    menu_y1 = gsGlobal->Height*0.25;
+                    menu_y1 = gsGlobal->Height*0.15;
                     menu_x2 = gsGlobal->Width*0.75;
-                    menu_y2 = gsGlobal->Height*0.75+FONT_HEIGHT;
-                    text_line = menu_y1 + 40;
+                    menu_y2 = gsGlobal->Height*0.85+FONT_HEIGHT;
+					text_line = menu_y1 + 4;
+					    
                     option_changed = 1;
-                    SetGsCrt(gsGlobal->Interlace,gsGlobal->Mode,gsGlobal->Field);
+                    //SetGsCrt(gsGlobal->Interlace,gsGlobal->Mode,gsGlobal->Field);
                     break;
                 case 1: //Interlacing Off/On
                     Settings.interlace ^= 1;
+                    if (gsGlobal->Mode == GS_MODE_PAL)
+						gsGlobal->Height = 512;
+					else
+						gsGlobal->Height = 448;
                     if(Settings.interlace) {
                         gsGlobal->Interlace = GS_INTERLACED;
-                        gsGlobal->Field = GS_FIELD;
-                        gsGlobal->StartY = (gsGlobal->StartY-1)*2;
+                        //gsGlobal->StartY = (gsGlobal->StartY-1)*2;
                         temp = strstr(options[i],"Off");
                         *temp = 0;
                         strcat(options[i],"On");
                     }
                     else {
                         gsGlobal->Interlace = GS_NONINTERLACED;
-                        gsGlobal->Field = GS_FRAME;
                         gsGlobal->StartY = gsGlobal->StartY/2 + 1;
+						gsGlobal->Height = gsGlobal->Height/2;
                         temp = strstr(options[i],"On");
                         *temp = 0;
                         strcat(options[i],"Off");
                     }
-                    normalize_screen();
+					gsGlobal->Width = 640;
+					gsGlobal->Field = GS_FIELD;
+                    //normalize_screen();
+					gsKit_init_screen(gsGlobal);	/* Apply settings. */
+					gsKit_mode_switch(gsGlobal, GS_ONESHOT);
+					
+                    menu_x1 = gsGlobal->Width*0.25;
+                    menu_y1 = gsGlobal->Height*0.15;
+                    menu_x2 = gsGlobal->Width*0.75;
+                    menu_y2 = gsGlobal->Height*0.85+FONT_HEIGHT;
+					text_line = menu_y1 + 4;
                     option_changed = 1;
-                    SetGsCrt(gsGlobal->Interlace,gsGlobal->Mode,gsGlobal->Field);
+                    //SetGsCrt(gsGlobal->Interlace,gsGlobal->Mode,gsGlobal->Field);
                     break;
                 case 2: //Emulated System
                     Settings.emulation ^= 1;
@@ -488,6 +534,7 @@ int Browser_Menu(void)
         Exit Game (Saves Sram)
 **/
 void SetupNESGS(void);
+void SetupNESTexture(void);
 
 void Ingame_Menu(void)
 {
@@ -500,13 +547,13 @@ void Ingame_Menu(void)
     int option_changed = 0;
 
     int menu_x1 = gsGlobal->Width*0.25;
-    int menu_y1 = gsGlobal->Height*0.25;
+    int menu_y1 = gsGlobal->Height*0.15;
     int menu_x2 = gsGlobal->Width*0.75;
-    int menu_y2 = gsGlobal->Height*0.75+FONT_HEIGHT;
+    int menu_y2 = gsGlobal->Height*0.85+FONT_HEIGHT;
 
-    int text_line = menu_y1 + 40;
+    int text_line = menu_y1 + 4;
 
-    char options[12][23] = {
+    char options[14][23] = {
         { "State number: " },
         { "Save State" },
         { "Load State" },
@@ -518,10 +565,12 @@ void Ingame_Menu(void)
         { "RapidFire P2: " },
         { "Reset Game" },
         { "Exit Game" },
-        { "Exit Menu" }
+        { "Exit Menu" },
+        { "Palette:" },
+        { "" }
     };
 
-    for(i=0;i<12;i++) {
+    for(i=0;i<14;i++) {
         switch(i) {
             case 0:
                 sprintf(options[i],"%s%d",options[i],statenum);
@@ -577,6 +626,9 @@ void Ingame_Menu(void)
                         sprintf(options[i],"%s%s",options[i],"AB");
                         break;
                 }
+				break;
+            case 13:
+				sprintf(options[i],"%s%s",options[i],palette_names[Settings.current_palette - 1].name);
                 break;
         }
     }
@@ -591,8 +643,10 @@ void Ingame_Menu(void)
         selected = 0; //clear selected flag
         selection += menu_input(0,0);
 
-        if(selection > 11) { selection = 0; }
-        if(selection < 0) { selection = 11; }
+		if(selection == 12 && oldselect == 11) { selection++; } //12 is palette
+        if(selection == 12 && oldselect == 13) { selection--; }
+        if(selection > 13) { selection = 0; }
+        if(selection < 0) { selection = 13; }
 
         if(oldselect != selection || option_changed) {
             i = 0x10000;
@@ -603,7 +657,7 @@ void Ingame_Menu(void)
 
             menu_primitive("Options", &MENU_TEX, menu_x1, menu_y1, menu_x2, menu_y2);
 
-            for(i=0;i<12;i++) {
+            for(i=0;i<14;i++) {
                 if(selection == i) {
                     //font_print(gsGlobal, menu_x1+10.0f, text_line + i*FONT_HEIGHT, 2, DarkYellowFont, options[i]);
                     printXY(options[i],menu_x1+10,text_line + i*FONT_HEIGHT, 4, FCEUSkin.highlight, 1, 0);
@@ -769,6 +823,13 @@ void Ingame_Menu(void)
                 case 11:
                     SetupNESGS();
                     return;
+                case 13:
+                    Settings.current_palette++;
+                    if(Settings.current_palette > MAXPAL) {Settings.current_palette = 1;}
+					sprintf(options[i],"%s",palette_names[Settings.current_palette - 1].name);
+					SetupNESTexture();
+					option_changed = 1;
+                    break;
             }
         }
     }
