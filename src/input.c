@@ -43,6 +43,7 @@ extern INPUTCFC *FCEU_InitArkanoidFC(void);
 extern INPUTCFC *FCEU_InitSpaceShadow(void);
 extern INPUTCFC *FCEU_InitFKB(void);
 extern INPUTCFC *FCEU_InitSuborKB(void);
+extern INPUTCFC *FCEU_InitPEC586KB(void);
 extern INPUTCFC *FCEU_InitHS(void);
 extern INPUTCFC *FCEU_InitMahjong(void);
 extern INPUTCFC *FCEU_InitQuizKing(void);
@@ -69,6 +70,7 @@ static INPUTCFC *FCExp = 0;
 
 void (*InputScanlineHook)(uint8 *bg, uint8 *spr, uint32 linets, int final);
 
+/*
 #define DI      01
 #define CLK     02
 #define CS      04
@@ -186,7 +188,7 @@ uint8 serialROMstate(uint8 linestate) {
 	answ |= (serialROMautomat(bankFlip, newCLK + DIFlip) << 1);
 	oldCLK = newCLK;
 	return answ << 3;
-}
+}*/
 
 static DECLFR(JPRead) {
 	uint8 ret = 0;
@@ -324,6 +326,7 @@ static void SetInputStuffFC(void) {
 	case SIFC_4PLAYER:   FCExp = FCEU_InitFami4(); break;
 	case SIFC_FKB:       FCExp = FCEU_InitFKB(); break;
 	case SIFC_SUBORKB:   FCExp = FCEU_InitSuborKB(); break;
+	case SIFC_PEC586KB:  FCExp = FCEU_InitPEC586KB(); break;
 	case SIFC_HYPERSHOT: FCExp = FCEU_InitHS(); break;
 	case SIFC_MAHJONG:   FCExp = FCEU_InitMahjong(); break;
 	case SIFC_QUIZKING:  FCExp = FCEU_InitQuizKing(); break;

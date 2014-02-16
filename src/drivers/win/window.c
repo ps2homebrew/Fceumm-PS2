@@ -493,6 +493,8 @@ LRESULT FAR PASCAL AppWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				break;
 			if (GI && InputType[2] == SIFC_SUBORKB && cidisabled)
 				break;
+			if (GI && InputType[2] == SIFC_PEC586KB && cidisabled)
+				break;
 			if (lParam == VK_RETURN || fullscreen || tog) break;
 		}
 		goto proco;
@@ -500,6 +502,8 @@ LRESULT FAR PASCAL AppWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		if (GI && InputType[2] == SIFC_FKB && cidisabled)
 			break;		// Hopefully this won't break DInput...
 		if (GI && InputType[2] == SIFC_SUBORKB && cidisabled)
+			break;
+		if (GI && InputType[2] == SIFC_PEC586KB && cidisabled)
 			break;
 
 		if (fullscreen || tog) {
@@ -541,6 +545,14 @@ LRESULT FAR PASCAL AppWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				if (wParam == VK_SCROLL) {
 					cidisabled ^= 1;
 					FCEUI_DispMessage("Subor Keyboard %sabled.", cidisabled ? "en" : "dis");
+				}
+				if (cidisabled)
+					break;	// Hopefully this won't break DInput...
+			}
+			if (InputType[2] == SIFC_PEC586KB) {
+				if (wParam == VK_SCROLL) {
+					cidisabled ^= 1;
+					FCEUI_DispMessage("PEC586 Keyboard %sabled.", cidisabled ? "en" : "dis");
 				}
 				if (cidisabled)
 					break;	// Hopefully this won't break DInput...

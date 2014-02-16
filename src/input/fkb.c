@@ -21,13 +21,11 @@
 #include <string.h>
 #include "share.h"
 #include "fkb.h"
-#define AK2(x, y)        ((FKB_ ## x) | (FKB_ ## y << 8))
-#define AK(x)                 FKB_ ## x
+#define AK(x)	FKB_ ## x
 
 static uint8 bufit[0x49];
 static uint8 ksmode;
 static uint8 ksindex;
-
 
 static uint16 matrix[9][2][4] =
 {
@@ -79,7 +77,7 @@ static void FKB_Strobe(void) {
 }
 
 static void FP_FASTAPASS(2) FKB_Update(void *data, int arg) {
-	memcpy(bufit + 1, data, 0x48);
+	memcpy(bufit + 1, data, sizeof(bufit) - 1);
 }
 
 static INPUTCFC FKB = { FKB_Read, FKB_Write, FKB_Strobe, FKB_Update, 0, 0 };

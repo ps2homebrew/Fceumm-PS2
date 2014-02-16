@@ -14,12 +14,12 @@ DRIVER_OBJS   = $(PS2_DIR)/cnfsettings.o $(PS2_DIR)/Reboot_ELF.o $(PS2_DIR)/init
     $(PS2_DIR)/font_uLE.o $(PS2_DIR)/ps2font.o $(PS2_DIR)/ps2input.o $(PS2_DIR)/menu.o
 EE_INCS = -I$(PS2SDK)/ee/include -I$(PS2SDK)/sbv/include -I$(PS2SDK)/ports/include \
 	-I$(GSKIT)/include -I$(GSKIT)/ee/dma/include -I$(GSKIT)/ee/gs/include -I$(GSKIT)/ee/toolkit/include
-EE_LIBS = -lgskit_toolkit -lgskit -ldmakit -ljpeg -lpng -lz -lm -lfileXio -lhdd -lmc -lpadx -laudsrv -lpoweroff -lpatches -ldebug
+EE_LIBS = -lgskit_toolkit -lgskit -ldmakit -ljpeg -lpng -lz -lm -lfileXio -lhdd -lmc -lpad -laudsrv -lpoweroff -lpatches -ldebug
 
 ifeq ($(CDSUPPORT),1)
-	EE_INCS += -I../libcdvd/ee
+	EE_INCS += -Ilibcdvd/ee
 	DRIVER_CFLAGS += -DCDSUPPORT
-	EE_LDFLAGS += -L../libcdvd/lib
+	EE_LDFLAGS += -Llibcdvd/lib
 	EE_LIBS += -lcdvdfs
 	DRIVER_OBJS  += $(PS2_DIR)/cd.o
 endif
@@ -100,7 +100,7 @@ $(PS2_DIR)/irx/usbhdfsd_irx.s:
 
 ifeq ($(CDSUPPORT),1)
 $(PS2_DIR)/irx/cdvd_irx.s:
-	bin2s ../libcdvd/lib/cdvd.irx $(PS2_DIR)/irx/cdvd_irx.s cdvd_irx
+	bin2s libcdvd/lib/cdvd.irx $(PS2_DIR)/irx/cdvd_irx.s cdvd_irx
 endif
 
 $(PS2_DIR)/irx/SMSUTILS_irx.s:

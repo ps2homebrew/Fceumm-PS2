@@ -85,14 +85,15 @@ void FCEUI_DisableFourScore(int s);
 #define SIFC_4PLAYER    3
 #define SIFC_FKB      4
 #define SIFC_SUBORKB    5
-#define SIFC_HYPERSHOT  6
-#define SIFC_MAHJONG  7
-#define SIFC_QUIZKING  8
-#define SIFC_FTRAINERA  9
-#define SIFC_FTRAINERB  10
-#define SIFC_OEKAKIDS  11
-#define SIFC_BWORLD      12
-#define SIFC_TOPRIDER  13
+#define SIFC_PEC586KB    6
+#define SIFC_HYPERSHOT  7
+#define SIFC_MAHJONG  8
+#define SIFC_QUIZKING  9
+#define SIFC_FTRAINERA  10
+#define SIFC_FTRAINERB  11
+#define SIFC_OEKAKIDS  12
+#define SIFC_BWORLD      13
+#define SIFC_TOPRIDER  14
 
 #define SIS_NONE  0
 #define SIS_DATACH  1

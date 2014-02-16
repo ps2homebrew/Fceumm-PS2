@@ -26,7 +26,7 @@
 #include "joystick.h"
 
 #define MAX_EXTENSIONS 7
-#define MAX_EXPANSIONS 14
+#define MAX_EXPANSIONS 15
 
 LPDIRECTINPUT7 lpDI;
 
@@ -141,7 +141,7 @@ static void KeyboardCommands(void) {
 
 	keys = GetKeyboard();
 
-	if ((InputType[2] == SIFC_FKB) || (InputType[2] == SIFC_SUBORKB)) {
+	if ((InputType[2] == SIFC_FKB) || (InputType[2] == SIFC_SUBORKB) || (InputType[2] == SIFC_PEC586KB)) {
 		if (cidisabled) return;
 	}
 
@@ -333,7 +333,7 @@ static uint32 UpdatePPadData(int w) {
 
 
 static uint8 fkbkeys[0x48];
-static uint8 suborkbkeys[0x60];
+static uint8 suborkbkeys[0x65];
 
 void GetMouseData(uint32 *);
 
@@ -361,6 +361,7 @@ void FCEUD_UpdateInput(void) {
 	case SIFC_ARKANOID: t |= 2; break;
 	case SIFC_SHADOW: t |= 2; break;
 	case SIFC_FKB: if (cidisabled) UpdateFKB(); break;
+	case SIFC_PEC586KB:
 	case SIFC_SUBORKB: if (cidisabled) UpdateSuborKB(); break;
 	case SIFC_HYPERSHOT: UpdateHyperShot(); break;
 	case SIFC_MAHJONG: UpdateMahjong(); break;
@@ -409,6 +410,7 @@ void InitOtherInput(void) {
 	case SIFC_OEKAKIDS: InputDPtr = MouseData; t |= 1; attrib = screenmode; break;
 	case SIFC_ARKANOID: InputDPtr = MouseData; t |= 1; break;
 	case SIFC_FKB: InputDPtr = fkbkeys; break;
+	case SIFC_PEC586KB:
 	case SIFC_SUBORKB: InputDPtr = suborkbkeys; break;
 	case SIFC_HYPERSHOT: InputDPtr = &HyperShotData; break;
 	case SIFC_MAHJONG: InputDPtr = &MahjongData; break;
@@ -433,7 +435,7 @@ ButtConfig fkbmap[0x48] =
 	MK(BL_CURSORUP), MK(BL_CURSORLEFT), MK(BL_CURSORRIGHT), MK(BL_CURSORDOWN)
 };
 
-ButtConfig suborkbmap[0x60] =
+ButtConfig suborkbmap[0x65] =
 {
 	MC(0x01), MC(0x3b), MC(0x3c), MC(0x3d), MC(0x3e), MC(0x3f), MC(0x40), MC(0x41), MC(0x42), MC(0x43),
 	MC(0x44), MC(0x57), MC(0x58), MC(0x45), MC(0x29), MC(0x02), MC(0x03), MC(0x04), MC(0x05), MC(0x06),
@@ -444,14 +446,14 @@ ButtConfig suborkbmap[0x60] =
 	MC(0x21), MC(0x22), MC(0x23), MC(0x24), MC(0x25), MC(0x26), MC(0x27), MC(0x28), MC(0x4b), MC(0x4c),
 	MC(0x4d), MC(0x2a), MC(0x2c), MC(0x2d), MC(0x2e), MC(0x2f), MC(0x30), MC(0x31), MC(0x32), MC(0x33),
 	MC(0x34), MC(0x35), MC(0x2b), MC(0xc8), MC(0x4f), MC(0x50), MC(0x51), MC(0x1d), MC(0x38), MC(0x39),
-	MC(0xcb), MC(0xd0), MC(0xcd), MC(0x52), MC(0x53)
+	MC(0xcb), MC(0xd0), MC(0xcd), MC(0x52), MC(0x53), MC(0x00), MC(0x00), MC(0x00), MC(0x00), MC(0x00),
+	MC(0x00),
 };
-
 
 static void UpdateFKB(void) {
 	int x;
 
-	for (x = 0; x < 0x48; x++) {
+	for (x = 0; x < sizeof(fkbkeys); x++) {
 		fkbkeys[x] = 0;
 
 		if (DTestButton(&fkbmap[x]))
@@ -462,11 +464,11 @@ static void UpdateFKB(void) {
 static void UpdateSuborKB(void) {
 	int x;
 
-	for (x = 0; x < 0x60; x++) {
+	for (x = 0; x < sizeof(suborkbkeys); x++) {
 		suborkbkeys[x] = 0;
 
 		if (DTestButton(&suborkbmap[x]))
-			suborkbkeys[x] = 1;
+   			suborkbkeys[x] = 1;
 	}
 }
 
@@ -579,9 +581,10 @@ void InitInputStuff(void) {
 		for (y = 0; y < 12; y++)
 			JoyClearBC(&powerpadsc[x][y]);
 
-	for (x = 0; x < 0x48; x++)
+	for (x = 0; x < sizeof(fkbkeys); x++)
 		JoyClearBC(&fkbmap[x]);
-	for (x = 0; x < 0x60; x++)
+
+	for (x = 0; x < sizeof(suborkbkeys); x++)
 		JoyClearBC(&suborkbmap[x]);
 
 	for (x = 0; x < 6; x++)
@@ -597,14 +600,17 @@ void InitInputStuff(void) {
 
 
 static void FCExp(char *text) {
-	static char *fccortab[12] = { "none", "arkanoid", "shadow", "4player", "fkb", "suborkb",
-								  "hypershot", "mahjong", "quizking", "ftrainera", "ftrainerb", "oekakids" };
+	static char *fccortab[13] = {	"none", "arkanoid", "shadow", "4player",
+									"fkb", "suborkb", "pec586kb", "hypershot",
+									"mahjong", "quizking", "ftrainera", "ftrainerb",
+									"oekakids" };
 
-	static int fccortabi[12] = { SIFC_NONE, SIFC_ARKANOID, SIFC_SHADOW,
-								 SIFC_4PLAYER, SIFC_FKB, SIFC_SUBORKB, SIFC_HYPERSHOT, SIFC_MAHJONG, SIFC_QUIZKING,
-								 SIFC_FTRAINERA, SIFC_FTRAINERB, SIFC_OEKAKIDS };
+	static int fccortabi[13] = {	SIFC_NONE, SIFC_ARKANOID, SIFC_SHADOW, SIFC_4PLAYER,
+									SIFC_FKB, SIFC_SUBORKB, SIFC_PEC586KB, SIFC_HYPERSHOT,
+									SIFC_MAHJONG, SIFC_QUIZKING, SIFC_FTRAINERA, SIFC_FTRAINERB,
+									SIFC_OEKAKIDS };
 	int y;
-	for (y = 0; y < 12; y++)
+	for (y = 0; y < 13; y++)
 		if (!strcmp(fccortab[y], text))
 			UsrInputType[2] = fccortabi[y];
 }
@@ -614,7 +620,7 @@ static int cortabi[MAX_EXTENSIONS] = { SI_NONE, SI_GAMEPAD, SI_ZAPPER, SI_POWERP
 
 static void Input1(char *text) {
 	int y;
-	for (y = 0; y < MAX_EXTENSIONS - 1; y++)
+	for (y = 0; y < MAX_EXTENSIONS; y++)
 		if (!strcmp(cortab[y], text))
 			UsrInputType[0] = cortabi[y];
 }
@@ -902,11 +908,11 @@ static BOOL CALLBACK InputConCallB(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARA
 	static const char *strn[MAX_EXTENSIONS] = { "<none>", "Gamepad", "Zapper", "Power Pad A", "Power Pad B", "Arkanoid Paddle", "Mouse" };
 	static const char *strf[MAX_EXPANSIONS] =
 	{ "<none>", "Arkanoid Paddle", "Hyper Shot gun", "4-Player Adapter",
-	  "Family Keyboard", "Subor Keyboard", "HyperShot Pads", "Mahjong", "Quiz King Buzzers",
+	  "Family Keyboard", "Subor Keyboard", "PEC586 Keyboard", "HyperShot Pads", "Mahjong", "Quiz King Buzzers",
 	  "Family Trainer A", "Family Trainer B", "Oeka Kids Tablet", "Barcode World",
 	  "Top Rider" };
 	static const int haven[MAX_EXTENSIONS] = { 0, 1, 0, 1, 1, 0, 0 };
-	static const int havef[MAX_EXPANSIONS] = { 0, 0, 0, 0, 1, 1, 0, 0, 1, 1, 1, 0, 0, 0 };
+	static const int havef[MAX_EXPANSIONS] = { 0, 0, 0, 0, 1, 1, 1, 0, 0, 1, 1, 1, 0, 0, 0 };
 //  int x;
 
 	switch (uMsg) {
@@ -966,8 +972,9 @@ static BOOL CALLBACK InputConCallB(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARA
 				switch (InputType[2]) {
 				case SIFC_FTRAINERA:
 				case SIFC_FTRAINERB: DoTBConfig(hwndDlg, text, "POWERPADDIALOG", FTrainerButtons, 12); break;
-				case SIFC_FKB: DoTBConfig(hwndDlg, text, "FKBDIALOG", fkbmap, 0x48); break;
-				case SIFC_SUBORKB: DoTBConfig(hwndDlg, text, "SUBORKBDIALOG", suborkbmap, 0x60); break;
+				case SIFC_FKB: DoTBConfig(hwndDlg, text, "FKBDIALOG", fkbmap, sizeof(fkbkeys)); break;
+				case SIFC_PEC586KB:
+				case SIFC_SUBORKB: DoTBConfig(hwndDlg, text, "SUBORKBDIALOG", suborkbmap, sizeof(suborkbkeys)); break;
 				case SIFC_QUIZKING: DoTBConfig(hwndDlg, text, "QUIZKINGDIALOG", QuizKingButtons, 6); break;
 				}
 			}
