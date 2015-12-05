@@ -1,5 +1,5 @@
 #include <tamtypes.h>
-#include <sifdma.h>
+#include <sifman.h>
 #include "sifrpc.h"
 #include <loadcore.h>
 #include <thsemap.h>

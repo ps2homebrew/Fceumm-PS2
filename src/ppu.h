@@ -18,3 +18,4 @@ void FCEUPPU_SaveState(void);
 void FCEUPPU_LoadState(int version);
 
 extern int scanline;
+extern uint8 PPU[4];

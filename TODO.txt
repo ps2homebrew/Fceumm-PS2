@@ -1,7 +1,5 @@
-- fix some palette issues without changing original fceumm code
-- add 240p, 480p and fixing video modes
-- add PAL emulation (512x224)
-- add support for scph-1xxxx models - move from x modules into normal modules
+- add 480p
 - add multitap support
 - add portabilty (ability to use settings from within launched device)
 - return CD support :)
+- endian.c and endian.h needs to be removed from fceumm-ps2 directory

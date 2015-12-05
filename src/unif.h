@@ -43,6 +43,7 @@ void BMCGhostbusters63in1_Init(CartInfo *info);
 void BMCNTD03_Init(CartInfo *info);
 void BMCT2271_Init(CartInfo *info);
 void BMCT262_Init(CartInfo *info);
+void BMC1024CA1_Init(CartInfo *info);
 void CNROM_Init(CartInfo *info);
 void CPROM_Init(CartInfo *info);
 void DreamTech01_Init(CartInfo *info);
@@ -142,6 +143,11 @@ void UNLTF1201_Init(CartInfo *info);
 void UNLVRC7_Init(CartInfo *info);
 void UNLYOKO_Init(CartInfo *info);
 void UNROM_Init(CartInfo *info);
+void COOLBOY_Init(CartInfo *info);
+void UNL158B_Init(CartInfo *info);
+void UNLBMW8544_Init(CartInfo *info);
+void UNLEH8813A_Init(CartInfo *info);
+void BMCHP898F_Init(CartInfo *info);
 
 #ifdef COPYFAMI
 void MapperCopyFamiMMC3_Init(CartInfo *info);

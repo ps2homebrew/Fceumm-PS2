@@ -1,7 +1,7 @@
 /* FCE Ultra - NES/Famicom Emulator
  *
  * Copyright notice for this file:
- *  Copyright (C) 2007 CaH4e3
+ *  Copyright (C) 2015 CaH4e3
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,64 +16,54 @@
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
- *
- * FDS Conversion
- *
  */
 
 #include "mapinc.h"
 
-static uint8 reg;
-static uint8 *WRAM = NULL;
-static uint32 WRAMSIZE;
+static uint8 regs[2];
 
 static SFORMAT StateRegs[] =
 {
-	{ &reg, 1, "REG" },
+	{ regs, 2, "REGS" },
 	{ 0 }
 };
 
 static void Sync(void) {
-	setprg8(0x6000, reg);
-	setprg8(0x8000, ~3);
-	setprg8(0xa000, ~2);
-	setprg8r(0x10, 0xc000, 0);
-	setprg8(0xe000, ~0);
-	setchr8(0);
+	uint8 chr = (regs[0] >> 4) & 7;
+	uint8 prg = (regs[1] >> 3) & 7;
+	uint8 dec = (regs[1] >> 4) & 4;
+	setchr8(chr & (~(((regs[0] & 1) << 2) | (regs[0] & 2))));
+	setprg16(0x8000,prg & (~dec));
+	setprg16(0xC000,prg | dec);
+	setmirror(regs[1] >> 7);
 }
 
-static DECLFW(LH32Write) {
-	reg = V;
+static DECLFW(HP898FWrite) {
+	if((A & 0x6000) == 0x6000) {
+		regs[(A & 4) >> 2] = V;
+		Sync();
+	}
+}
+
+static void HP898FPower(void) {
+	regs[0] = regs[1] = 0;
 	Sync();
+	SetReadHandler(0x8000, 0xFFFF, CartBR);
+	SetWriteHandler(0x6000, 0xFFFF, HP898FWrite);
 }
 
-static void LH32Power(void) {
+static void HP898FReset(void) {
+	regs[0] = regs[1] = 0;
 	Sync();
-	SetReadHandler(0x6000, 0xFFFF, CartBR);
-	SetWriteHandler(0xC000, 0xDFFF, CartBW);
-	SetWriteHandler(0x6000, 0x6000, LH32Write);
-	FCEU_CheatAddRAM(WRAMSIZE >> 10, 0x6000, WRAM);
-}
-
-static void LH32Close(void) {
-	if (WRAM)
-		FCEU_gfree(WRAM);
-	WRAM = NULL;
 }
 
 static void StateRestore(int version) {
 	Sync();
 }
 
-void LH32_Init(CartInfo *info) {
-	info->Power = LH32Power;
-	info->Close = LH32Close;
-
-	WRAMSIZE = 8192;
-	WRAM = (uint8*)FCEU_gmalloc(WRAMSIZE);
-	SetupCartPRGMapping(0x10, WRAM, WRAMSIZE, 1);
-	AddExState(WRAM, WRAMSIZE, 0, "WRAM");
-
+void BMCHP898F_Init(CartInfo *info) {
+	info->Reset = HP898FReset;
+	info->Power = HP898FPower;
 	GameStateRestore = StateRestore;
 	AddExState(&StateRegs, ~0, 0, 0);
 }

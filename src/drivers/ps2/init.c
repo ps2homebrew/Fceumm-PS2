@@ -11,7 +11,7 @@
 #ifdef CDSUPPORT
 #include <cdvd_rpc.h>
 //#include <SMS_CDVD.h>
-#include "cd.h"
+#include "cd/cd.h"
 #endif
 #include <gsKit.h>
 #include <dmaKit.h>

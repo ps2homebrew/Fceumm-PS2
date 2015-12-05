@@ -13,7 +13,7 @@
 #include <cdvd_rpc.h>
 //#include <SMS_CDVD.h>
 //#include "../smscdvd/iop/SMSCDVD/SMSCDVD.h"
-#include "cd.h"
+#include "cd/cd.h"
 #endif
 
 #include "ps2fceu.h"

@@ -96,6 +96,7 @@ void FCEUI_NetplayText(uint8 *text) {
 	len = strlen(text);
 
 	if (!FCEUNET_SendCommand(FCEUNPCMD_TEXT, len)) return;
+
 	if (!FCEUD_SendData(text, len))
 		NetError();
 }
