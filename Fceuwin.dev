@@ -1,7 +1,7 @@
 [Project]
 FileName=Fceuwin.dev
 Name=Fceu
-UnitCount=301
+UnitCount=302
 Type=0
 Ver=1
 ObjFiles=
@@ -2677,16 +2677,6 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit302]
-FileName=src\boards\addrlatch.c
-CompileCpp=0
-Folder=boards
-Compile=1
-Link=1
-Priority=1000
-OverrideBuildCmd=0
-BuildCmd=
-
 [Unit303]
 FileName=src\boards\addrlatch.c
 CompileCpp=0
@@ -3181,6 +3171,16 @@ BuildCmd=
 FileName=src\boards\hp898f.c
 CompileCpp=0
 Folder=boards/multigame boards
+Compile=1
+Link=1
+Priority=1000
+OverrideBuildCmd=0
+BuildCmd=
+
+[Unit302]
+FileName=src\boards\f-15.c
+CompileCpp=0
+Folder=boards/mmc3 based
 Compile=1
 Link=1
 Priority=1000

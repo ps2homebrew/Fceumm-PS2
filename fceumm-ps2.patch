@@ -1,0 +1,238 @@
+diff -rupNb -x '.*' src.orig/endian.c src/endian.c
+--- src.orig/endian.c	2013-03-14 11:26:42 +0000
++++ src/endian.c	1970-01-01 00:00:00 +0000
+@@ -1,95 +0,0 @@
+-/* FCE Ultra - NES/Famicom Emulator
+- *
+- * Copyright notice for this file:
+- *  Copyright (C) 2002 Xodnizel
+- *
+- * This program is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License as published by
+- * the Free Software Foundation; either version 2 of the License, or
+- * (at your option) any later version.
+- *
+- * This program is distributed in the hope that it will be useful,
+- * but WITHOUT ANY WARRANTY; without even the implied warranty of
+- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+- * GNU General Public License for more details.
+- *
+- * You should have received a copy of the GNU General Public License
+- * along with this program; if not, write to the Free Software
+- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+- */
+-
+-/*  Contains file I/O functions that write/read data    */
+-/*  LSB first.              */
+-
+-
+-#include <stdio.h>
+-#include "types.h"
+-#include "endian.h"
+-
+-void FlipByteOrder(uint8 *src, uint32 count) {
+-	uint8 *start = src;
+-	uint8 *end = src + count - 1;
+-
+-	if ((count & 1) || !count) return;	/* This shouldn't happen. */
+-
+-	while (count--) {
+-		uint8 tmp;
+-
+-		tmp = *end;
+-		*end = *start;
+-		*start = tmp;
+-		end--;
+-		start++;
+-	}
+-}
+-
+-int write16le(uint16 b, FILE *fp) {
+-	uint8 s[2];
+-	s[0] = b;
+-	s[1] = b >> 8;
+-	return((fwrite(s, 1, 2, fp) < 2) ? 0 : 2);
+-}
+-
+-int write32le(uint32 b, FILE *fp) {
+-	uint8 s[4];
+-	s[0] = b;
+-	s[1] = b >> 8;
+-	s[2] = b >> 16;
+-	s[3] = b >> 24;
+-	return((fwrite(s, 1, 4, fp) < 4) ? 0 : 4);
+-}
+-
+-int read32le(uint32 *Bufo, FILE *fp) {
+-	uint32 buf;
+-	if (fread(&buf, 1, 4, fp) < 4)
+-		return 0;
+- #ifdef LSB_FIRST
+-	*(uint32*)Bufo = buf;
+- #else
+-	*(uint32*)Bufo = ((buf & 0xFF) << 24) | ((buf & 0xFF00) << 8) | ((buf & 0xFF0000) >> 8) | ((buf & 0xFF000000) >> 24);
+- #endif
+-	return 1;
+-}
+-
+-int read16le(char *d, FILE *fp) {
+- #ifdef LSB_FIRST
+-	return((fread(d, 1, 2, fp) < 2) ? 0 : 2);
+- #else
+-	int ret;
+-	ret = fread(d + 1, 1, 1, fp);
+-	ret += fread(d, 1, 1, fp);
+-	return ret < 2 ? 0 : 2;
+- #endif
+-}
+-
+-void FCEU_en32lsb(uint8 *buf, uint32 morp) {
+-	buf[0] = morp;
+-	buf[1] = morp >> 8;
+-	buf[2] = morp >> 16;
+-	buf[3] = morp >> 24;
+-}
+-
+-uint32 FCEU_de32lsb(uint8 *morp) {
+-	return(morp[0] | (morp[1] << 8) | (morp[2] << 16) | (morp[3] << 24));
+-}
+-
+diff -rupNb -x '.*' src.orig/fceu-types.h src/fceu-types.h
+--- src.orig/fceu-types.h	2012-10-25 07:25:15 +0000
++++ src/fceu-types.h	2015-12-05 09:50:06 +0000
+@@ -22,6 +22,24 @@
+ #ifndef __FCEU_TYPES
+ #define __FCEU_TYPES
+ 
++#ifdef __PS2__
++#include <tamtypes.h>
++
++typedef s8 int8;
++typedef s16 int16;
++typedef s32 int32;
++
++typedef u8 uint8;
++typedef u16 uint16;
++typedef u32 uint32;
++
++typedef u64 uint64;
++typedef s64 int64;
++
++#define INLINE inline
++#define GINLINE inline
++
++#else
+ #include <inttypes.h>
+ typedef int8_t int8;
+ typedef int16_t int16;
+@@ -48,6 +66,7 @@ typedef unsigned __int64 uint64;
+ typedef unsigned long long uint64;
+ typedef long long int64;
+ #endif
++#endif
+ 
+ #if PSS_STYLE == 2
+ 
+diff -rupNb -x '.*' src.orig/fceu.c src/fceu.c
+--- src.orig/fceu.c	2013-03-26 15:17:51 +0000
++++ src/fceu.c	2015-12-05 09:48:46 +0000
+@@ -458,12 +458,12 @@ void FCEU_printf(char *format, ...) {
+ 	va_start(ap, format);
+ 	vsprintf(temp, format, ap);
+ 	FCEUD_Message(temp);
+-
++#ifndef __PS2__
+ 	FILE *ofile;
+ 	ofile = fopen("stdout.txt", "ab");
+ 	fwrite(temp, 1, strlen(temp), ofile);
+ 	fclose(ofile);
+-
++#endif
+ 	va_end(ap);
+ }
+ 
+diff -rupNb -x '.*' src.orig/fceu.h src/fceu.h
+--- src.orig/fceu.h	2015-06-23 12:27:17 +0000
++++ src/fceu.h	2015-12-05 09:49:10 +0000
+@@ -92,7 +92,9 @@ void FCEU_PutImage(void);
+ void FCEU_PutImageDummy(void);
+ #endif
+ 
++#ifndef __PS2__
+ extern uint8 Exit;
++#endif
+ extern uint8 pale;
+ extern uint8 vsdip;
+ 
+diff -rupNb -x '.*' src.orig/file.c src/file.c
+--- src.orig/file.c	2013-03-14 11:26:42 +0000
++++ src/file.c	2015-12-05 09:56:45 +0000
+@@ -142,7 +142,7 @@ static MEMWRAP *MakeMemWrap(void *tz, in
+ 	else if (type == 1) {
+ 		/* Bleck.  The gzip file format has the size of the uncompressed data,
+ 			but I can't get to the info with the zlib interface(?). */
+-		for (tmp->size = 0; gzgetc(tz) != EOF; tmp->size++) ;
++		for (tmp->size = 0; gzgetc((gzFile)tz) != EOF; tmp->size++) ;
+ 		gzseek(tz, 0, SEEK_SET);
+ 		if (!(tmp->data = (uint8*)FCEU_malloc(tmp->size))) {
+ 			free(tmp);
+@@ -252,6 +252,7 @@ FCEUFILE * FCEU_fopen(const char *path,
+ 		magic |= fgetc((FILE*)t) << 8;
+ 		magic |= fgetc((FILE*)t) << 16;
+ 
++#ifndef __PS2__
+ 		if (magic != 0x088b1f)	/* Not gzip... */
+ 			fclose((FILE*)t);
+ 		else {	/* Probably gzip */
+@@ -282,6 +283,9 @@ FCEUFILE * FCEU_fopen(const char *path,
+ 			}
+ 			close(fd);
+ 		}
++#else
++		fclose((FILE*)t);
++#endif
+ #endif
+ 	}
+ 
+@@ -470,7 +474,7 @@ int FCEU_read32le(uint32 *Bufo, FCEUFILE
+ int FCEU_fgetc(FCEUFILE *fp) {
+ #ifdef SUPPORTS_UNZIP_AND_GZIP
+ 	if (fp->type == 1)
+-		return gzgetc(fp->fp);
++		return gzgetc((gzFile)fp->fp);
+ 	else if (fp->type >= 2) {
+ 		MEMWRAP *wz;
+ 		wz = (MEMWRAP*)fp->fp;
+@@ -488,7 +492,7 @@ uint64 FCEU_fgetsize(FCEUFILE *fp) {
+ 		int x, t;
+ 		t = gztell(fp->fp);
+ 		gzrewind(fp->fp);
+-		for (x = 0; gzgetc(fp->fp) != EOF; x++) ;
++		for (x = 0; gzgetc((gzFile)fp->fp) != EOF; x++) ;
+ 		gzseek(fp->fp, t, SEEK_SET);
+ 		return(x);
+ 	} else if (fp->type >= 2)
+diff -rupNb -x '.*' src.orig/netplay.c src/netplay.c
+--- src.orig/netplay.c	2013-03-14 11:26:42 +0000
++++ src/netplay.c	2015-12-05 12:37:12 +0000
+@@ -36,7 +36,7 @@
+ #include "input.h"
+ #include "endian.h"
+ 
+-#ifndef __LIBRETRO__
++#if !defined(__LIBRETRO__) && !defined(__PS2__)
+ #define NETPLAY_ENABLED
+ #endif
+ 
+diff -rupNb -x '.*' src.orig/video.c src/video.c
+--- src.orig/video.c	2013-03-26 15:17:51 +0000
++++ src/video.c	2015-12-05 09:50:36 +0000
+@@ -40,7 +40,7 @@
+ uint8 *XBuf = NULL;
+ static uint8 *xbsave = NULL;
+ 
+-#ifndef __LIBRETRO__
++#if !defined(__LIBRETRO__) && !defined(__PS2__)
+ #define SNAPSHOTS_ENABLED
+ #endif
+ 
