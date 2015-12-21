@@ -21,7 +21,7 @@ typedef struct {
     char elfpath[1024];
     char savepath[1024];
     char skinpath[1024];
-    u16 PlayerInput[2][13];
+    u16 PlayerInput[4][13];
 	int current_palette;
 } vars;
 

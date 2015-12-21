@@ -243,6 +243,7 @@ int menu_input(int port, int center_screen)
 
 /** Browser Menu
         Display:         PAL/NTSC
+	Interlace:	On/Off
         Emulated System: PAL/NTSC
         Center Screen
         Configure Save Path: (browse to path)

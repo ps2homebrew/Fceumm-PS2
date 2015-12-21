@@ -32,6 +32,17 @@ int defaulty;
 //input
 #define NEW_PADMAN
 #include <libpad.h>
+#include <libmtap.h>
+extern void freesio2_irx;
+extern int size_freesio2_irx;
+extern void mcman_irx;
+extern int size_mcman_irx;
+extern void mcserv_irx;
+extern int size_mcserv_irx;
+extern void freemtap_irx;
+extern int size_freemtap_irx;
+extern void freepad_irx;
+extern int size_freepad_irx;
 
 //video
 GSGLOBAL *gsGlobal;
@@ -113,13 +124,22 @@ void InitPS2(void)
 	SifExecModuleBuffer(&iomanX_irx, size_iomanX_irx, 0, NULL, NULL);
 	SifExecModuleBuffer(&fileXio_irx, size_fileXio_irx, 0, NULL, NULL);
 
-	SifLoadModule("rom0:SIO2MAN", 0, NULL);
-	SifLoadModule("rom0:MCMAN", 0, NULL);
-	SifLoadModule("rom0:MCSERV", 0, NULL);
-	SifLoadModule("rom0:PADMAN", 0, NULL);
+/* 	SifLoadModule("rom0:XSIO2MAN", 0, NULL);
+	SifLoadModule("rom0:XMCMAN", 0, NULL);
+	SifLoadModule("rom0:XMCSERV", 0, NULL);
+	SifLoadModule("rom0:XMTAPMAN", 0, NULL);
+	SifLoadModule("rom0:XPADMAN", 0, NULL); */
+	
+	SifExecModuleBuffer(&freesio2_irx, size_freesio2_irx, 0, NULL, NULL);
+	SifExecModuleBuffer(&mcman_irx, size_mcman_irx, 0, NULL, NULL);
+	SifExecModuleBuffer(&mcserv_irx, size_mcserv_irx, 0, NULL, NULL);
+	SifExecModuleBuffer(&freemtap_irx, size_freemtap_irx, 0, NULL, NULL);
+	SifExecModuleBuffer(&freepad_irx, size_freepad_irx, 0, NULL, NULL);	
 
+#ifdef SOUND_ON
 	SifExecModuleBuffer(&freesd_irx, size_freesd_irx, 0, NULL, NULL);
 	SifExecModuleBuffer(&audsrv_irx, size_audsrv_irx, 0, NULL, NULL);
+#endif
 	SifExecModuleBuffer(&SMSUTILS_irx, size_SMSUTILS_irx, 0, NULL, NULL);
 	SifExecModuleBuffer(&usbd_irx, size_usbd_irx, 0, NULL, NULL);
 	SifExecModuleBuffer(&usbhdfsd_irx, size_usbhdfsd_irx, 0, NULL, NULL);
@@ -134,7 +154,7 @@ void InitPS2(void)
 	SifExecModuleBuffer(&ps2hdd_irx, size_ps2hdd_irx,sizeof(hddarg), hddarg, NULL);
 	SifExecModuleBuffer(&ps2fs_irx, size_ps2fs_irx,sizeof(pfsarg), pfsarg, NULL);
 	
-    mcInit(MC_TYPE_MC);
+    mcInit(MC_TYPE_XMC);
 
 #ifdef CDSUPPORT
     cdInit(CDVD_INIT_INIT);
@@ -147,7 +167,9 @@ printf("Failed to load module: cdInit2\n");
     audsrv_init();
 #endif
 
+	mtapInit();
     padInit(0);
+	mtapPortOpen(0);
 }
 
 void normalize_screen(void)
