@@ -124,8 +124,11 @@ void InitPS2(void)
 	SifExecModuleBuffer(&iomanX_irx, size_iomanX_irx, 0, NULL, NULL);
 	SifExecModuleBuffer(&fileXio_irx, size_fileXio_irx, 0, NULL, NULL);
 
-/*	SifLoadModule("rom0:XSIO2MAN", 0, NULL);
-	SifLoadModule("rom0:XMCMAN", 0, NULL);
+	// In new toolchain FreeSio2Man failed to load some modules
+	// SifExecModuleBuffer(&freesio2_irx, size_freesio2_irx, 0, NULL, NULL);	
+	SifLoadModule("rom0:XSIO2MAN", 0, NULL);
+
+/*	SifLoadModule("rom0:XMCMAN", 0, NULL);
 	SifLoadModule("rom0:XMCSERV", 0, NULL);
 	SifLoadModule("rom0:XMTAPMAN", 0, NULL);
 	SifLoadModule("rom0:XPADMAN", 0, NULL); */
