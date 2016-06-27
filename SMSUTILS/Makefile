@@ -1,9 +1,7 @@
-#IOP_LDFLAGS += -m mipsirx 
-
-IOP_BIN = ../lib/cdvd.irx
-
-IOP_OBJS = cdvd_iop.o iop_cdvdman.o
-
+IOP_BIN      = SMSUTILS.irx
+IOP_OBJS     = SMSUTILS.o
+IOP_CFLAGS  += -Wall -fno-builtin-printf
+IOP_LDFLAGS  = -Wl,-s
 
 all: $(IOP_BIN)
 

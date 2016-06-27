@@ -48,7 +48,7 @@ void DrawScreen(GSGLOBAL *gsGlobal);
 
 //Text related prototypes
 int loadFont(char *path_arg);
-int printXY(const unsigned char *s, int x, int y, int z, u64 colour, int draw, int space);
+int printXY(const char *s, int x, int y, int z, u64 colour, int draw, int space);
 
 //GUI related prototypes
 void RunLoaderElf(char *filename, char *party);

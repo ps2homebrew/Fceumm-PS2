@@ -114,7 +114,7 @@ CdCallback:
 
 	.globl	CdPause			# 038
 CdPause:
-	j	#31
+	j	$31
 	li	$0, 38
 
 	.globl	CdBreak			# 039

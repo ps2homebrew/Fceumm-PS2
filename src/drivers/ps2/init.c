@@ -18,10 +18,10 @@
 
 #ifdef SOUND_ON
   #include <audsrv.h>
-  extern void audsrv_irx;
-  extern int size_audsrv_irx;
-  extern void freesd_irx;
-  extern int size_freesd_irx;
+  extern unsigned char audsrv_irx;
+  extern unsigned int size_audsrv_irx;
+  extern unsigned char freesd_irx;
+  extern unsigned int size_freesd_irx;
 #endif
 
 #include "ps2fceu.h"
@@ -33,44 +33,44 @@ int defaulty;
 #define NEW_PADMAN
 #include <libpad.h>
 #include <libmtap.h>
-extern void freesio2_irx;
-extern int size_freesio2_irx;
-extern void mcman_irx;
-extern int size_mcman_irx;
-extern void mcserv_irx;
-extern int size_mcserv_irx;
-extern void freemtap_irx;
-extern int size_freemtap_irx;
-extern void freepad_irx;
-extern int size_freepad_irx;
+extern unsigned char freesio2_irx;
+extern unsigned int size_freesio2_irx;
+extern unsigned char mcman_irx;
+extern unsigned int size_mcman_irx;
+extern unsigned char mcserv_irx;
+extern unsigned int size_mcserv_irx;
+extern unsigned char freemtap_irx;
+extern unsigned int size_freemtap_irx;
+extern unsigned char freepad_irx;
+extern unsigned int size_freepad_irx;
 
 //video
 GSGLOBAL *gsGlobal;
 
-extern void poweroff_irx;
-extern int size_poweroff_irx;
-extern void iomanX_irx;
-extern int size_iomanX_irx;
-extern void fileXio_irx;
-extern int size_fileXio_irx;
-extern void ps2dev9_irx;
-extern int size_ps2dev9_irx;
-extern void ps2atad_irx;
-extern int size_ps2atad_irx;
-extern void ps2hdd_irx;
-extern int size_ps2hdd_irx;
-extern void ps2fs_irx;
-extern int size_ps2fs_irx;
-extern void usbd_irx;
-extern int size_usbd_irx;
-extern void usbhdfsd_irx;
-extern int size_usbhdfsd_irx;
+extern unsigned char poweroff_irx;
+extern unsigned int size_poweroff_irx;
+extern unsigned char iomanX_irx;
+extern unsigned int size_iomanX_irx;
+extern unsigned char fileXio_irx;
+extern unsigned int size_fileXio_irx;
+extern unsigned char ps2dev9_irx;
+extern unsigned int size_ps2dev9_irx;
+extern unsigned char ps2atad_irx;
+extern unsigned int size_ps2atad_irx;
+extern unsigned char ps2hdd_irx;
+extern unsigned int size_ps2hdd_irx;
+extern unsigned char ps2fs_irx;
+extern unsigned int size_ps2fs_irx;
+extern unsigned char usbd_irx;
+extern unsigned int size_usbd_irx;
+extern unsigned char usbhdfsd_irx;
+extern unsigned int size_usbhdfsd_irx;
 #ifdef CDSUPPORT
-extern void cdvd_irx;
-extern int size_cdvd_irx;
+extern unsigned char cdvd_irx;
+extern unsigned int size_cdvd_irx;
 #endif
-extern void SMSUTILS_irx;
-extern int size_SMSUTILS_irx;
+extern unsigned char SMSUTILS_irx;
+extern unsigned int size_SMSUTILS_irx;
 
 void poweroffps2(int i)
 {
@@ -120,17 +120,16 @@ void InitPS2(void)
 	SifInitRpc(0);
 
 	sbv_patch_enable_lmb();
-		
+
 	SifExecModuleBuffer(&iomanX_irx, size_iomanX_irx, 0, NULL, NULL);
 	SifExecModuleBuffer(&fileXio_irx, size_fileXio_irx, 0, NULL, NULL);
 
-/* 	SifLoadModule("rom0:XSIO2MAN", 0, NULL);
+/*	SifLoadModule("rom0:XSIO2MAN", 0, NULL);
 	SifLoadModule("rom0:XMCMAN", 0, NULL);
 	SifLoadModule("rom0:XMCSERV", 0, NULL);
 	SifLoadModule("rom0:XMTAPMAN", 0, NULL);
 	SifLoadModule("rom0:XPADMAN", 0, NULL); */
-	
-	SifExecModuleBuffer(&freesio2_irx, size_freesio2_irx, 0, NULL, NULL);
+
 	SifExecModuleBuffer(&mcman_irx, size_mcman_irx, 0, NULL, NULL);
 	SifExecModuleBuffer(&mcserv_irx, size_mcserv_irx, 0, NULL, NULL);
 	SifExecModuleBuffer(&freemtap_irx, size_freemtap_irx, 0, NULL, NULL);
@@ -153,8 +152,8 @@ void InitPS2(void)
 	SifExecModuleBuffer(&ps2atad_irx, size_ps2atad_irx, 0, NULL, NULL);
 	SifExecModuleBuffer(&ps2hdd_irx, size_ps2hdd_irx,sizeof(hddarg), hddarg, NULL);
 	SifExecModuleBuffer(&ps2fs_irx, size_ps2fs_irx,sizeof(pfsarg), pfsarg, NULL);
-	
-    mcInit(MC_TYPE_XMC);
+
+	mcInit(MC_TYPE_XMC);
 
 #ifdef CDSUPPORT
     cdInit(CDVD_INIT_INIT);

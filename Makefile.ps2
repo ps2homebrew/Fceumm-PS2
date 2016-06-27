@@ -1,3 +1,6 @@
+#------------------------------------------------------------------
+# GCC 3.2.3 / PS2SDK 1.2 / GSKIT / JPG / PNG
+#------------------------------------------------------------------
 #no cdfs support, 1 - have support
 CDSUPPORT = 0
 DEBUG = 0
@@ -39,7 +42,7 @@ RM = rm -f
 default: all
 
 all: $(EE_BIN)
-	ee-strip $(EE_BIN)
+	$(EE_STRIP) $(EE_BIN)
 	ps2-packer $(EE_BIN) $(EE_PACKED_BIN)
 
 PS2_DIR := ./src/drivers/ps2
@@ -64,6 +67,7 @@ ifeq ($(CDSUPPORT),1)
 	DRIVER_OBJS  += $(PS2_DIR)/cd/cd.o
 endif
 
+
 FCEU_SRC_DIRS := $(PS2_DIR) $(FCEU_DIR) $(FCEU_DIR)/boards $(FCEU_DIR)/input  $(FCEU_DIR)/mappers $(ZLIB_DIR)
 
 FCEU_CSRCS := $(foreach dir,$(FCEU_SRC_DIRS),$(wildcard $(dir)/*.c))
@@ -80,67 +84,67 @@ $(PS2_DIR)/ps2input.o: $(PS2_DIR)/ps2input.c
 $(PS2_DIR)/%.o: $(PS2_DIR)/%.c
 	$(EE_CC) $(DRIVER_CFLAGS) $(EE_INCS) -c $< -o $@
 
-$(PS2_DIR)/irx/freesio2_irx.s:
-	bin2s $(IRX_DIR)/freesio2.irx $(PS2_DIR)/irx/freesio2_irx.s freesio2_irx
+$(PS2_DIR)/irx/freesio2_irx.c:
+	bin2c $(IRX_DIR)/freesio2.irx $(PS2_DIR)/irx/freesio2_irx.c freesio2_irx
 
-$(PS2_DIR)/irx/mcman_irx.s:
-	bin2s $(IRX_DIR)/mcman.irx $(PS2_DIR)/irx/mcman_irx.s mcman_irx
+$(PS2_DIR)/irx/mcman_irx.c:
+	bin2c $(IRX_DIR)/mcman.irx $(PS2_DIR)/irx/mcman_irx.c mcman_irx
 
-$(PS2_DIR)/irx/mcserv_irx.s:
-	bin2s $(IRX_DIR)/mcserv.irx $(PS2_DIR)/irx/mcserv_irx.s mcserv_irx
+$(PS2_DIR)/irx/mcserv_irx.c:
+	bin2c $(IRX_DIR)/mcserv.irx $(PS2_DIR)/irx/mcserv_irx.c mcserv_irx
 
-$(PS2_DIR)/irx/freemtap_irx.s:
-	bin2s $(IRX_DIR)/freemtap.irx $(PS2_DIR)/irx/freemtap_irx.s freemtap_irx
+$(PS2_DIR)/irx/freemtap_irx.c:
+	bin2c $(IRX_DIR)/freemtap.irx $(PS2_DIR)/irx/freemtap_irx.c freemtap_irx
 
-$(PS2_DIR)/irx/freepad_irx.s:
-	bin2s $(IRX_DIR)/freepad.irx $(PS2_DIR)/irx/freepad_irx.s freepad_irx
+$(PS2_DIR)/irx/freepad_irx.c:
+	bin2c $(IRX_DIR)/freepad.irx $(PS2_DIR)/irx/freepad_irx.c freepad_irx
 
-$(PS2_DIR)/irx/iomanX_irx.s:
-	bin2s $(IRX_DIR)/iomanX.irx $(PS2_DIR)/irx/iomanX_irx.s iomanX_irx
+$(PS2_DIR)/irx/iomanX_irx.c:
+	bin2c $(IRX_DIR)/iomanX.irx $(PS2_DIR)/irx/iomanX_irx.c iomanX_irx
 
-$(PS2_DIR)/irx/fileXio_irx.s:
-	bin2s $(IRX_DIR)/fileXio.irx $(PS2_DIR)/irx/fileXio_irx.s fileXio_irx
+$(PS2_DIR)/irx/fileXio_irx.c:
+	bin2c $(IRX_DIR)/fileXio.irx $(PS2_DIR)/irx/fileXio_irx.c fileXio_irx
 
-$(PS2_DIR)/irx/ps2dev9_irx.s:
-	bin2s $(IRX_DIR)/ps2dev9.irx $(PS2_DIR)/irx/ps2dev9_irx.s ps2dev9_irx
+$(PS2_DIR)/irx/ps2dev9_irx.c:
+	bin2c $(IRX_DIR)/ps2dev9.irx $(PS2_DIR)/irx/ps2dev9_irx.c ps2dev9_irx
 
-$(PS2_DIR)/irx/ps2atad_irx.s:
-	bin2s $(IRX_DIR)/ps2atad.irx $(PS2_DIR)/irx/ps2atad_irx.s ps2atad_irx
+$(PS2_DIR)/irx/ps2atad_irx.c:
+	bin2c $(IRX_DIR)/ps2atad.irx $(PS2_DIR)/irx/ps2atad_irx.c ps2atad_irx
 
-$(PS2_DIR)/irx/ps2hdd_irx.s:
-	bin2s $(IRX_DIR)/ps2hdd.irx $(PS2_DIR)/irx/ps2hdd_irx.s ps2hdd_irx
+$(PS2_DIR)/irx/ps2hdd_irx.c:
+	bin2c $(IRX_DIR)/ps2hdd.irx $(PS2_DIR)/irx/ps2hdd_irx.c ps2hdd_irx
 
-$(PS2_DIR)/irx/ps2fs_irx.s:
-	bin2s $(IRX_DIR)/ps2fs.irx $(PS2_DIR)/irx/ps2fs_irx.s ps2fs_irx
+$(PS2_DIR)/irx/ps2fs_irx.c:
+	bin2c $(IRX_DIR)/ps2fs.irx $(PS2_DIR)/irx/ps2fs_irx.c ps2fs_irx
 
-$(PS2_DIR)/irx/freesd_irx.s:
-	bin2s $(IRX_DIR)/freesd.irx $(PS2_DIR)/irx/freesd_irx.s freesd_irx
+$(PS2_DIR)/irx/freesd_irx.c:
+	bin2c $(IRX_DIR)/freesd.irx $(PS2_DIR)/irx/freesd_irx.c freesd_irx
 
-$(PS2_DIR)/irx/audsrv_irx.s:
-	bin2s $(IRX_DIR)/audsrv.irx $(PS2_DIR)/irx/audsrv_irx.s audsrv_irx
+$(PS2_DIR)/irx/audsrv_irx.c:
+	bin2c $(IRX_DIR)/audsrv.irx $(PS2_DIR)/irx/audsrv_irx.c audsrv_irx
 
-$(PS2_DIR)/irx/poweroff_irx.s:
-	bin2s $(IRX_DIR)/poweroff.irx $(PS2_DIR)/irx/poweroff_irx.s poweroff_irx
+$(PS2_DIR)/irx/poweroff_irx.c:
+	bin2c $(IRX_DIR)/poweroff.irx $(PS2_DIR)/irx/poweroff_irx.c poweroff_irx
 
-$(PS2_DIR)/irx/usbd_irx.s:
-	bin2s $(IRX_DIR)/usbd.irx $(PS2_DIR)/irx/usbd_irx.s usbd_irx
+$(PS2_DIR)/irx/usbd_irx.c:
+	bin2c $(IRX_DIR)/usbd.irx $(PS2_DIR)/irx/usbd_irx.c usbd_irx
 
-$(PS2_DIR)/irx/usbhdfsd_irx.s:
-	bin2s $(IRX_DIR)/usbhdfsd.irx $(PS2_DIR)/irx/usbhdfsd_irx.s usbhdfsd_irx
+$(PS2_DIR)/irx/usbhdfsd_irx.c:
+	bin2c $(IRX_DIR)/usbhdfsd.irx $(PS2_DIR)/irx/usbhdfsd_irx.c usbhdfsd_irx
 
 ifeq ($(CDSUPPORT),1)
-$(PS2_DIR)/irx/cdvd_irx.s:
-	bin2s libcdvd/lib/cdvd.irx $(PS2_DIR)/irx/cdvd_irx.s cdvd_irx
+$(PS2_DIR)/irx/cdvd_irx.c:
+	bin2c libcdvd/lib/cdvd.irx $(PS2_DIR)/irx/cdvd_irx.c cdvd_irx
 endif
 
-$(PS2_DIR)/irx/SMSUTILS_irx.s:
-	bin2s $(PS2_DIR)/irx/SMSUTILS.irx $(PS2_DIR)/irx/SMSUTILS_irx.s SMSUTILS_irx
+$(PS2_DIR)/irx/SMSUTILS_irx.c:
+	bin2c $(PS2_DIR)/irx/SMSUTILS.irx $(PS2_DIR)/irx/SMSUTILS_irx.c SMSUTILS_irx
 
 run: $(EE_BIN)
 	ps2client execee host:$(EE_BIN)
 
 clean:
-	$(RM) $(EE_BIN) $(EE_PACKED_BIN) $(EE_OBJS) $(PS2_DIR)/irx/*.s
+	$(RM) $(EE_BIN) $(EE_PACKED_BIN) $(EE_OBJS) $(PS2_DIR)/irx/*.c
 
 #include Makefile.eeglobal
 include $(PS2SDK)/samples/Makefile.pref

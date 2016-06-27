@@ -225,7 +225,7 @@ void drawChar(unsigned int c, int x, int y, int z, u64 colour)
 	}//ends for i == each pixel column
 }
 
-int printXY(const unsigned char *s, int x, int y, int z, u64 colour, int draw, int space)
+int printXY(const char *s, int x, int y, int z, u64 colour, int draw, int space)
 {
 	unsigned int c1, c2;
 	int i;

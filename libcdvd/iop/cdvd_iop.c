@@ -1,10 +1,9 @@
 #include <tamtypes.h>
-#include <sifman.h>
-#include "sifrpc.h"
 #include <loadcore.h>
 #include <thsemap.h>
 #include <intrman.h>
 #include <thbase.h>
+#include <sifman.h>
 #include <sifcmd.h>
 #include <ioman.h>
 #include "ps2lib_ioman.h"
@@ -16,8 +15,6 @@
 
 #define TRUE	1
 #define FALSE	0
-
-#define TH_C		0x02000000
 
 enum PathMatch
 {
@@ -298,7 +295,7 @@ void CDVD_init( struct fileio_driver *driver)
 	printf("by A.Lee (aka Hiryu) & Nicholas Van Veen (aka Sjeep)\n");
 	printf("CDVD: Initializing '%s' file driver.\n", driver->device);
 
-	CdInit(0);
+	CdInit(1);
 
 	memset(fd_table,0,sizeof(fd_table));
 	memset(fd_used,0,16*4);
@@ -585,10 +582,10 @@ int _start( int argc, char **argv)
 	cdReadMode.datapattern = CdSecS2048;
 
 	// setup the file_driver structure
-	file_driver.device = "cdfs";
+	file_driver.device = (u8 *)"cdfs";
 	file_driver.xx1 = 16;
 	file_driver.version = 1;
-	file_driver.description = "CDVD Filedriver";
+	file_driver.description = (u8 *)"CDVD Filedriver";
 	file_driver.function_list = filedriver_functarray;
 
 	for (i=0;i < 16; i++)
@@ -601,7 +598,7 @@ int _start( int argc, char **argv)
 	filedriver_functarray[ FIO_WRITE ] = CDVD_write;
 	filedriver_functarray[ FIO_SEEK ] = CDVD_lseek;
 
-	FILEIO_del( "cdfs");
+	FILEIO_del( (u8 *)"cdfs");
 	FILEIO_add( &file_driver);
 
 	param.attr         = TH_C;
@@ -646,7 +643,7 @@ int CDVD_GetVolumeDescriptor(void)
 		ReadSect(volDescSector,1,&localVolDesc,&cdReadMode);
 
 		// If this is still a volume Descriptor
-		if (strncmp(localVolDesc.volID, "CD001", 5) == 0)
+		if (strncmp((const char *)localVolDesc.volID, "CD001", 5) == 0)
 		{
 			if ((localVolDesc.filesystemType == 1) ||
 				(localVolDesc.filesystemType == 2))
@@ -706,9 +703,9 @@ int CDVD_findfile(const char* fname, struct TocEntry* tocEntry)
 		// the directory is already cached, so check through the currently
 		// cached chunk of the directory first
 
-		(char*)tocEntryPointer=CachedDirInfo.cache;
+		tocEntryPointer=(void *)CachedDirInfo.cache;
 
-		for ( ; (char*)tocEntryPointer < (CachedDirInfo.cache + (CachedDirInfo.cache_size * 2048));	(char*)tocEntryPointer += tocEntryPointer->length)
+		for ( ; (char*)tocEntryPointer < (CachedDirInfo.cache + (CachedDirInfo.cache_size * 2048));	tocEntryPointer = (void *)((char*)tocEntryPointer +tocEntryPointer->length))
 		{
 			if (tocEntryPointer->length == 0)
 			{
@@ -716,7 +713,7 @@ int CDVD_findfile(const char* fname, struct TocEntry* tocEntry)
 					printf("Got a null pointer entry, so either reached end of dir, or end of sector\n");
 				#endif
 
-				(char*)tocEntryPointer = CachedDirInfo.cache + (((((char*)tocEntryPointer - CachedDirInfo.cache)/2048)+1)*2048);
+				tocEntryPointer = (void *)(CachedDirInfo.cache + (((((char*)tocEntryPointer - CachedDirInfo.cache)/2048)+1)*2048));
 			}
 
 			if ((char*)tocEntryPointer >= (CachedDirInfo.cache + (CachedDirInfo.cache_size * 2048)))
@@ -782,12 +779,12 @@ int CDVD_findfile(const char* fname, struct TocEntry* tocEntry)
 
 	while (CachedDirInfo.cache_size > 0)
 	{
-		(char*)tocEntryPointer=CachedDirInfo.cache;
+		tocEntryPointer=(void *)CachedDirInfo.cache;
 		
 		if (CachedDirInfo.cache_offset == 0)
-			(char*)tocEntryPointer += tocEntryPointer->length;
+			tocEntryPointer = (void*)((char*)tocEntryPointer + tocEntryPointer->length);
 
-		for ( ; (char*)tocEntryPointer < (CachedDirInfo.cache + (CachedDirInfo.cache_size * 2048));	(char*)tocEntryPointer += tocEntryPointer->length)
+		for ( ; (char*)tocEntryPointer < (CachedDirInfo.cache + (CachedDirInfo.cache_size * 2048));	tocEntryPointer = (void*)((char*)tocEntryPointer +tocEntryPointer->length))
 		{
 			if (tocEntryPointer->length == 0)
 			{
@@ -796,7 +793,7 @@ int CDVD_findfile(const char* fname, struct TocEntry* tocEntry)
 					printf("Offset into cache = %d bytes\n",(char*)tocEntryPointer - CachedDirInfo.cache);
 				#endif
 
-				(char*)tocEntryPointer = CachedDirInfo.cache + (((((char*)tocEntryPointer - CachedDirInfo.cache)/2048)+1)*2048);
+				tocEntryPointer = (void *)(CachedDirInfo.cache + (((((char*)tocEntryPointer - CachedDirInfo.cache)/2048)+1)*2048));
 			}
 
 			if ((char*)tocEntryPointer >= (CachedDirInfo.cache + (CachedDirInfo.cache_size * 2048)))
@@ -1095,14 +1092,14 @@ int FindPath(char* pathname)
 	{
 		found_dir=FALSE;
 
-		(char*)tocEntryPointer = CachedDirInfo.cache;
+		tocEntryPointer = (void *)CachedDirInfo.cache;
 		
 		// Always skip the first entry (self-refencing entry)
-		(char*)tocEntryPointer += tocEntryPointer->length;
+		tocEntryPointer = (void *)((char*)tocEntryPointer +tocEntryPointer->length);
 
 		dir_entry=0;
 
-		for ( ; (char*)tocEntryPointer < (CachedDirInfo.cache + (CachedDirInfo.cache_size * 2048));	(char*)tocEntryPointer += tocEntryPointer->length)
+		for ( ; (char*)tocEntryPointer < (CachedDirInfo.cache + (CachedDirInfo.cache_size * 2048));	tocEntryPointer = (void *)((char*)tocEntryPointer + tocEntryPointer->length))
 		{
 			// If we have a null toc entry, then we've either reached the end of the dir, or have reached a sector boundary
 			if (tocEntryPointer->length == 0)
@@ -1111,7 +1108,7 @@ int FindPath(char* pathname)
 					printf("Got a null pointer entry, so either reached end of dir, or end of sector\n");
 				#endif
 
-				(char*)tocEntryPointer = CachedDirInfo.cache + (((((char*)tocEntryPointer - CachedDirInfo.cache)/2048)+1)*2048);
+				tocEntryPointer = (void *)(CachedDirInfo.cache + (((((char*)tocEntryPointer - CachedDirInfo.cache)/2048)+1)*2048));
 			}
 
 			if ((char*)tocEntryPointer >= (CachedDirInfo.cache + (CachedDirInfo.cache_size * 2048)))
@@ -1138,7 +1135,7 @@ int FindPath(char* pathname)
 						return FALSE;
 					}
 
-					(char*)tocEntryPointer = CachedDirInfo.cache;
+					tocEntryPointer = (void *)CachedDirInfo.cache;
 				}
 				else
 				{
@@ -1333,14 +1330,14 @@ int CDVD_GetDir_RPC(const char* pathname, const char* extensions, enum CDVD_getM
 			return -1;
 		}
 
-		(char*)tocEntryPointer = CachedDirInfo.cache;
+		tocEntryPointer = (void *)CachedDirInfo.cache;
 
 		// skip the first self-referencing entry
-		(char*)tocEntryPointer += tocEntryPointer->length;
+		tocEntryPointer = (void *)((char*)tocEntryPointer +tocEntryPointer->length);
 
 		// skip the parent entry if this is the root
 		if (CachedDirInfo.path_depth == 0)
-			(char*)tocEntryPointer += tocEntryPointer->length;
+			tocEntryPointer = (void *)((char*)tocEntryPointer +tocEntryPointer->length);
 
 		dir_entry = 0;
 
@@ -1351,7 +1348,7 @@ int CDVD_GetDir_RPC(const char* pathname, const char* extensions, enum CDVD_getM
 			#endif
 
 			// parse the current cache block
-			for( ; (char*)tocEntryPointer < (CachedDirInfo.cache + (CachedDirInfo.cache_size * 2048));	(char*)tocEntryPointer += tocEntryPointer->length)
+			for( ; (char*)tocEntryPointer < (CachedDirInfo.cache + (CachedDirInfo.cache_size * 2048));	tocEntryPointer = (void *)((char*)tocEntryPointer + tocEntryPointer->length))
 			{
 				if (tocEntryPointer->length == 0)
 				{
@@ -1359,7 +1356,7 @@ int CDVD_GetDir_RPC(const char* pathname, const char* extensions, enum CDVD_getM
 					// then we've either reached the end of the sector, or the end of the dir
 					// so point to next sector (if there is one - will be checked by next condition)
 
-					(char*)tocEntryPointer = CachedDirInfo.cache + (((((char*)tocEntryPointer - CachedDirInfo.cache)/2048)+1)*2048);
+					tocEntryPointer = (void *)(CachedDirInfo.cache + (((((char*)tocEntryPointer - CachedDirInfo.cache)/2048)+1)*2048));
 				}
 
 				if ((char*)tocEntryPointer >= CachedDirInfo.cache + (CachedDirInfo.cache_size * 2048))
@@ -1438,7 +1435,7 @@ int CDVD_GetDir_RPC(const char* pathname, const char* extensions, enum CDVD_getM
 			else
 				break;
 
-			(char*)tocEntryPointer = CachedDirInfo.cache;
+			tocEntryPointer = (void *)CachedDirInfo.cache;
 		}
 	}
 
@@ -1455,14 +1452,14 @@ int CDVD_GetDir_RPC(const char* pathname, const char* extensions, enum CDVD_getM
 			return -1;
 		}
 
-		(char*)tocEntryPointer = CachedDirInfo.cache;
+		tocEntryPointer = (void *)CachedDirInfo.cache;
 
 		// skip the first self-referencing entry
-		(char*)tocEntryPointer += tocEntryPointer->length;
+		tocEntryPointer = (void *)((char*)tocEntryPointer +tocEntryPointer->length);
 
 		// skip the parent entry if this is the root
 		if (CachedDirInfo.path_depth == 0)
-			(char*)tocEntryPointer += tocEntryPointer->length;
+			tocEntryPointer = (void *)((char*)tocEntryPointer +tocEntryPointer->length);
 
 		dir_entry = 0;
 
@@ -1473,7 +1470,7 @@ int CDVD_GetDir_RPC(const char* pathname, const char* extensions, enum CDVD_getM
 			#endif
 
 			// parse the current cache block
-			for( ; (char*)tocEntryPointer < (CachedDirInfo.cache + (CachedDirInfo.cache_size * 2048));	(char*)tocEntryPointer += tocEntryPointer->length)
+			for( ; (char*)tocEntryPointer < (CachedDirInfo.cache + (CachedDirInfo.cache_size * 2048));	tocEntryPointer = (void *)((char*)tocEntryPointer + tocEntryPointer->length))
 			{
 				if (tocEntryPointer->length == 0)
 				{
@@ -1481,7 +1478,7 @@ int CDVD_GetDir_RPC(const char* pathname, const char* extensions, enum CDVD_getM
 					// then we've either reached the end of the sector, or the end of the dir
 					// so point to next sector (if there is one - will be checked by next condition)
 
-					(char*)tocEntryPointer = CachedDirInfo.cache + (((((char*)tocEntryPointer - CachedDirInfo.cache)/2048)+1)*2048);
+					tocEntryPointer = (void *)(CachedDirInfo.cache + (((((char*)tocEntryPointer - CachedDirInfo.cache)/2048)+1)*2048));
 				}
 
 				if ((char*)tocEntryPointer >= CachedDirInfo.cache + (CachedDirInfo.cache_size * 2048))
@@ -1585,7 +1582,7 @@ int CDVD_GetDir_RPC(const char* pathname, const char* extensions, enum CDVD_getM
 			else
 				break;
 
-			(char*)tocEntryPointer = CachedDirInfo.cache;
+			tocEntryPointer = (void *)CachedDirInfo.cache;
 		}
 	}
 	// reached the end of the dir, before filling up the requested entries
@@ -1638,7 +1635,7 @@ void* CDVDRpc_TrayReq(unsigned int* sbuff)
 {
 	int ret;
 
-	CdTrayReq(sbuff[0],(s32*)&ret);
+	CdTrayReq(sbuff[0],(u32*)&ret);
 
 	sbuff[0] = ret;
 	return sbuff;
@@ -1814,7 +1811,7 @@ void TocEntryCopy(struct TocEntry* tocEntry, struct dirTocEntry* internalTocEntr
 		filenamelen = internalTocEntry->filenameLength;
 
 		// use normal string copy
-		strncpy(tocEntry->filename,internalTocEntry->filename,128);
+		strncpy(tocEntry->filename,(const char *)internalTocEntry->filename,128);
 	}
 
 	tocEntry->filename[filenamelen] = 0;

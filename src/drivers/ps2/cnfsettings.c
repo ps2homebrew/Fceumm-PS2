@@ -67,9 +67,9 @@ int true = 1;
 int false = 0;
 int CNF_edited = 0;
 
-int get_CNF_string(unsigned char **CNF_p_p, unsigned char **name_p_p, unsigned char **value_p_p)
+int get_CNF_string(char **CNF_p_p, char **name_p_p, char **value_p_p)
 {
-    unsigned char *np, *vp, *tp = *CNF_p_p;
+    char *np, *vp, *tp = *CNF_p_p;
 
 start_line:
     while((*tp<=' ') && (*tp>'\0')) tp+=1; //Skip leading whitespace, if any
@@ -111,8 +111,9 @@ start_line:
 void Load_Global_CNF(char *CNF_path_p)
 {
     int fd, var_cnt = 0;
-    size_t TST_size, CNF_size;
-    unsigned char  *RAM_p, *CNF_p, *name, *value;
+    // size_t TST_size;
+    size_t CNF_size;
+    char  *RAM_p, *CNF_p, *name, *value;
 	char *p;
 	char *temp1;
     char partpath[1024];
@@ -161,12 +162,13 @@ void Load_Global_CNF(char *CNF_path_p)
 
     CNF_size = fioLseek(fd, 0, SEEK_END);
     fioLseek(fd, 0, SEEK_SET);
-    CNF_p = (RAM_p = (unsigned char *)malloc(CNF_size+1));
+    CNF_p = (RAM_p = malloc(CNF_size+1));
     if(CNF_p==NULL) {
         printf("Load_CNF failed malloc(%d).\r\n", CNF_size);
         return;
     }
-    TST_size = fioRead(fd, CNF_p, CNF_size);
+    // TODO: Why we need to calculate TST_size?
+	// TST_size = fioRead(fd, CNF_p, CNF_size);
     fioClose(fd);
     CNF_p[CNF_size] = '\0';
 
@@ -277,8 +279,9 @@ void Load_Global_CNF(char *CNF_path_p)
 char* Load_Control_CNF(char *CNF_path_p, int port)
 {
     int fd, var_cnt = 0;
-    size_t TST_size, CNF_size;
-    unsigned char  *RAM_p, *CNF_p, *name, *value;
+    // size_t TST_size;
+    size_t CNF_size;
+    char  *RAM_p, *CNF_p, *name, *value;
 
 
     fd = fioOpen(CNF_path_p,O_RDONLY);
@@ -288,12 +291,12 @@ char* Load_Control_CNF(char *CNF_path_p, int port)
     }
     CNF_size = fioLseek(fd, 0, SEEK_END);
     fioLseek(fd, 0, SEEK_SET);
-    CNF_p = (RAM_p = (char *)malloc(CNF_size+1));
+    CNF_p = (RAM_p = malloc(CNF_size+1));
     if(CNF_p==NULL) {
         printf("Load_CNF failed malloc(%d).\r\n", CNF_size);
         return 0;
     }
-    TST_size = fioRead(fd, CNF_p, CNF_size);
+    // TST_size = fioRead(fd, CNF_p, CNF_size);
     fioClose(fd);
     CNF_p[CNF_size] = '\0';
 
@@ -338,9 +341,10 @@ char* Load_Control_CNF(char *CNF_path_p, int port)
 void Load_Skin_CNF(char *CNF_path_p)
 {
     int fd, var_cnt = 0;
-    size_t TST_size, CNF_size;
-    unsigned char  *RAM_p, *CNF_p, *name, *value;
-
+    // size_t TST_size;
+    size_t CNF_size;
+    char  *RAM_p, *CNF_p, *name, *value;
+	//char *name, *value;
     fd = fioOpen(CNF_path_p,O_RDONLY);
     if(fd < 0)	{
         printf("Load_CNF %s Open failed %d.\r\n", CNF_path_p, fd);
@@ -348,12 +352,12 @@ void Load_Skin_CNF(char *CNF_path_p)
     }
     CNF_size = fioLseek(fd, 0, SEEK_END);
     fioLseek(fd, 0, SEEK_SET);
-    CNF_p = (RAM_p = (char *)malloc(CNF_size+1));
+    CNF_p = (RAM_p = malloc(CNF_size+1));
     if(CNF_p==NULL) {
         printf("Load_CNF failed malloc(%d).\r\n", CNF_size);
         return;
     }
-    TST_size = fioRead(fd, CNF_p, CNF_size);
+    // TST_size = fioRead(fd, CNF_p, CNF_size);
     fioClose(fd);
     CNF_p[CNF_size] = '\0';
 
@@ -385,24 +389,26 @@ void Load_Skin_CNF(char *CNF_path_p)
 //---------------------------------------------------------------------------
 void Save_Skin_CNF(char *CNF_path_p)
 {
-    int fd, CNF_error;
+    int fd;
+    // int CNF_error;
     size_t CNF_size = 4096; //safe preliminary value
     char  *CNF_p;
 
-    CNF_error = true;
-    CNF_p = (char *)malloc(CNF_size);
+    // TODO: Why we need to calculate this?
+    // CNF_error = true;
+    CNF_p = malloc(CNF_size);
     if(CNF_p == NULL) return;
     sprintf(CNF_p,
         "# SKIN.CNF == Skin configuration file for the emulator FCEUltra\r\n"
         "# CNF Handling Code (c)2006 Ronald Andersson aka dlanor        \r\n"
         "# -------------------------------------------------------------\r\n"
-        "FrameColor  = 0x%08lx\r\n"
-        "TextColor   = 0x%08lx\r\n"
-        "Highlight   = 0x%08lx\r\n"
-        "BGColor1    = 0x%08lx\r\n"
-        "BGColor2    = 0x%08lx\r\n"
-        "BGColor3    = 0x%08lx\r\n"
-        "BGColor4    = 0x%08lx\r\n"
+        "FrameColor  = 0x%08llu\r\n"
+        "TextColor   = 0x%08llu\r\n"
+        "Highlight   = 0x%08llu\r\n"
+        "BGColor1    = 0x%08llu\r\n"
+        "BGColor2    = 0x%08llu\r\n"
+        "BGColor3    = 0x%08llu\r\n"
+        "BGColor4    = 0x%08llu\r\n"
         "BGTexture   = %s\r\n"
         "BGMenu      = %s\r\n"
         "# -------------------------------------------------------------\r\n"
@@ -466,12 +472,13 @@ void Save_Global_CNF(char *CNF_path_p)
     }
     //end hdd path conversion
 
-    int fd, CNF_error;
+    int fd;
+    // int CNF_error;
     size_t CNF_size = 4096; //safe preliminary value
     char  *CNF_p;
 
-    CNF_error = true;
-    CNF_p = (char *)malloc(CNF_size);
+    // CNF_error = true;
+    CNF_p = malloc(CNF_size);
     if(CNF_p == NULL) return;
     sprintf(CNF_p,
         "# FCEULTRA.CNF == Configuration file for the emulator FCEUltra\r\n"

@@ -495,9 +495,9 @@ int main(int argc, char *argv[])
 
 //main emulation loop
 Start_PS2Browser:
-    strcpy(path,Browser(1,0));
+    strcpy((char *)path,Browser(1,0));
 
-    if(PS2_LoadGame(path) == 0) {
+    if(PS2_LoadGame((char *)path) == 0) {
         goto Start_PS2Browser;
     }
 
@@ -510,7 +510,7 @@ Start_PS2Browser:
 #ifdef SOUND_ON
     audsrv_stop_audio();
 #endif
-    temp = strrchr(path,'/');
+    temp = strrchr((char *)path,'/');
     temp++;
     *temp = 0;
 
@@ -673,7 +673,7 @@ void inline OutputSound(const int32 *tmpsnd, int32 ssize)
         ssound[i]=tmpsnd[i];
     }
 
-    audsrv_play_audio((s8 *)ssound,ssize<<1); //
+    audsrv_play_audio((char *)ssound,ssize<<1); //
 }
 #endif
 
