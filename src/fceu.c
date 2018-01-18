@@ -48,6 +48,8 @@
 #include  "crc32.h"
 #include  "vsuni.h"
 
+#include "sprofile.h"
+
 uint64 timestampbase;
 
 
@@ -338,12 +340,16 @@ void FCEUI_Kill(void) {
 	FCEU_KillGenie();
 }
 
-void FCEUI_Emulate(uint8 **pXBuf, int32 **SoundBuf, int32 *SoundBufSize, int skip) {
+PROFILE_CNT(Emulate);
+
+void FCEUI_Emulate(uint8 **pXBuf, int16 **SoundBuf, int32 *SoundBufSize, int skip) {
 	int r, ssize;
 
 	FCEU_UpdateInput();
 	if (geniestage != 1) FCEU_ApplyPeriodicCheats();
+	//PROFILE_BEGIN(Emulate);
 	r = FCEUPPU_Loop(skip);
+	//PROFILE_END(Emulate);
 
 	ssize = FlushEmulateSound();
 
@@ -354,6 +360,17 @@ void FCEUI_Emulate(uint8 **pXBuf, int32 **SoundBuf, int32 *SoundBufSize, int ski
 	*pXBuf = skip ? 0 : XBuf;
 	*SoundBuf = WaveFinal;
 	*SoundBufSize = ssize;
+
+#if 0
+    if (sprofile_Emulate.cycles == 100) {
+        printf("Emulate: %ld\n", sprofile_Emulate.time / sprofile_Emulate.cycles);
+        printf("pcr0: %lu, pcr1: %lu\n", sprofile_Emulate.pcr0, sprofile_Emulate.pcr1);
+        sprofile_Emulate.time = 0;
+        sprofile_Emulate.cycles = 0;
+        sprofile_Emulate.pcr0 = 0;
+        sprofile_Emulate.pcr1 = 0;
+    }
+#endif
 }
 
 void FCEUI_CloseGame(void) {

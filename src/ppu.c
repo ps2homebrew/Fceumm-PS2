@@ -22,6 +22,7 @@
 #include        <string.h>
 #include        <stdio.h>
 #include        <stdlib.h>
+#include        <stdbool.h>
 
 #include        "fceu-types.h"
 #include        "x6502.h"
@@ -39,6 +40,7 @@
 #include        "state.h"
 #include        "video.h"
 #include        "input.h"
+#include        "vectoree.h"
 
 #define VBlankON        (PPU[0] & 0x80)		//Generate VBlank NMI
 #define Sprite16        (PPU[0] & 0x20)		//Sprites 8x16/8x8
@@ -55,14 +57,34 @@
 #define Pal             (PALRAM)
 
 static void FetchSpriteData(void);
-static void FASTAPASS(1) RefreshLine(int lastpixel);
+static inline void RefreshLine(int lastpixel);
 static void RefreshSprites(void);
 static void CopySprites(uint8 *target);
 
 static void Fixit1(void);
-static uint32 ppulut1[256];
-static uint32 ppulut2[256];
-static uint32 ppulut3[128];
+static uint32 ppulut1_[256] __attribute__((aligned(8)));
+static uint32 ppulut2_[256] __attribute__((aligned(8)));
+static uint32 ppulut3[128] __attribute__((aligned(8)));
+
+static inline uint32 ppulut1(uint8 x)
+{
+    return ppulut1_[x];
+}
+
+static inline uint32 ppulut2(uint8 x)
+{
+#if 0
+    return ppulut1(x) << 1;
+#else
+    return ppulut2_[x];
+#endif
+}
+
+static inline uint8 unpacked_pixdata(uint8 x0, uint8 x1, uint8 bit)
+{
+    uint8 rv = ((x0 >> bit) & 1) | (((x1 >> bit) & 1) << 1);
+    return rv;
+}
 
 static void makeppulut(void) {
 	int x;
@@ -71,10 +93,10 @@ static void makeppulut(void) {
 
 
 	for (x = 0; x < 256; x++) {
-		ppulut1[x] = 0;
+		ppulut1_[x] = 0;
 		for (y = 0; y < 8; y++)
-			ppulut1[x] |= ((x >> (7 - y)) & 1) << (y * 4);
-		ppulut2[x] = ppulut1[x] << 1;
+			ppulut1_[x] |= ((x >> (7 - y)) & 1) << (y * 4);
+		ppulut2_[x] = ppulut1_[x] << 1;
 	}
 
 	for (cc = 0; cc < 16; cc++) {
@@ -111,7 +133,7 @@ uint8 PPUCHRRAM = 0;
 
 //Color deemphasis emulation.  Joy...
 static uint8 deemp = 0;
-static int deempcnt[8];
+static uint16 deempcnt[8];
 
 void (*GameHBIRQHook)(void), (*GameHBIRQHook2)(void);
 void FP_FASTAPASS(1) (*PPU_hook)(uint32 A);
@@ -127,10 +149,12 @@ static int maxsprites = 8;
 int scanline;
 static uint32 scanlines_per_frame;
 
-uint8 PPU[4];
-uint8 PPUSPL;
-uint8 NTARAM[0x800], PALRAM[0x20], SPRAM[0x100], SPRBUF[0x100];
-uint8 UPALRAM[0x03];//for 0x4/0x8/0xC addresses in palette, the ones in
+typedef uint8 aligned_uint8 __attribute__((aligned(8)));
+
+aligned_uint8 PPU[4];
+aligned_uint8 PPUSPL;
+aligned_uint8 NTARAM[0x800], PALRAM[0x20], SPRAM[0x100], SPRBUF[0x100];
+aligned_uint8 UPALRAM[0x03];//for 0x4/0x8/0xC addresses in palette, the ones in
 					//0x20 are 0 to not break fceu rendering.
 
 #define MMC5SPRVRAMADR(V)   &MMC5SPRVPage[(V) >> 10][(V)]
@@ -309,7 +333,6 @@ static DECLFW(B2006) {
 	} else {
 		TempAddr &= 0xFF00;
 		TempAddr |= V;
-
 		RefreshAddr = TempAddr;
 		if (PPU_hook)
 			PPU_hook(RefreshAddr);
@@ -370,7 +393,7 @@ static int linestartts;
 static int tofix = 0;
 
 static void ResetRL(uint8 *target) {
-	memset(target, 0xFF, 256);
+	FCEU_memset16(target, 0xFF, 256);
 	if (InputScanlineHook)
 		InputScanlineHook(0, 0, 0, 0);
 	Plinef = target;
@@ -382,7 +405,7 @@ static void ResetRL(uint8 *target) {
 	tofix = 1;
 }
 
-static uint8 sprlinebuf[256 + 8];
+static uint8 sprlinebuf[256 + 8] __attribute__((aligned(16)));
 
 void FCEUPPU_LineUpdate(void) {
 #ifdef FCEUDEF_DEBUGGER
@@ -414,7 +437,7 @@ void FCEUI_SetRenderDisable(int sprites, int bg) {
 
 static void CheckSpriteHit(int p);
 
-static void EndRL(void) {
+static inline void EndRL(void) {
 	RefreshLine(272);
 	if (tofix)
 		Fixit1();
@@ -431,8 +454,8 @@ static void CheckSpriteHit(int p) {
 
 	if (sphitx == 0x100) return;
 
-	for (x = sphitx; x < (sphitx + 8) && x < l; x++) {
-		if ((sphitdata & (0x80 >> (x - sphitx))) && !(Plinef[x] & 64) && x < 255) {
+    for (x = sphitx; x < (sphitx + 8) && x < l && x < 255; x++) {
+		if ((sphitdata & (0x80 >> (x - sphitx))) && !(Plinef[x] & 64)) {
 			PPU_status |= 0x40;
 			sphitx = 0x100;
 			break;
@@ -445,7 +468,7 @@ static void CheckSpriteHit(int p) {
 static int spork = 0;
 
 // lasttile is really "second to last tile."
-static void FASTAPASS(1) RefreshLine(int lastpixel) {
+static inline void RefreshLine(int lastpixel) {
 	static uint32 pshift[2];
 	static uint32 atlatch;
 	uint32 smorkus = RefreshAddr;
@@ -515,7 +538,10 @@ static void FASTAPASS(1) RefreshLine(int lastpixel) {
 	//It's probably not totally correct for carts in "SL" mode.
 
 #define PPUT_MMC5
-	if (MMC5Hack && geniestage != 1) {
+    uint8 ys = ((scanline >> 3) + MMC5HackSPScroll) & 0x1F;
+    if (ys >= 0x1E) ys -= 0x1E;
+
+    if (MMC5Hack && geniestage != 1) {
 		if (MMC5HackCHRMode == 0 && (MMC5HackSPMode & 0x80)) {
 			int tochange = MMC5HackSPMode & 0x1F;
 			tochange -= firsttile;
@@ -594,9 +620,8 @@ static void FASTAPASS(1) RefreshLine(int lastpixel) {
 
 	RefreshAddr = smorkus;
 	if (firsttile <= 2 && 2 < lasttile && !(PPU[1] & 2)) {
-		uint32 tem;
-		tem = Pal[0] | (Pal[0] << 8) | (Pal[0] << 16) | (Pal[0] << 24);
-		tem |= 0x40404040;
+		uint32 tem = Pal[0] | (Pal[0] << 8) | 0x4040;
+		tem |= tem << 16;
 		*(uint32*)Plinef = *(uint32*)(Plinef + 4) = tem;
 	}
 
@@ -658,9 +683,29 @@ static void Fixit1(void) {
 	}
 }
 
+static inline void apply_pattern(uint8 *target, uint16 mask, uint16 pattern)
+{
+        u128 a = fill_u128_u16(mask);
+        u128 o = fill_u128_u16(pattern);
+
+        u128 in, out, tmp;
+        size_t i;
+        for (i = 0; i < 32; i++) {
+            asm volatile (
+                    "lq %[in], 0(%[address])\n\t"
+                    "pand %[tmp], %[in], %[a]\n\t"
+                    "por %[out], %[tmp], %[o]\n\t"
+                    "sq %[out], 0(%[address])\n\t"
+                    : [tmp] "=&r" (tmp), [in] "=&r" (in), [out] "=&r" (out)
+                    : [address] "r" (target + i * 8), [a] "r" (a), [o] "r" (o)
+                    : "memory"
+            );
+        }
+}
+
+
 void MMC5_hb(int);		//Ugh ugh ugh.
-static void DoLine(void) {
-	int x;
+static inline void DoLine(void) {
 	uint8 *target = XBuf + (scanline << 8);
 
 	if (MMC5Hack && (ScreenON || SpriteON)) MMC5_hb(scanline);
@@ -669,10 +714,7 @@ static void DoLine(void) {
 	EndRL();
 
 	if (rendis & 2) {// User asked to not display background data.
-		uint32 tem;
-		tem = Pal[0] | (Pal[0] << 8) | (Pal[0] << 16) | (Pal[0] << 24);
-		tem |= 0x40404040;
-		FCEU_dwmemset(target, tem, 256);
+		FCEU_memset16(target, Pal[0] | 0x40, 256);
 	}
 
 	if (SpriteON)
@@ -680,19 +722,18 @@ static void DoLine(void) {
 
 	if (ScreenON || SpriteON) {	// Yes, very el-cheapo.
 		if (PPU[1] & 0x01) {
-			for (x = 63; x >= 0; x--)
-				*(uint32*)&target[x << 2] = (*(uint32*)&target[x << 2]) & 0x30303030;
+			apply_pattern(target, 0xffff, 0x3030);
 		}
 	}
-	if ((PPU[1] >> 5) == 0x7) {
-		for (x = 63; x >= 0; x--)
-			*(uint32*)&target[x << 2] = ((*(uint32*)&target[x << 2]) & 0x3f3f3f3f) | 0xc0c0c0c0;
-	} else if (PPU[1] & 0xE0)
-		for (x = 63; x >= 0; x--)
-			*(uint32*)&target[x << 2] = (*(uint32*)&target[x << 2]) | 0x40404040;
-	else
-		for (x = 63; x >= 0; x--)
-			*(uint32*)&target[x << 2] = ((*(uint32*)&target[x << 2]) & 0x3f3f3f3f) | 0x80808080;
+
+    if ((PPU[1] >> 5) == 0x7) {
+        apply_pattern(target, 0x3f3f, 0xc0c0);
+	} else if (PPU[1] & 0xE0) {
+        apply_pattern(target, 0xffff, 0x4040);
+    }
+	else {
+        apply_pattern(target, 0x3f3f, 0x8080);
+    }
 
 	sphitx = 0x100;
 
@@ -881,183 +922,219 @@ static void RefreshSprites(void) {
 	spork = 0;
 	if (!numsprites) return;
 
-	FCEU_dwmemset(sprlinebuf, 0x80808080, 256);
+    FCEU_memset16(sprlinebuf, 0x80, 256);
 	numsprites--;
 	spr = (SPRB*)SPRBUF + numsprites;
 
 	for (n = numsprites; n >= 0; n--, spr--) {
-		register uint32 pixdata;
-		register uint8 J, atr;
-
 		int x = spr->x;
 		uint8 *C;
 		uint8 *VB;
 
-		pixdata = ppulut1[spr->ca[0]] | ppulut2[spr->ca[1]];
-		J = spr->ca[0] | spr->ca[1];
-		atr = spr->atr;
+		uint8 J = spr->ca[0] | spr->ca[1];
+        uint32 pixdata = ppulut1(spr->ca[0]) | ppulut2(spr->ca[1]);
 
 		if (J) {
-			if (n == 0 && SpriteBlurp && !(PPU_status & 0x40)) {
-				sphitx = x;
-				sphitdata = J;
-				if (atr & H_FLIP)
-					sphitdata = ((J << 7) & 0x80) |
-								((J << 5) & 0x40) |
-								((J << 3) & 0x20) |
-								((J << 1) & 0x10) |
-								((J >> 1) & 0x08) |
-								((J >> 3) & 0x04) |
-								((J >> 5) & 0x02) |
-								((J >> 7) & 0x01);
-			}
-
+            uint8 atr = spr->atr;
 			C = sprlinebuf + x;
 			VB = (PALRAM + 0x10) + ((atr & 3) << 2);
-
-			if (atr & SP_BACK) {
+            if (atr & SP_BACK) {
 				if (atr & H_FLIP) {
-					if (J & 0x80) C[7] = VB[pixdata & 3] | 0x40;
-					pixdata >>= 4;
-					if (J & 0x40) C[6] = VB[pixdata & 3] | 0x40;
-					pixdata >>= 4;
-					if (J & 0x20) C[5] = VB[pixdata & 3] | 0x40;
-					pixdata >>= 4;
-					if (J & 0x10) C[4] = VB[pixdata & 3] | 0x40;
-					pixdata >>= 4;
-					if (J & 0x08) C[3] = VB[pixdata & 3] | 0x40;
-					pixdata >>= 4;
-					if (J & 0x04) C[2] = VB[pixdata & 3] | 0x40;
-					pixdata >>= 4;
-					if (J & 0x02) C[1] = VB[pixdata & 3] | 0x40;
-					pixdata >>= 4;
-					if (J & 0x01) C[0] = VB[pixdata] | 0x40;
+					if (pixdata >> 0 & 3)  C[7] = VB[pixdata >> 0 & 3]  | 0x40;
+					if (pixdata >> 4 & 3)  C[6] = VB[pixdata >> 4 & 3]  | 0x40;
+					if (pixdata >> 8 & 3)  C[5] = VB[pixdata >> 8 & 3]  | 0x40;
+					if (pixdata >> 12 & 3) C[4] = VB[pixdata >> 12 & 3] | 0x40;
+					if (pixdata >> 16 & 3) C[3] = VB[pixdata >> 16 & 3] | 0x40;
+					if (pixdata >> 20 & 3) C[2] = VB[pixdata >> 20 & 3] | 0x40;
+					if (pixdata >> 24 & 3) C[1] = VB[pixdata >> 24 & 3] | 0x40;
+					if (pixdata >> 28)     C[0] = VB[pixdata >> 28]     | 0x40;
 				} else {
-					if (J & 0x80) C[0] = VB[pixdata & 3] | 0x40;
-					pixdata >>= 4;
-					if (J & 0x40) C[1] = VB[pixdata & 3] | 0x40;
-					pixdata >>= 4;
-					if (J & 0x20) C[2] = VB[pixdata & 3] | 0x40;
-					pixdata >>= 4;
-					if (J & 0x10) C[3] = VB[pixdata & 3] | 0x40;
-					pixdata >>= 4;
-					if (J & 0x08) C[4] = VB[pixdata & 3] | 0x40;
-					pixdata >>= 4;
-					if (J & 0x04) C[5] = VB[pixdata & 3] | 0x40;
-					pixdata >>= 4;
-					if (J & 0x02) C[6] = VB[pixdata & 3] | 0x40;
-					pixdata >>= 4;
-					if (J & 0x01) C[7] = VB[pixdata] | 0x40;
+					if (pixdata >> 0 & 3)  C[0] = VB[pixdata >> 0 & 3]  | 0x40;
+					if (pixdata >> 4 & 3)  C[1] = VB[pixdata >> 4 & 3]  | 0x40;
+					if (pixdata >> 8 & 3)  C[2] = VB[pixdata >> 8 & 3]  | 0x40;
+					if (pixdata >> 12 & 3) C[3] = VB[pixdata >> 12 & 3] | 0x40;
+					if (pixdata >> 16 & 3) C[4] = VB[pixdata >> 16 & 3] | 0x40;
+					if (pixdata >> 20 & 3) C[5] = VB[pixdata >> 20 & 3] | 0x40;
+					if (pixdata >> 24 & 3) C[6] = VB[pixdata >> 24 & 3] | 0x40;
+					if (pixdata >> 28)     C[7] = VB[pixdata >> 28 ]    | 0x40;
 				}
 			} else {
 				if (atr & H_FLIP) {
-					if (J & 0x80) C[7] = VB[pixdata & 3];
-					pixdata >>= 4;
-					if (J & 0x40) C[6] = VB[pixdata & 3];
-					pixdata >>= 4;
-					if (J & 0x20) C[5] = VB[pixdata & 3];
-					pixdata >>= 4;
-					if (J & 0x10) C[4] = VB[pixdata & 3];
-					pixdata >>= 4;
-					if (J & 0x08) C[3] = VB[pixdata & 3];
-					pixdata >>= 4;
-					if (J & 0x04) C[2] = VB[pixdata & 3];
-					pixdata >>= 4;
-					if (J & 0x02) C[1] = VB[pixdata & 3];
-					pixdata >>= 4;
-					if (J & 0x01) C[0] = VB[pixdata];
+					if (pixdata >> 0 & 3)  C[7] = VB[pixdata >> 0 & 3];
+					if (pixdata >> 4 & 3)  C[6] = VB[pixdata >> 4 & 3];
+					if (pixdata >> 8 & 3)  C[5] = VB[pixdata >> 8 & 3];
+					if (pixdata >> 12 & 3) C[4] = VB[pixdata >> 12 & 3];
+					if (pixdata >> 16 & 3) C[3] = VB[pixdata >> 16 & 3];
+					if (pixdata >> 20 & 3) C[2] = VB[pixdata >> 20 & 3];
+					if (pixdata >> 24 & 3) C[1] = VB[pixdata >> 24 & 3];
+					if (pixdata >> 28)     C[0] = VB[pixdata >> 28];
 				} else {
-					if (J & 0x80) C[0] = VB[pixdata & 3];
-					pixdata >>= 4;
-					if (J & 0x40) C[1] = VB[pixdata & 3];
-					pixdata >>= 4;
-					if (J & 0x20) C[2] = VB[pixdata & 3];
-					pixdata >>= 4;
-					if (J & 0x10) C[3] = VB[pixdata & 3];
-					pixdata >>= 4;
-					if (J & 0x08) C[4] = VB[pixdata & 3];
-					pixdata >>= 4;
-					if (J & 0x04) C[5] = VB[pixdata & 3];
-					pixdata >>= 4;
-					if (J & 0x02) C[6] = VB[pixdata & 3];
-					pixdata >>= 4;
-					if (J & 0x01) C[7] = VB[pixdata];
+					if (pixdata >> 0 & 3)  C[0] = VB[pixdata >> 0 & 3];
+					if (pixdata >> 4 & 3)  C[1] = VB[pixdata >> 4 & 3];
+					if (pixdata >> 8 & 3)  C[2] = VB[pixdata >> 8 & 3];
+					if (pixdata >> 12 & 3) C[3] = VB[pixdata >> 12 & 3];
+					if (pixdata >> 16 & 3) C[4] = VB[pixdata >> 16 & 3];
+					if (pixdata >> 20 & 3) C[5] = VB[pixdata >> 20 & 3];
+					if (pixdata >> 24 & 3) C[6] = VB[pixdata >> 24 & 3];
+					if (pixdata >> 28)     C[7] = VB[pixdata >> 28];
 				}
-			}
-		}
+            }
+        }
 	}
+
+	spr = (SPRB*)SPRBUF;
+    uint8 J = spr->ca[0] | spr->ca[1];
+
+    if (J) {
+		int x = spr->x;
+        uint8 atr = spr->atr;
+        if (SpriteBlurp && !(PPU_status & 0x40)) {
+            sphitx = x;
+            sphitdata = J;
+            if (atr & H_FLIP) {
+                sphitdata = ((J << 7) & 0x80) |
+                    ((J << 5) & 0x40) |
+                    ((J << 3) & 0x20) |
+                    ((J << 1) & 0x10) |
+                    ((J >> 1) & 0x08) |
+                    ((J >> 3) & 0x04) |
+                    ((J >> 5) & 0x02) |
+                    ((J >> 7) & 0x01);
+            }
+        }
+    }
+
 	SpriteBlurp = 0;
 	spork = 1;
 }
 
 static void CopySprites(uint8 *target) {
 	uint8 n = ((PPU[1] & 4) ^ 4) << 1;
-	uint8 *P = target;
 
 	if (!spork) return;
 	spork = 0;
 
 	if (rendis & 1) return;	//User asked to not display sprites.
+/*
+    if (!(t & 0x80)) {
+        if (!(t & 0x40)  || (P[n] & 0x40) )		// Normal sprite || behind bg sprite
+            P[n] = sprlinebuf[n];
+    }
+*/
 
- loopskie:
-	{
-		uint32 t = *(uint32*)(sprlinebuf + n);
+    const u128 x80 = fill_u128_u16(0x8080);
+    const u128 x40 = fill_u128_u16(0x4040);
 
-		if (t != 0x80808080) {
-			#ifdef LSB_FIRST
-			if (!(t & 0x80)) {
-				if (!(t & 0x40) || (P[n] & 0x40))		// Normal sprite || behind bg sprite
-					P[n] = sprlinebuf[n];
-			}
+    /* overlapping copy */
 
-			if (!(t & 0x8000)) {
-				if (!(t & 0x4000) || (P[n + 1] & 0x40))		// Normal sprite || behind bg sprite
-					P[n + 1] = (sprlinebuf + 1)[n];
-			}
+    if (n & 0x1F) {
+        {
+            u128 sn = lq(sprlinebuf + n);
+            u128 pn = lq(target + n);
 
-			if (!(t & 0x800000)) {
-				if (!(t & 0x400000) || (P[n + 2] & 0x40))	// Normal sprite || behind bg sprite
-					P[n + 2] = (sprlinebuf + 2)[n];
-			}
+            u128 a0 = pand(sn, x80);
+            u128 cond0 = pceqb0(a0);
 
-			if (!(t & 0x80000000)) {
-				if (!(t & 0x40000000) || (P[n + 3] & 0x40))	// Normal sprite || behind bg sprite
-					P[n + 3] = (sprlinebuf + 3)[n];
-			}
-			#else
-			/* TODO:  Simplify */
-			if (!(t & 0x80000000)) {
-				if (!(t & 0x40000000))	// Normal sprite
-					P[n] = sprlinebuf[n];
-				else if (P[n] & 64)		// behind bg sprite
-					P[n] = sprlinebuf[n];
-			}
+            u128 a1 = pand(sn, x40);
+            u128 na1 = pxor(a1, x40);
 
-			if (!(t & 0x800000)) {
-				if (!(t & 0x400000))	// Normal sprite
-					P[n + 1] = (sprlinebuf + 1)[n];
-				else if (P[n + 1] & 64)	// behind bg sprite
-					P[n + 1] = (sprlinebuf + 1)[n];
-			}
+            u128 a2 = pand(pn, x40);
 
-			if (!(t & 0x8000)) {
-				if (!(t & 0x4000))		// Normal sprite
-					P[n + 2] = (sprlinebuf + 2)[n];
-				else if (P[n + 2] & 64)	// behind bg sprite
-					P[n + 2] = (sprlinebuf + 2)[n];
-			}
+            u128 o0 = por(na1, a2);
+            u128 cond1 = pcgtb0(o0);
 
-			if (!(t & 0x80)) {
-				if (!(t & 0x40))		// Normal sprite
-					P[n + 3] = (sprlinebuf + 3)[n];
-				else if (P[n + 3] & 64)	// behind bg sprite
-					P[n + 3] = (sprlinebuf + 3)[n];
+            u128 cond2 = pand(cond0, cond1);
+            u128 ncond2 = pnor(cond2, cond2);
+
+            u128 tmp0 = pand(pn, ncond2);
+            u128 tmp1 = pand(sn, cond2);
+            u128 rv = por(tmp0, tmp1);
+
+            sq(target + n, rv);
+        }
+        {
+            u128 sn = lq(sprlinebuf + n + 16);
+            u128 pn = lq(target + n + 16);
+
+            u128 a0 = pand(sn, x80);
+            u128 cond0 = pceqb0(a0);
+
+            u128 a1 = pand(sn, x40);
+            u128 na1 = pxor(a1, x40);
+
+            u128 a2 = pand(pn, x40);
+
+            u128 o0 = por(na1, a2);
+            u128 cond1 = pcgtb0(o0);
+
+            u128 cond2 = pand(cond0, cond1);
+            u128 ncond2 = pnor(cond2, cond2);
+
+            u128 tmp0 = pand(pn, ncond2);
+            u128 tmp1 = pand(sn, cond2);
+            u128 rv = por(tmp0, tmp1);
+
+            sq(target + n + 16, rv);
+        }
+        n = (n + 32) & ~0x1Fu;
+    }
+
+	do {
+		{
+			u128 sn = lq(sprlinebuf + n);
+			u128 pn = lq(target + n);
+
+			u128 a0 = pand(sn, x80);
+			u128 cond0 = pceqb0(a0);
+			if (lower_u128(cond0) || upper_u128(cond0)) {
+
+				u128 a1 = pand(sn, x40);
+				u128 na1 = pxor(a1, x40);
+
+				u128 a2 = pand(pn, x40);
+
+				u128 o0 = por(na1, a2);
+				u128 cond1 = pcgtb0(o0);
+
+				u128 cond2 = pand(cond0, cond1);
+				u128 ncond2 = pnor(cond2, cond2);
+
+				u128 tmp0 = pand(pn, ncond2);
+				u128 tmp1 = pand(sn, cond2);
+				u128 rv = por(tmp0, tmp1);
+
+				sq(target + n, rv);
 			}
-			#endif
 		}
-	}
-	n += 4;
-	if (n) goto loopskie;
+		{
+			u128 sn = lq(sprlinebuf + n + 16);
+			u128 pn = lq(target + n + 16);
+
+			u128 a0 = pand(sn, x80);
+			u128 cond0 = pceqb0(a0);
+			if (lower_u128(cond0) || upper_u128(cond0)) {
+
+				u128 a1 = pand(sn, x40);
+				u128 na1 = pxor(a1, x40);
+
+				u128 a2 = pand(pn, x40);
+
+				u128 o0 = por(na1, a2);
+				u128 cond1 = pcgtb0(o0);
+
+				u128 cond2 = pand(cond0, cond1);
+				u128 ncond2 = pnor(cond2, cond2);
+
+				u128 tmp0 = pand(pn, ncond2);
+				u128 tmp1 = pand(sn, cond2);
+				u128 rv = por(tmp0, tmp1);
+
+				sq(target + n + 16, rv);
+			}
+		}
+
+		n += 32;
+	} while (n);
 }
 
 void FCEUPPU_SetVideoSystem(int w) {
@@ -1225,7 +1302,7 @@ int FCEUPPU_Loop(int skip) {
 				if ((PPUViewer) && (scanline == PPUViewScanline)) UpdatePPUView(1);
 				DoLine();
 			}
-			if (MMC5Hack && (ScreenON || SpriteON)) MMC5_hb(scanline);
+            if (MMC5Hack && (ScreenON || SpriteON)) MMC5_hb(scanline);
 			for (x = 1, max = 0, maxref = 0; x < 7; x++) {
 				if (deempcnt[x] > max) {
 					max = deempcnt[x];
@@ -1245,8 +1322,9 @@ int FCEUPPU_Loop(int skip) {
 	#endif
 	{
 		FCEU_PutImage();
-		return(1);
 	}
+
+    return 1;
 }
 
 static uint16 TempAddrT, RefreshAddrT;

@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdbool.h>
 #include <fileio.h>
 #include <string.h>
 #include <libjpg.h>
@@ -925,63 +926,27 @@ void SetupNESGS()
 
 void RenderFrame(const uint8 *frame)
 {
-    //int w, h, c;
-    //int i;
-
-/*
-    for (h = 0; h < 240; h++) { // Correctly displays 256x240 nes screen
-        for (w = 0; w < 256; w++) {
-            c = (h << 8) + w; // Color index, increments height by 256, then adds width
-            NES_TEX.Mem[c] = ps2palette[frame[c]];
-        }
-    }
-*/
     NES_TEX.Mem = (u32 *)frame; // Set frame as NES_TEX.Mem location
-
     gsKit_texture_upload(gsGlobal, &NES_TEX);
-
     // Don't swap these lines
     /* vsync and flip buffer */
     gsKit_sync_flip(gsGlobal);
-
     /* execute render queue */
     gsKit_queue_exec(gsGlobal);
 }
 
 #ifdef SOUND_ON
-void inline OutputSound(const int32 *tmpsnd, int32 ssize)
+static inline void OutputSound(const int16 *ssound, int32 ssize)
 {
-    // Used as an example from the windows driver
-    /*static int16 MBuffer[2 * 96000 / 50];  // * 2 for safety.
-    int P;
-
-    if (!bittage) {
-        for (P = 0; P < Count; P++)
-            *(((uint8*)MBuffer)+P) = ((int8)(Buffer[P]>>8))^128;
-        RawWrite(MBuffer, Count);
+    if (ssize) {
+        int bytes = (int)((u32)ssize << 1);
+        audsrv_wait_audio(bytes);
+        audsrv_play_audio((char *)ssound, bytes); //
     }
-    else {
-        for (P = 0; P < Count; P++)
-        MBuffer[P] = Buffer[P];
-        //FCEU_printf("Pre: %d\n", RawCanWrite() / 2);
-        RawWrite(MBuffer, Count * 2);
-        //FCEU_printf("Post: %d\n", RawCanWrite() / 2);
-     }*/
-
-    int i;
-    s16 ssound[ssize]; // No need for an 2*ssized 8bit array with this
-
-    //audsrv_wait_audio(ssize<<1); // Commented out because the sound buffer is filled at need
-    for (i = 0; i < ssize; i++) {
-        //something[i] = ((tmpsnd[i]>>8))^128; // For 8bit sound
-        ssound[i] = tmpsnd[i];
-    }
-
-    audsrv_play_audio((char *)ssound, ssize << 1); //
 }
 #endif
 
-void FCEUD_Update(const uint8 *XBuf, const int32 *tmpsnd, int32 ssize)
+static void FCEUD_Update(const uint8 *XBuf, const int16 *tmpsnd, int32 ssize)
 {
     RenderFrame(XBuf);
 #ifdef SOUND_ON
@@ -993,10 +958,11 @@ void FCEUD_Update(const uint8 *XBuf, const int32 *tmpsnd, int32 ssize)
     }
 }
 
+
 static void DoFun()
 {
     uint8 *gfx;
-    int32 *sound;
+    int16 *sound;
     int32 ssize;
 
     FCEUI_Emulate(&gfx, &sound, &ssize, 0);

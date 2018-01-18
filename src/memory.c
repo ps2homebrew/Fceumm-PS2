@@ -37,7 +37,7 @@ void *FCEU_gmalloc(uint32 size) {
 
 void *FCEU_malloc(uint32 size) {
 	void *ret;
-	ret = malloc(size);
+	ret = memalign(16, size);
 	if (!ret) {
 		FCEU_PrintError("Error allocating memory!");
 		return(0);

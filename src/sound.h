@@ -44,7 +44,7 @@ void SetSoundVariables(void);
 int GetSoundBuffer(int32 **W);
 int FlushEmulateSound(void);
 extern int32 Wave[2048 + 512];
-extern int32 WaveFinal[2048 + 512];
+extern int16 WaveFinal[2048 + 512];
 extern int32 WaveHi[];
 extern uint32 soundtsinc;
 

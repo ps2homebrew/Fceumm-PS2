@@ -37,7 +37,7 @@ static uint32 wlookup2[203];
 
 int32 Wave[2048 + 512];
 int32 WaveHi[40000];
-int32 WaveFinal[2048 + 512];
+int16 WaveFinal[2048 + 512];
 
 EXPSOUND GameExpSound = { 0, 0, 0 };
 
@@ -899,6 +899,7 @@ int FlushEmulateSound(void) {
 	DoNoise();
 	DoPCM();
 
+#ifdef SOUND_HQ
 	if (FSettings.soundq >= 1) {
 		int32 *tmpo = &WaveHi[soundtsoffs];
 
@@ -918,6 +919,7 @@ int FlushEmulateSound(void) {
 		for (x = 0; x < 5; x++)
 			ChannelBC[x] = left;
 	} else {
+#endif
 		end = (SOUNDTS << 16) / soundtsinc;
 		if (GameExpSound.Fill)
 			GameExpSound.Fill(end & 0xF);
@@ -929,7 +931,9 @@ int FlushEmulateSound(void) {
 		if (end & 0xF)
 			Wave[0] = Wave[(end >> 4)];
 		Wave[end >> 4] = 0;
+#ifdef SOUND_HQ
 	}
+#endif
  nosoundo:
 
 	if (FSettings.soundq >= 1) {
@@ -942,8 +946,9 @@ int FlushEmulateSound(void) {
 	}
 	inbuf = end;
 
-	FCEU_WriteWaveData(WaveFinal, end);	/* This function will just return
-										if sound recording is off. */
+#ifdef SOUND_HQ
+	FCEU_WriteWaveData(WaveFinal, end);	/* This function will just return if sound recording is off. */
+#endif
 	return(end);
 }
 

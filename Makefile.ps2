@@ -21,13 +21,13 @@ FCEU_DEFINES := -DPATH_MAX=1024 -DINLINE=inline -DPSS_STYLE=1 -DFCEU_VERSION_NUM
 #EE_CFLAGS = -Winline -DHAVE_ASPRINTF -D_GNU_SOURCE -DPSS_STYLE=1 -DZLIB -DFCEU_VERSION_NUMERIC=9813 -D__PS2__
 #EE_CFLAGS += -fsched-interblock
 #EE_CFLAGS += -finline-functions -funroll-loops
-EE_CFLAGS += -ffast-math  -funroll-loops -fomit-frame-pointer -fstrict-aliasing -funsigned-char -fno-builtin-printf
-EE_CFLAGS += $(FCEU_DEFINES) $(ENDIANNESS_DEFINES)
+EE_CFLAGS += -ffast-math -funroll-loops -fomit-frame-pointer -fstrict-aliasing -funsigned-char -fno-builtin-printf
+EE_CFLAGS += $(FCEU_DEFINES) $(ENDIANNESS_DEFINES) -MMD -MP
 EE_LDFLAGS = -L$(GSKIT)/lib
 
 EE_INCS = -I$(PS2SDK)/ee/include -I$(PS2SDK)/sbv/include -I$(PS2SDK)/ports/include \
 	-I$(GSKIT)/include -I$(GSKIT)/ee/dma/include -I$(GSKIT)/ee/gs/include -I$(GSKIT)/ee/toolkit/include
-EE_LIBS = -lgskit_toolkit -lgskit -ldmakit -ljpeg -lpng -lz -lm -lfileXio -lhdd -lmc -lpadx -lc -lmtap -laudsrv -lpoweroff -lpatches -ldebug
+EE_LIBS = -lgskit_toolkit -lgskit -ldmakit -ljpeg -lpng -ltiff -lz -lm -lfileXio -lhdd -lmc -lpadx -lc -lmtap -laudsrv -lpoweroff -lpatches -ldebug
 
 ifeq ($(CDSUPPORT),1)
 	EE_INCS += -Ilibcdvd/ee
@@ -54,6 +54,7 @@ DRIVER_OBJS += iomanX_irx.o fileXio_irx.o ps2dev9_irx.o \
     ps2atad_irx.o ps2hdd_irx.o ps2fs_irx.o \
     poweroff_irx.o freesd_irx.o audsrv_irx.o usbd_irx.o \
     usbhdfsd_irx.o SMSUTILS_irx.o
+
 ifeq ($(CDSUPPORT),1)	
 	DRIVER_OBJS  += cdvd_irx.o
 endif
@@ -72,6 +73,9 @@ FCEU_SRC_DIRS := $(PS2_DIR) $(FCEU_DIR) $(FCEU_DIR)/boards $(FCEU_DIR)/input  $(
 
 FCEU_CSRCS := $(foreach dir,$(FCEU_SRC_DIRS),$(wildcard $(dir)/*.c))
 FCEU_COBJ := $(FCEU_CSRCS:.c=.o)
+FCEU_CDEP := $(FCEU_CSRCS:.c=.d)
+
+-include $(FCEU_CDEP)
 
 EE_OBJS = $(FCEU_COBJ) $(DRIVER_OBJS)
 
@@ -148,7 +152,7 @@ run: $(EE_BIN)
 clean:
 	$(MAKE) -C libcdvd clean
 	$(MAKE) -C SMSUTILS clean
-	$(RM) $(EE_BIN) $(EE_PACKED_BIN) $(EE_OBJS) $(PS2_DIR)/irx/*.c
+	$(RM) $(EE_BIN) $(EE_PACKED_BIN) $(EE_OBJS) $(FCEU_CDEP) $(PS2_DIR)/irx/*.c
 
 #include Makefile.eeglobal
 include $(PS2SDK)/samples/Makefile.pref

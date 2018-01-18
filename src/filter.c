@@ -39,10 +39,9 @@ void SexyFilter2(int32 *in, int32 count) {
 	}
 }
 
-void SexyFilter(int32 *in, int32 *out, int32 count) {
-	static int64 acc1 = 0, acc2 = 0;
-	int32 mul1, mul2, vmul;
+static int32 mul1, mul2, vmul;
 
+void SexyFilterSetup() {
 	mul1 = (94 << 16) / FSettings.SndRate;
 	mul2 = (24 << 16) / FSettings.SndRate;
 	vmul = (FSettings.SoundVolume << 16) * 3 / 4 / 100;
@@ -51,12 +50,15 @@ void SexyFilter(int32 *in, int32 *out, int32 count) {
 		vmul /= 4;
 	else
 		vmul *= 2;	/* TODO:  Increase volume in low quality sound rendering code itself */
+}
+
+void SexyFilter(int32 *in, int16 *out, int32 count) {
+	static int64 acc1 = 0, acc2 = 0;
 
 	while (count) {
 		int64 ino = (int64) * in * vmul;
 		acc1 += ((ino - acc1) * mul1) >> 16;
 		acc2 += ((ino - acc1 - acc2) * mul2) >> 16;
-		//printf("%d ",*in);
 		*in = 0;
 		{
 			int32 t = (acc1 - ino + acc2) >> 16;
@@ -83,6 +85,7 @@ void SexyFilter(int32 *in, int32 *out, int32 count) {
 	code to be higher, or you *might* overflow the FIR code.
 */
 
+#ifdef SOUND_HQ
 int32 NeoFilterSound(int32 *in, int32 *out, uint32 inlen, int32 *leftover) {
 	uint32 x;
 	uint32 max;
@@ -146,6 +149,7 @@ int32 NeoFilterSound(int32 *in, int32 *out, uint32 inlen, int32 *leftover) {
 		SexyFilter2(outsave, count);
 	return(count);
 }
+#endif
 
 void MakeFilters(int32 rate) {
 	int32 *tabs[6] = { C44100NTSC, C44100PAL, C48000NTSC, C48000PAL, C96000NTSC,
@@ -187,4 +191,5 @@ void MakeFilters(int32 rate) {
 		printf("Foo: %lld\n", acc);
 	}
  #endif
+	SexyFilterSetup();
 }

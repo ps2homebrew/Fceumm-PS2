@@ -9,3 +9,4 @@
 
 # Generated
 /src/drivers/ps2/irx/*.c
+*.d

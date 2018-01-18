@@ -87,28 +87,12 @@ char *FCEU_MakeFName(int type, int id1, char *cd1) {
 			asprintf(&ret, "%s"PSS "%s.%d.fcm", odirs[FCEUIOD_STATE], FileBase, id1);
 		else
 			asprintf(&ret, "%s"PSS "fcs"PSS "%s.%d.fcm", BaseDirectory, FileBase, id1);
-		if (stat(ret, &tmpstat) == -1) {
-			if (odirs[FCEUIOD_STATE])
-				asprintf(&ret, "%s"PSS "%s.%s.%d.fcm", odirs[FCEUIOD_STATE], FileBase, md5_asciistr(GameInfo->MD5), id1);
-			else
-				asprintf(&ret, "%s"PSS "fcs"PSS "%s.%s.%d.fcm", BaseDirectory, FileBase, md5_asciistr(GameInfo->MD5), id1);
-		}
 		break;
 	case FCEUMKF_STATE:
 		if (odirs[FCEUIOD_STATE])
 			asprintf(&ret, "%s"PSS "%s.fc%d", odirs[FCEUIOD_STATE], FileBase, id1);
 		else
 			asprintf(&ret, "%s"PSS "fcs"PSS "%s.fc%d", BaseDirectory, FileBase, id1);
-		if (stat(ret, &tmpstat) == -1) {
-//          if(odirs[FCEUIOD_STATE])
-//           asprintf(&ret,"%s"PSS"%s.%s.fc%d",odirs[FCEUIOD_STATE],FileBase,md5_asciistr(GameInfo->MD5),id1);
-//          else
-//           asprintf(&ret,"%s"PSS"fcs"PSS"%s.%s.fc%d",BaseDirectory,FileBase,md5_asciistr(GameInfo->MD5),id1);
-			if (odirs[FCEUIOD_STATE])
-				asprintf(&ret, "%s"PSS "%s.fc%d", odirs[FCEUIOD_STATE], FileBase, id1);
-			else
-				asprintf(&ret, "%s"PSS "fcs"PSS "%s.fc%d", BaseDirectory, FileBase, id1);
-		}
 		break;
 	case FCEUMKF_SNAP:
 		if (FSettings.SnapName) {
@@ -134,12 +118,6 @@ char *FCEU_MakeFName(int type, int id1, char *cd1) {
 			asprintf(&ret, "%s"PSS "%s.%s", odirs[FCEUIOD_NV], FileBase, cd1);
 		else
 			asprintf(&ret, "%s"PSS "sav"PSS "%s.%s", BaseDirectory, FileBase, cd1);
-		if (stat(ret, &tmpstat) == -1) {
-			if (odirs[FCEUIOD_NV])
-				asprintf(&ret, "%s"PSS "%s.%s.%s", odirs[FCEUIOD_NV], FileBase, md5_asciistr(GameInfo->MD5), cd1);
-			else
-				asprintf(&ret, "%s"PSS "sav"PSS "%s.%s.%s", BaseDirectory, FileBase, md5_asciistr(GameInfo->MD5), cd1);
-		}
 		break;
 	case FCEUMKF_CHEAT:
 		if (odirs[FCEUIOD_CHEATS])

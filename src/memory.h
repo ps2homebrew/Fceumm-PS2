@@ -26,8 +26,31 @@
 #define _FCEU_MEMORY_H_
 
 #include "fceu-types.h"
+#include "vectoree.h"
 
-#define FCEU_dwmemset(d, c, n) { int _x; for (_x = n - 4; _x >= 0; _x -= 4) *(uint32*)& (d)[_x] = c; }
+static inline void FCEU_dwmemset(void *addr, uint32 value, size_t count)
+{
+    uint32 *buf = addr;
+    uint32 *end = (uint32 *)((uint8 *)addr + count);
+
+    while (buf < end) {
+        *buf = value;
+        buf++;
+    }
+}
+
+static inline void FCEU_memset16(void *addr, uint8 pattern, size_t count)
+{
+    uint8 *buf = addr;
+    uint8 *end = buf + count;
+
+    u128 tem = fill_u128(pattern);
+
+    while (buf < end) {
+        sq(buf, tem);
+        buf += 16;
+    }
+}
 
 #if defined(STATE_LIBRETRO) || defined(ENDIAN_LIBRETRO) || defined(GENERAL_LIBRETRO)
 #include "drivers/libretro/memstream.h"
