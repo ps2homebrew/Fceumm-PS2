@@ -168,7 +168,8 @@ void Load_Global_CNF(char *CNF_path_p)
         return;
     }
     // TODO: Why we need to calculate TST_size?
-	// TST_size = fioRead(fd, CNF_p, CNF_size);
+    // TST_size = fioRead(fd, CNF_p, CNF_size);
+    fioRead(fd, CNF_p, CNF_size);
     fioClose(fd);
     CNF_p[CNF_size] = '\0';
 
@@ -297,6 +298,7 @@ char* Load_Control_CNF(char *CNF_path_p, int port)
         return 0;
     }
     // TST_size = fioRead(fd, CNF_p, CNF_size);
+    fioRead(fd, CNF_p, CNF_size);
     fioClose(fd);
     CNF_p[CNF_size] = '\0';
 
@@ -358,6 +360,7 @@ void Load_Skin_CNF(char *CNF_path_p)
         return;
     }
     // TST_size = fioRead(fd, CNF_p, CNF_size);
+    fioRead(fd, CNF_p, CNF_size);
     fioClose(fd);
     CNF_p[CNF_size] = '\0';
 
