@@ -359,24 +359,16 @@ unsigned char Get_PS2Input(int mport)
 
 void Set_NESInput()
 {
-    void *NESPads;
 	int attrib = 0;
 
 	if(mtapGetConnection(0) != 1) {
 		FCEUI_DisableFourScore(1);
-		NESPads = &NESButtons;
-		FCEUI_SetInput(0, SI_GAMEPAD, NESPads, attrib);
-		FCEUI_SetInput(1, SI_GAMEPAD, NESPads, attrib);
 	}
 	else {
 		FCEUI_DisableFourScore(0);
-		NESPads = &NESButtons;
-		FCEUI_SetInputFC(SIFC_4PLAYER, NESPads, attrib);
-		FCEUI_SetInput(0, SI_GAMEPAD, NESPads, attrib);
-		FCEUI_SetInput(1, SI_GAMEPAD, NESPads, attrib);
-//		FCEUI_SetInput(2, SI_GAMEPAD, NESPads, attrib);
-//		FCEUI_SetInput(3, SI_GAMEPAD, NESPads, attrib);
 	}
+	FCEUI_SetInput(0, SI_GAMEPAD, &NESButtons, attrib);
+	FCEUI_SetInput(1, SI_GAMEPAD, &NESButtons, attrib);
 }
 
 int Get_NESInput()
@@ -389,7 +381,7 @@ int Get_NESInput()
     }
 
     if(Settings.turbo) {
-        NESButtons = ( Get_PS2TurboInput(0) ); //first player
+        NESButtons  = ( Get_PS2TurboInput(0) << 0); //first player
         NESButtons |= ( Get_PS2TurboInput(1) << 8); //second player
 
         if(rapid_a[0])
@@ -405,10 +397,13 @@ int Get_NESInput()
             NESButtons |= 0x200;
     }
     else {
-        NESButtons = ( Get_PS2Input(0) ); //first player
+        NESButtons  = ( Get_PS2Input(0) << 0); //first player
         NESButtons |= ( Get_PS2Input(1) << 8); //second player
-//        NESButtons |= ( Get_PS2Input(2) << 16); //third player
-//        NESButtons |= ( Get_PS2Input(3) << 24); //4th player
+    }
+
+    if (mtapGetConnection(0) == 1) {
+        NESButtons |= ( Get_PS2Input(2) << 16); //third player
+        NESButtons |= ( Get_PS2Input(3) << 24); //4th player
     }
 
     return 0;
