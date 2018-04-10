@@ -17,6 +17,7 @@ extern vars Settings;
 static char padBuf[4][256] __attribute__((aligned(64)));
 
 u32 old_pad[4];
+int mtapGetConnectionCached;
 
 extern int rapidfire_a[4];
 extern int rapidfire_b[4];
@@ -161,7 +162,7 @@ unsigned char Get_PS2Input(int mport)
     u16 port = 0;
     u16 slot = 0;
 
-    if(mtapGetConnection(0) == 1)
+    if(mtapGetConnectionCached == 1)
         slot = mport;//using first port connected multitap, port=0
     else
         port = mport;//using first and second gamepad, slot=0
@@ -266,8 +267,9 @@ unsigned char Get_PS2Input(int mport)
 void Set_NESInput()
 {
     int attrib = 0;
-
-    if(mtapGetConnection(0) != 1) {
+    
+    mtapGetConnectionCached = mtapGetConnection(0);
+    if(mtapGetConnectionCached != 1) {
         FCEUI_DisableFourScore(1);
     }
     else {
@@ -286,7 +288,7 @@ int Get_NESInput()
     
     NESButtons  = ( Get_PS2Input(0) << 0); //first player
     NESButtons |= ( Get_PS2Input(1) << 8); //second player
-    if (mtapGetConnection(0) == 1) {
+    if (mtapGetConnectionCached == 1) {
         NESButtons |= ( Get_PS2Input(2) << 16); //third player
         NESButtons |= ( Get_PS2Input(3) << 24); //4th player
     }
