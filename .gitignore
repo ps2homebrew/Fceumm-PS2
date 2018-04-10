@@ -1,0 +1,11 @@
+# Full https://github.com/github/gitignore/blob/master/C.gitignore
+
+# Object files
+*.o
+*.elf
+
+# Libraries
+*.a
+
+# Generated
+/src/drivers/ps2/irx/*.c
