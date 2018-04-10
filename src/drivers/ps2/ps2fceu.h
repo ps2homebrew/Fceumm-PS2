@@ -63,8 +63,6 @@ void browser_primitive(char *title1, char *title2, GSTEXTURE *gsTexture, float x
 void Load_Global_CNF(char *CNF_path_p);
 void Save_Global_CNF(char *CNF_path_p);
 void Default_Global_CNF(void);
-  //Control
-char* Load_Control_CNF(char *CNF_path_p, int port);
   //Skin
 void Load_Skin_CNF(char *CNF_path_p);
 void Save_Skin_CNF(char *CNF_path_p);
