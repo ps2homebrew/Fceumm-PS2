@@ -137,59 +137,59 @@ int RomBrowserInput(int files_too, int inside_menu)
 
 #ifdef CDSUPPORT
 int listcdvd(const char *path, entries *FileEntry) {
-	static struct TocEntry TocEntryList[2048];
-	char dir[1025];
-	int i, n, t;
+    static struct TocEntry TocEntryList[2048];
+    char dir[1025];
+    int i, n, t;
 
-	strcpy(dir, &path[5]);
-	// Directories first...
+    strcpy(dir, &path[5]);
+    // Directories first...
 
-	CDVD_FlushCache();
-	n = CDVD_GetDir(dir, NULL, CDVD_GET_DIRS_ONLY, TocEntryList, 2048, dir);
+    CDVD_FlushCache();
+    n = CDVD_GetDir(dir, NULL, CDVD_GET_DIRS_ONLY, TocEntryList, 2048, dir);
 
-	strcpy(FileEntry[0].filename, "..");
-	strcpy(FileEntry[0].displayname, "..");
-         FileEntry[0].dircheck = 1;
-	t = 1;
+    strcpy(FileEntry[0].filename, "..");
+    strcpy(FileEntry[0].displayname, "..");
+    FileEntry[0].dircheck = 1;
+    t = 1;
 
-	for (i=0; i<n; i++) {
-		if (TocEntryList[i].fileProperties & 0x02 && (!strcmp(
-				TocEntryList[i].filename, ".") || !strcmp(
-						TocEntryList[i].filename, "..")))
-			continue; //Skip pseudopaths "." and ".."
+    for (i=0; i<n; i++) {
+        if (TocEntryList[i].fileProperties & 0x02 && (!strcmp(
+                TocEntryList[i].filename, ".") || !strcmp(
+                        TocEntryList[i].filename, "..")))
+            continue; //Skip pseudopaths "." and ".."
 
-		FileEntry[t].dircheck = 1;
-		strcpy(FileEntry[t].filename, TocEntryList[i].filename);
-		strzncpy(FileEntry[t].displayname, FileEntry[t].filename, 63);
-		t++;
+        FileEntry[t].dircheck = 1;
+        strcpy(FileEntry[t].filename, TocEntryList[i].filename);
+        strzncpy(FileEntry[t].displayname, FileEntry[t].filename, 63);
+        t++;
 
-		if (t >= 2046) {
-			break;
-		}
+        if (t >= 2046) {
+            break;
+        }
      }
 
-	// Now files only
+    // Now files only
 
-	CDVD_FlushCache();
-	n = CDVD_GetDir(dir, NULL, CDVD_GET_FILES_ONLY, TocEntryList, 2048, dir);
+    CDVD_FlushCache();
+    n = CDVD_GetDir(dir, NULL, CDVD_GET_FILES_ONLY, TocEntryList, 2048, dir);
 
-	for (i=0; i<n; i++) {
-		if (TocEntryList[i].fileProperties & 0x02 && (!strcmp(
-				TocEntryList[i].filename, ".") || !strcmp(
-						TocEntryList[i].filename, "..")))
-			continue; //Skip pseudopaths "." and ".."
+    for (i=0; i<n; i++) {
+        if (TocEntryList[i].fileProperties & 0x02 && (!strcmp(
+                TocEntryList[i].filename, ".") || !strcmp(
+                        TocEntryList[i].filename, "..")))
+            continue; //Skip pseudopaths "." and ".."
 
-		FileEntry[t].dircheck = 0;
-		strcpy(FileEntry[t].filename, TocEntryList[i].filename);
-		strzncpy(FileEntry[t].displayname, FileEntry[t].filename, 63);
-		t++;
+        FileEntry[t].dircheck = 0;
+        strcpy(FileEntry[t].filename, TocEntryList[i].filename);
+        strzncpy(FileEntry[t].displayname, FileEntry[t].filename, 63);
+        t++;
 
-		if (t >= 2046) {
-			break;
-		}
-	}
+        if (t >= 2046) {
+            break;
+        }
+    }
 
-	return t;
+    return t;
 
 }
 #endif
@@ -222,7 +222,7 @@ int listdir(char *path, entries *FileEntry, int files_too)
         n = listcdvd(path, FileEntry);
     }
 #endif
-	else { //it has a /
+    else { //it has a /
         dd = fioDopen(path);
         if( dd < 0) {
             printf("Didn't open!\n");
@@ -237,8 +237,8 @@ int listdir(char *path, entries *FileEntry, int files_too)
             n=1;
             while(fioDread(dd, &buf) > 0) {
                 if ( n > 2046) { break; }
-		        if((FIO_SO_ISDIR(buf.stat.mode)) && (!strcmp(buf.name,".") || !strcmp(buf.name,"..")))
-		            continue; //makes sure no .. or .'s are listed since it's already there
+                if((FIO_SO_ISDIR(buf.stat.mode)) && (!strcmp(buf.name,".") || !strcmp(buf.name,"..")))
+                    continue; //makes sure no .. or .'s are listed since it's already there
                 if(FIO_SO_ISDIR(buf.stat.mode)) {
                     FileEntry[n].dircheck = 1;
                     strcpy(FileEntry[n].filename,buf.name);
@@ -343,7 +343,7 @@ int listpfs(char *path, entries *FileEntry, int files_too)
                         n++;
                     }
                     if(n > 2046) { break; }
-	            }
+                }
                 if(dd >= 0) {
                     fileXioDclose(dd);
                     printf("Directory closed!\n");
@@ -397,7 +397,7 @@ int listpartitions( entries *FileEntry)
         FileEntry[n].dircheck = 1;
         n++;
     }
-	fileXioDclose(hddFd);
+    fileXioDclose(hddFd);
 
     return n;
 }
@@ -551,8 +551,8 @@ char* Browser(int files_too, int menu_id)
         else {
             max_item = 21;
         }
-		if (gsGlobal->Interlace == GS_NONINTERLACED)
-			max_item = 9;
+        if (gsGlobal->Interlace == GS_NONINTERLACED)
+            max_item = 9;
 
 
 //scan for direct commands from input function
@@ -624,7 +624,7 @@ char* Browser(int files_too, int menu_id)
         if(selection != oldselect) {
 
             gsKit_clear(gsGlobal,GS_SETREG_RGBAQ(0x00,0x00,0x00,0x80,0x00));
-            browser_primitive("FCEUltra PS2 Beta 0.93","Browser", &BG_TEX, menu_x1, menu_y1, menu_x2, menu_y2);
+            browser_primitive("FCEUltra PS2 B0.93 [x.1.0]","Browser", &BG_TEX, menu_x1, menu_y1, menu_x2, menu_y2);
 
             if(selection > max_item) {
                 list_offset = text_line - (selection - max_item) * FONT_HEIGHT;

@@ -111,15 +111,14 @@ start_line:
 void Load_Global_CNF(char *CNF_path_p)
 {
     int fd, var_cnt = 0;
-    // size_t TST_size;
     size_t CNF_size;
     char  *RAM_p, *CNF_p, *name, *value;
-	char *p;
-	char *temp1;
+    char *p;
+    char *temp1;
     char partpath[1024];
-	sprintf(CNF_path_p, "%sFCEUltra.cnf", CNF_path_p);
-	
-	if(!strncmp(CNF_path_p,"hdd0:/", 6)) {
+    sprintf(CNF_path_p, "%sFCEUltra.cnf", CNF_path_p);
+
+    if(!strncmp(CNF_path_p,"hdd0:/", 6)) {
 
         temp1 = strchr(CNF_path_p,'/');
         temp1++;
@@ -128,7 +127,7 @@ void Load_Global_CNF(char *CNF_path_p)
         while(*temp1 != '/') { temp1++; }
 
         fd = mountPartition(CNF_path_p);
-		needed_path[1] = fd;
+        needed_path[1] = fd;
         if(needed_path[1] == -1) {
             strcpy(CNF_path_p, "mc0:/FCEUMM/FCEUltra.cnf");
         }
@@ -139,26 +138,26 @@ void Load_Global_CNF(char *CNF_path_p)
             strcpy(CNF_path_p, partpath);
 
             printf("partpath: %s\n", CNF_path_p);
-			fd = fileXioOpen(CNF_path_p, O_RDONLY, 0);
+            fd = fileXioOpen(CNF_path_p, O_RDONLY, 0);
         }
     } else
-		fd = fioOpen(CNF_path_p,O_RDONLY);
-    if(fd < 0)	{
+        fd = fioOpen(CNF_path_p,O_RDONLY);
+    if(fd < 0) {
         printf("Load_CNF %s Open failed %d.\r\n", CNF_path_p, fd);
-		strcpy(CNF_path_p,"mc0:/FCEUMM/FCEUltra.cnf");
-		fd = fioOpen(CNF_path_p,O_RDONLY);
-		if(fd < 0)	{
-			printf("Load_CNF %s Open failed %d.\r\n", CNF_path_p, fd);
-			return;
-		}
+        strcpy(CNF_path_p,"mc0:/FCEUMM/FCEUltra.cnf");
+        fd = fioOpen(CNF_path_p,O_RDONLY);
+        if(fd < 0) {
+            printf("Load_CNF %s Open failed %d.\r\n", CNF_path_p, fd);
+            return;
+        }
     }
-	
-	if	(((p=strrchr(CNF_path_p, '/'))==NULL)&&((p=strrchr(CNF_path_p, '\\'))==NULL))
-		p=strrchr(CNF_path_p, ':');
-	if	(p!=NULL)
-		*(p)=0;
-	//The above cuts away the cnf filename from CNF_path_p and last '/', leaving a pure path
-	FCEUI_SetBaseDirectory(CNF_path_p);
+        
+    if(((p=strrchr(CNF_path_p, '/'))==NULL)&&((p=strrchr(CNF_path_p, '\\'))==NULL))
+        p=strrchr(CNF_path_p, ':');
+    if(p!=NULL)
+        *(p)=0;
+    //The above cuts away the cnf filename from CNF_path_p and last '/', leaving a pure path
+    FCEUI_SetBaseDirectory(CNF_path_p);
 
     CNF_size = fioLseek(fd, 0, SEEK_END);
     fioLseek(fd, 0, SEEK_SET);
@@ -167,8 +166,7 @@ void Load_Global_CNF(char *CNF_path_p)
         printf("Load_CNF failed malloc(%d).\r\n", CNF_size);
         return;
     }
-    // TODO: Why we need to calculate TST_size?
-	// TST_size = fioRead(fd, CNF_p, CNF_size);
+    fioRead(fd, CNF_p, CNF_size);
     fioClose(fd);
     CNF_p[CNF_size] = '\0';
 
@@ -209,14 +207,34 @@ void Load_Global_CNF(char *CNF_path_p)
         else if(!strcmp(name,"JOY2_Down"))        { Settings.PlayerInput[1][10] = (u16)strtoul(value,NULL,16); }
         else if(!strcmp(name,"JOY2_Left"))        { Settings.PlayerInput[1][11] = (u16)strtoul(value,NULL,16); }
         else if(!strcmp(name,"JOY2_Right"))       { Settings.PlayerInput[1][12] = (u16)strtoul(value,NULL,16); }
+        //Player 3 Settings
+        else if(!strcmp(name,"JOY3_A"))           { Settings.PlayerInput[2][5]  = (u16)strtoul(value,NULL,16); }
+        else if(!strcmp(name,"JOY3_B"))           { Settings.PlayerInput[2][6]  = (u16)strtoul(value,NULL,16); }
+        else if(!strcmp(name,"JOY3_Select"))      { Settings.PlayerInput[2][7]  = (u16)strtoul(value,NULL,16); }
+        else if(!strcmp(name,"JOY3_Start"))       { Settings.PlayerInput[2][8]  = (u16)strtoul(value,NULL,16); }
+        else if(!strcmp(name,"JOY3_Up"))          { Settings.PlayerInput[2][9]  = (u16)strtoul(value,NULL,16); }
+        else if(!strcmp(name,"JOY3_Down"))        { Settings.PlayerInput[2][10] = (u16)strtoul(value,NULL,16); }
+        else if(!strcmp(name,"JOY3_Left"))        { Settings.PlayerInput[2][11] = (u16)strtoul(value,NULL,16); }
+        else if(!strcmp(name,"JOY3_Right"))       { Settings.PlayerInput[2][12] = (u16)strtoul(value,NULL,16); }
+        //Player 4 Settings
+        else if(!strcmp(name,"JOY4_A"))           { Settings.PlayerInput[3][5]  = (u16)strtoul(value,NULL,16); }
+        else if(!strcmp(name,"JOY4_B"))           { Settings.PlayerInput[3][6]  = (u16)strtoul(value,NULL,16); }
+        else if(!strcmp(name,"JOY4_Select"))      { Settings.PlayerInput[3][7]  = (u16)strtoul(value,NULL,16); }
+        else if(!strcmp(name,"JOY4_Start"))       { Settings.PlayerInput[3][8]  = (u16)strtoul(value,NULL,16); }
+        else if(!strcmp(name,"JOY4_Up"))          { Settings.PlayerInput[3][9]  = (u16)strtoul(value,NULL,16); }
+        else if(!strcmp(name,"JOY4_Down"))        { Settings.PlayerInput[3][10] = (u16)strtoul(value,NULL,16); }
+        else if(!strcmp(name,"JOY4_Left"))        { Settings.PlayerInput[3][11] = (u16)strtoul(value,NULL,16); }
+        else if(!strcmp(name,"JOY4_Right"))       { Settings.PlayerInput[3][12] = (u16)strtoul(value,NULL,16); }
     }
 
     //Set so only first player controls emulator controls
-    Settings.PlayerInput[1][0] = 0xFFFF;
-    Settings.PlayerInput[1][1] = 0xFFFF;
-    Settings.PlayerInput[1][2] = 0xFFFF;
-    Settings.PlayerInput[1][3] = 0xFFFF;
-    Settings.PlayerInput[1][4] = 0xFFFF;
+    int player;
+    for (player = 1; player < 4; player++) {
+        int i;
+        for (i = 0; i < 5; i++) {
+            Settings.PlayerInput[player][i] = 0xFFFF;
+        }
+    }
 
     //begin hdd path mounting
 
@@ -269,84 +287,21 @@ void Load_Global_CNF(char *CNF_path_p)
     if(strlen(CNF_p))  //Was there any unprocessed CNF remainder ?
         CNF_edited = false;  //false == current settings match CNF file
     else
-	printf("Syntax error in CNF file at position %d.\r\n", (CNF_p-RAM_p));
+        printf("Syntax error in CNF file at position %d.\r\n", (CNF_p-RAM_p));
 
     free(RAM_p);
 
 }  //Ends Load_Global_CNF
 
 //---------------------------------------------------------------------------
-char* Load_Control_CNF(char *CNF_path_p, int port)
-{
-    int fd, var_cnt = 0;
-    // size_t TST_size;
-    size_t CNF_size;
-    char  *RAM_p, *CNF_p, *name, *value;
-
-
-    fd = fioOpen(CNF_path_p,O_RDONLY);
-    if(fd < 0)	{
-        printf("Load_CNF %s Open failed %d.\r\n", CNF_path_p, fd);
-        return 0;
-    }
-    CNF_size = fioLseek(fd, 0, SEEK_END);
-    fioLseek(fd, 0, SEEK_SET);
-    CNF_p = (RAM_p = malloc(CNF_size+1));
-    if(CNF_p==NULL) {
-        printf("Load_CNF failed malloc(%d).\r\n", CNF_size);
-        return 0;
-    }
-    // TST_size = fioRead(fd, CNF_p, CNF_size);
-    fioClose(fd);
-    CNF_p[CNF_size] = '\0';
-
-    for(var_cnt = 0; get_CNF_string(&CNF_p, &name, &value); var_cnt++) {
-        // A variable was found, now we dispose of its value.
-        printf("Found variable \"%s\" with value \"%s\"\r\n", name, value);
-        if(!strcmp(name,"JOY_Menu"))             { Settings.PlayerInput[port][0]  = (u16)strtoul(value,NULL,16); }
-        else if(!strcmp(name,"JOY_SaveState"))   { Settings.PlayerInput[port][1]  = (u16)strtoul(value,NULL,16); }
-        else if(!strcmp(name,"JOY_LoadState"))   { Settings.PlayerInput[port][2]  = (u16)strtoul(value,NULL,16); }
-        else if(!strcmp(name,"JOY_FDS_DiskSwap")){ Settings.PlayerInput[port][3]  = (u16)strtoul(value,NULL,16); }
-        else if(!strcmp(name,"JOY_FDS_SideSwap")){ Settings.PlayerInput[port][4]  = (u16)strtoul(value,NULL,16); }
-        else if(!strcmp(name,"JOY_A"))           { Settings.PlayerInput[port][3]  = (u16)strtoul(value,NULL,16); }
-        else if(!strcmp(name,"JOY_B"))           { Settings.PlayerInput[port][4]  = (u16)strtoul(value,NULL,16); }
-        else if(!strcmp(name,"JOY_Select"))      { Settings.PlayerInput[port][5]  = (u16)strtoul(value,NULL,16); }
-        else if(!strcmp(name,"JOY_Start"))       { Settings.PlayerInput[port][6]  = (u16)strtoul(value,NULL,16); }
-        else if(!strcmp(name,"JOY_Up"))          { Settings.PlayerInput[port][7]  = (u16)strtoul(value,NULL,16); }
-        else if(!strcmp(name,"JOY_Down"))        { Settings.PlayerInput[port][8]  = (u16)strtoul(value,NULL,16); }
-        else if(!strcmp(name,"JOY_Left"))        { Settings.PlayerInput[port][9]  = (u16)strtoul(value,NULL,16); }
-        else if(!strcmp(name,"JOY_Right"))       { Settings.PlayerInput[port][10] = (u16)strtoul(value,NULL,16); }
-        else if(!strcmp(name,"name"))            { strcpy(control_name,value); }
-    }
-
-    //Set so only first player controls emulator controls
-    Settings.PlayerInput[1][0] = 0xFFFF;
-    Settings.PlayerInput[1][1] = 0xFFFF;
-    Settings.PlayerInput[1][2] = 0xFFFF;
-    Settings.PlayerInput[1][3] = 0xFFFF;
-    Settings.PlayerInput[1][4] = 0xFFFF;
-
-    /*if(strlen(CNF_p))  //Was there any unprocessed CNF remainder ?
-        CNF_edited = false;  //false == current settings match CNF file
-    else
-	printf("Syntax error in CNF file at position %d.\r\n", (CNF_p-RAM_p));*/
-
-    free(RAM_p);
-
-    return name;
-
-}  //Ends Load_Control_CNF
-
-//---------------------------------------------------------------------------
 void Load_Skin_CNF(char *CNF_path_p)
 {
     int fd, var_cnt = 0;
-    // size_t TST_size;
     size_t CNF_size;
     char  *RAM_p, *CNF_p, *name, *value;
-	//char *name, *value;
+
     fd = fioOpen(CNF_path_p,O_RDONLY);
-    if(fd < 0)	{
+    if(fd < 0) {
         printf("Load_CNF %s Open failed %d.\r\n", CNF_path_p, fd);
         return;
     }
@@ -357,7 +312,7 @@ void Load_Skin_CNF(char *CNF_path_p)
         printf("Load_CNF failed malloc(%d).\r\n", CNF_size);
         return;
     }
-    // TST_size = fioRead(fd, CNF_p, CNF_size);
+    fioRead(fd, CNF_p, CNF_size);
     fioClose(fd);
     CNF_p[CNF_size] = '\0';
 
@@ -375,27 +330,22 @@ void Load_Skin_CNF(char *CNF_path_p)
         else if(!strcmp(name,"BGMenu"))         { strcpy(FCEUSkin.bgMenu, value);     }
     }
 
-    //Set so only first player controls emulator controls
-
     /*if(strlen(CNF_p))  //Was there any unprocessed CNF remainder ?
         CNF_edited = false;  //false == current settings match CNF file
     else
-	printf("Syntax error in CNF file at position %d.\r\n", (CNF_p-RAM_p));*/
+        printf("Syntax error in CNF file at position %d.\r\n", (CNF_p-RAM_p));*/
 
     free(RAM_p);
 
-}  //Ends Load_Control_CNF
+}  //Ends Load_Skin_CNF
 
 //---------------------------------------------------------------------------
 void Save_Skin_CNF(char *CNF_path_p)
 {
     int fd;
-    // int CNF_error;
     size_t CNF_size = 4096; //safe preliminary value
     char  *CNF_p;
 
-    // TODO: Why we need to calculate this?
-    // CNF_error = true;
     CNF_p = malloc(CNF_size);
     if(CNF_p == NULL) return;
     sprintf(CNF_p,
@@ -424,21 +374,19 @@ void Save_Skin_CNF(char *CNF_path_p)
         FCEUSkin.bgTexture,
         FCEUSkin.bgMenu,
         &CNF_size);
-// Note that the final argument above measures accumulated string size,
-// used for fioWrite below, so it's not one of the config variables.
+    // Note that the final argument above measures accumulated string size,
+    // used for fioWrite below, so it's not one of the config variables.
 
     fd = fioOpen(CNF_path_p,O_CREAT|O_WRONLY|O_TRUNC);
-    if(fd < 0)
-        goto abort;
+    if(fd >= 0) {
+        if(CNF_size == fioWrite(fd, CNF_p, CNF_size))
+            CNF_edited = false;
 
-    if(CNF_size == fioWrite(fd, CNF_p, CNF_size))
-        CNF_edited = false;
+        fioClose(fd);
+    }
 
-    fioClose(fd);
-
-abort:
     free(CNF_p);
-}  //Ends Save_CNF
+}  //Ends Save_Skin_CNF
 
 //---------------------------------------------------------------------------
 void Save_Global_CNF(char *CNF_path_p)
@@ -473,11 +421,9 @@ void Save_Global_CNF(char *CNF_path_p)
     //end hdd path conversion
 
     int fd;
-    // int CNF_error;
     size_t CNF_size = 4096; //safe preliminary value
     char  *CNF_p;
 
-    // CNF_error = true;
     CNF_p = malloc(CNF_size);
     if(CNF_p == NULL) return;
     sprintf(CNF_p,
@@ -518,6 +464,24 @@ void Save_Global_CNF(char *CNF_path_p)
         "JOY2_Down         = 0x%04x\r\n"
         "JOY2_Left         = 0x%04x\r\n"
         "JOY2_Right        = 0x%04x\r\n"
+        ";Player 3 Controls\r\n"
+        "JOY3_A            = 0x%04x\r\n"
+        "JOY3_B            = 0x%04x\r\n"
+        "JOY3_Select       = 0x%04x\r\n"
+        "JOY3_Start        = 0x%04x\r\n"
+        "JOY3_Up           = 0x%04x\r\n"
+        "JOY3_Down         = 0x%04x\r\n"
+        "JOY3_Left         = 0x%04x\r\n"
+        "JOY3_Right        = 0x%04x\r\n"
+        ";Player 4 Controls\r\n"
+        "JOY4_A            = 0x%04x\r\n"
+        "JOY4_B            = 0x%04x\r\n"
+        "JOY4_Select       = 0x%04x\r\n"
+        "JOY4_Start        = 0x%04x\r\n"
+        "JOY4_Up           = 0x%04x\r\n"
+        "JOY4_Down         = 0x%04x\r\n"
+        "JOY4_Left         = 0x%04x\r\n"
+        "JOY4_Right        = 0x%04x\r\n"
         "# ------------------------------------------------------------\r\n"
         "# End-Of-File for FCEUltra.CNF\r\n"
         "%n", //NB: The %n specifier causes NO output, but only a measurement
@@ -545,6 +509,7 @@ void Save_Global_CNF(char *CNF_path_p)
         Settings.PlayerInput[0][10],
         Settings.PlayerInput[0][11],
         Settings.PlayerInput[0][12],
+
         Settings.PlayerInput[1][5],
         Settings.PlayerInput[1][6],
         Settings.PlayerInput[1][7],
@@ -553,21 +518,36 @@ void Save_Global_CNF(char *CNF_path_p)
         Settings.PlayerInput[1][10],
         Settings.PlayerInput[1][11],
         Settings.PlayerInput[1][12],
-        &CNF_size);
 
-// Note that the final argument above measures accumulated string size,
-// used for fioWrite below, so it's not one of the config variables.
+        Settings.PlayerInput[2][5],
+        Settings.PlayerInput[2][6],
+        Settings.PlayerInput[2][7],
+        Settings.PlayerInput[2][8],
+        Settings.PlayerInput[2][9],
+        Settings.PlayerInput[2][10],
+        Settings.PlayerInput[2][11],
+        Settings.PlayerInput[2][12],
+
+        Settings.PlayerInput[3][5],
+        Settings.PlayerInput[3][6],
+        Settings.PlayerInput[3][7],
+        Settings.PlayerInput[3][8],
+        Settings.PlayerInput[3][9],
+        Settings.PlayerInput[3][10],
+        Settings.PlayerInput[3][11],
+        Settings.PlayerInput[3][12],
+        &CNF_size);
+    // Note that the final argument above measures accumulated string size,
+    // used for fioWrite below, so it's not one of the config variables.
 
     fd = fioOpen(CNF_path_p,O_CREAT|O_WRONLY|O_TRUNC);
-    if(fd < 0)
-        goto abort;
+    if(fd >= 0) {
+        if(CNF_size == fioWrite(fd, CNF_p, CNF_size))
+            CNF_edited = false;
 
-    if(CNF_size == fioWrite(fd, CNF_p, CNF_size))
-        CNF_edited = false;
-
-    fioClose(fd);
-
-abort:
+        fioClose(fd);
+    }
+    
     free(CNF_p);
 
     if(*temp1)
@@ -577,13 +557,12 @@ abort:
         strcpy(Settings.elfpath, temp2);
 
 
-}  //Ends Save_CNF
-//---------------------------------------------------------------------------
-
+}  //Ends Save_Global_CNF
 
 void Default_Global_CNF(void)
 {
-	Settings.current_palette = 1;
+    Settings.input_4players_adaptor = 0;
+    Settings.current_palette = 1;
     Settings.offset_x  = 0;
     Settings.offset_y  = 0;
     Settings.interlace = 0;
@@ -621,7 +600,32 @@ void Default_Global_CNF(void)
     Settings.PlayerInput[1][10] = PAD_DOWN;
     Settings.PlayerInput[1][11] = PAD_LEFT;
     Settings.PlayerInput[1][12] = PAD_RIGHT;
-
+    Settings.PlayerInput[2][0]  = 0xFFFF;
+    Settings.PlayerInput[2][1]  = 0xFFFF;
+    Settings.PlayerInput[2][2]  = 0xFFFF;
+    Settings.PlayerInput[2][3]  = 0xFFFF;
+    Settings.PlayerInput[2][4]  = 0xFFFF;
+    Settings.PlayerInput[2][5]  = PAD_CROSS;
+    Settings.PlayerInput[2][6]  = PAD_SQUARE;
+    Settings.PlayerInput[2][7]  = PAD_SELECT;
+    Settings.PlayerInput[2][8]  = PAD_START;
+    Settings.PlayerInput[2][9]  = PAD_UP;
+    Settings.PlayerInput[2][10] = PAD_DOWN;
+    Settings.PlayerInput[2][11] = PAD_LEFT;
+    Settings.PlayerInput[2][12] = PAD_RIGHT;
+    Settings.PlayerInput[3][0]  = 0xFFFF;
+    Settings.PlayerInput[3][1]  = 0xFFFF;
+    Settings.PlayerInput[3][2]  = 0xFFFF;
+    Settings.PlayerInput[3][3]  = 0xFFFF;
+    Settings.PlayerInput[3][4]  = 0xFFFF;
+    Settings.PlayerInput[3][5]  = PAD_CROSS;
+    Settings.PlayerInput[3][6]  = PAD_SQUARE;
+    Settings.PlayerInput[3][7]  = PAD_SELECT;
+    Settings.PlayerInput[3][8]  = PAD_START;
+    Settings.PlayerInput[3][9]  = PAD_UP;
+    Settings.PlayerInput[3][10] = PAD_DOWN;
+    Settings.PlayerInput[3][11] = PAD_LEFT;
+    Settings.PlayerInput[3][12] = PAD_RIGHT;
 }
 
 void Default_Skin_CNF(void)

@@ -22,7 +22,8 @@ typedef struct {
     char savepath[1024];
     char skinpath[1024];
     u16 PlayerInput[4][13];
-	int current_palette;
+    u8 input_4players_adaptor;
+    int current_palette;
 } vars;
 
 typedef struct {
@@ -62,8 +63,6 @@ void browser_primitive(char *title1, char *title2, GSTEXTURE *gsTexture, float x
 void Load_Global_CNF(char *CNF_path_p);
 void Save_Global_CNF(char *CNF_path_p);
 void Default_Global_CNF(void);
-  //Control
-char* Load_Control_CNF(char *CNF_path_p, int port);
   //Skin
 void Load_Skin_CNF(char *CNF_path_p);
 void Save_Skin_CNF(char *CNF_path_p);

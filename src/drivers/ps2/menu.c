@@ -33,23 +33,23 @@ extern u8 h;
 /*palette for FCEU*/
 #define MAXPAL 13
 struct st_palette_names {
-	char name[32];
+    char name[32];
 };
 
 struct st_palette_names palette_names[] = {
-	{"AspiringSquire's Real"},
-	{"Loopy's"},
-	{"Quor's"},
-	{"Chris Covell's"},
-	{"Matthew Conte's"},
-	{"PasoFami/99"},
-	{"CrashMan's"},
-	{"MESS"},
-	{"Zaphod's VS Castlevania"},
-	{"Zaphod's VS SMB"},
-	{"VS Dr. Mario"},
-	{"VS Castlevania"},
-	{"VS SMB/VS Ice Climber"}
+    {"AspiringSquire's Real"},
+    {"Loopy's"},
+    {"Quor's"},
+    {"Chris Covell's"},
+    {"Matthew Conte's"},
+    {"PasoFami/99"},
+    {"CrashMan's"},
+    {"MESS"},
+    {"Zaphod's VS Castlevania"},
+    {"Zaphod's VS SMB"},
+    {"VS Dr. Mario"},
+    {"VS Castlevania"},
+    {"VS SMB/VS Ice Climber"}
 };
 
 int statenum=0;
@@ -119,17 +119,17 @@ void menu_bgtexture( GSTEXTURE *gsTexture, float x1, float y1, float x2, float y
     gsKit_prim_sprite(gsGlobal, x1, y2-thickness, x2, y2, z, FCEUSkin.frame); //bottom
 
     gsKit_prim_sprite_texture( gsGlobal, gsTexture,
-						x1+thickness, /* X1 */
-						y1+thickness, /* Y1 */
-						0.0f, /* U1 */
-						0.0f, /* V1 */
-                        x2-thickness, /* X2 */
-						y2-thickness, /* Y2 */
-						gsTexture->Width, /* U2 */
-						gsTexture->Height, /* V2*/
-						z+1, /* Z */
-						GS_SETREG_RGBA(0x80,0x80,0x80,0x80) /* RGBA */
-						);
+        x1+thickness,                       /* X1 */
+        y1+thickness,                       /* Y1 */
+        0.0f,                               /* U1 */
+        0.0f,                               /* V1 */
+        x2-thickness,                       /* X2 */
+        y2-thickness,                       /* Y2 */
+        gsTexture->Width,                   /* U2 */
+        gsTexture->Height,                  /* V2*/
+        z+1,                                /* Z */
+        GS_SETREG_RGBA(0x80,0x80,0x80,0x80) /* RGBA */
+    );
 }
 
 void menu_primitive( char *title, GSTEXTURE *gsTexture, float x1, float y1, float x2, float y2)
@@ -243,7 +243,7 @@ int menu_input(int port, int center_screen)
 
 /** Browser Menu
         Display:         PAL/NTSC
-	Interlace:	On/Off
+        Interlace:       On/Off
         Emulated System: PAL/NTSC
         Center Screen
         Configure Save Path: (browse to path)
@@ -388,12 +388,12 @@ int Browser_Menu(void)
                         *temp = 0;
                         strcat(options[i],"NTSC");
                     }
-					gsGlobal->Width = 640;
-					gsGlobal->Field = GS_FIELD;
-					if (gsGlobal->Interlace == GS_NONINTERLACED) {
-						gsGlobal->Height = gsGlobal->Height/2;
-						gsGlobal->StartY = gsGlobal->StartY/2 -1 ;
-					}
+                    gsGlobal->Width = 640;
+                    gsGlobal->Field = GS_FIELD;
+                    if (gsGlobal->Interlace == GS_NONINTERLACED) {
+                        gsGlobal->Height = gsGlobal->Height/2;
+                        gsGlobal->StartY = gsGlobal->StartY/2 -1 ;
+                    }
 
                     gsGlobal->StartY = gsGlobal->StartY + Settings.offset_y;
                     //if(Settings.interlace && (gsGlobal->Mode == GS_MODE_NTSC))
@@ -401,24 +401,24 @@ int Browser_Menu(void)
                     //else
                         //gsGlobal->StartY = gsGlobal->StartY + 11;
                     //normalize_screen();
-					gsKit_init_screen(gsGlobal);	/* Apply settings. */
-					gsKit_mode_switch(gsGlobal, GS_ONESHOT);
+                    gsKit_init_screen(gsGlobal);    /* Apply settings. */
+                    gsKit_mode_switch(gsGlobal, GS_ONESHOT);
 
                     menu_x1 = gsGlobal->Width*0.25;
                     menu_y1 = gsGlobal->Height*0.15;
                     menu_x2 = gsGlobal->Width*0.75;
                     menu_y2 = gsGlobal->Height*0.85+FONT_HEIGHT;
-					text_line = menu_y1 + 4;
-					    
+                    text_line = menu_y1 + 4;
+
                     option_changed = 1;
                     //SetGsCrt(gsGlobal->Interlace,gsGlobal->Mode,gsGlobal->Field);
                     break;
                 case 1: //Interlacing Off/On
                     Settings.interlace ^= 1;
                     if (gsGlobal->Mode == GS_MODE_PAL)
-						gsGlobal->Height = 512;
-					else
-						gsGlobal->Height = 448;
+                        gsGlobal->Height = 512;
+                    else
+                        gsGlobal->Height = 448;
                     if(Settings.interlace) {
                         gsGlobal->Interlace = GS_INTERLACED;
                         //gsGlobal->StartY = (gsGlobal->StartY-1)*2;
@@ -429,22 +429,22 @@ int Browser_Menu(void)
                     else {
                         gsGlobal->Interlace = GS_NONINTERLACED;
                         gsGlobal->StartY = gsGlobal->StartY/2 + 1;
-						gsGlobal->Height = gsGlobal->Height/2;
+                        gsGlobal->Height = gsGlobal->Height/2;
                         temp = strstr(options[i],"On");
                         *temp = 0;
                         strcat(options[i],"Off");
                     }
-					gsGlobal->Width = 640;
-					gsGlobal->Field = GS_FIELD;
+                    gsGlobal->Width = 640;
+                    gsGlobal->Field = GS_FIELD;
                     //normalize_screen();
-					gsKit_init_screen(gsGlobal);	/* Apply settings. */
-					gsKit_mode_switch(gsGlobal, GS_ONESHOT);
-					
+                    gsKit_init_screen(gsGlobal);    /* Apply settings. */
+                    gsKit_mode_switch(gsGlobal, GS_ONESHOT);
+
                     menu_x1 = gsGlobal->Width*0.25;
                     menu_y1 = gsGlobal->Height*0.15;
                     menu_x2 = gsGlobal->Width*0.75;
                     menu_y2 = gsGlobal->Height*0.85+FONT_HEIGHT;
-					text_line = menu_y1 + 4;
+                    text_line = menu_y1 + 4;
                     option_changed = 1;
                     //SetGsCrt(gsGlobal->Interlace,gsGlobal->Mode,gsGlobal->Field);
                     break;
@@ -560,7 +560,7 @@ void Ingame_Menu(void)
         { "Load State" },
         { "Filtering: "},
         { "LowPass: " },
-        { "Configure Input" },
+        { "4-Players Adaptor: " },
         { "Rapidfire Switch: "},
         { "RapidFire P1: " },
         { "RapidFire P2: " },
@@ -584,6 +584,12 @@ void Ingame_Menu(void)
                 break;
             case 4:
                 if(!Settings.lowpass)
+                    sprintf(options[i],"%s%s",options[i],"Off");
+                else
+                    sprintf(options[i],"%s%s",options[i],"On");
+                break;
+            case 5:
+                if(!Settings.input_4players_adaptor)
                     sprintf(options[i],"%s%s",options[i],"Off");
                 else
                     sprintf(options[i],"%s%s",options[i],"On");
@@ -627,9 +633,9 @@ void Ingame_Menu(void)
                         sprintf(options[i],"%s%s",options[i],"AB");
                         break;
                 }
-				break;
+                break;
             case 13:
-				sprintf(options[i],"%s%s",options[i],palette_names[Settings.current_palette - 1].name);
+                sprintf(options[i],"%s%s",options[i],palette_names[Settings.current_palette - 1].name);
                 break;
         }
     }
@@ -644,7 +650,7 @@ void Ingame_Menu(void)
         selected = 0; //clear selected flag
         selection += menu_input(0,0);
 
-		if(selection == 12 && oldselect == 11) { selection++; } //12 is palette
+        if(selection == 12 && oldselect == 11) { selection++; } //12 is palette
         if(selection == 12 && oldselect == 13) { selection--; }
         if(selection > 13) { selection = 0; }
         if(selection < 0) { selection = 13; }
@@ -725,6 +731,22 @@ void Ingame_Menu(void)
                     }
                     option_changed = 1;
                     break;
+                case 5:
+                    Settings.input_4players_adaptor ^= 1;
+                    if(Settings.input_4players_adaptor) {
+                        FCEUI_SetInputFC(SIFC_4PLAYER, NULL, 0);
+                        temp = strstr(options[i],"Off");
+                        *temp = 0;
+                        strcat(options[i],"On");
+                    }
+                    else {
+                        FCEUI_SetInputFC(SIFC_NONE, NULL, 0);
+                        temp = strstr(options[i],"On");
+                        *temp = 0;
+                        strcat(options[i],"Off");
+                    }
+                    option_changed = 1;
+                    break;
                 case 6:
                     Settings.turbo ^= 1;
                     if(Settings.turbo) {
@@ -740,70 +762,37 @@ void Ingame_Menu(void)
                     option_changed = 1;
                     break;
                 case 7:
-                    aorborab[0]++;
-                    if(aorborab[0] > 3)
-                        aorborab[0] = 0;
-                    switch(aorborab[0]) {
-                        case 0: //Off
-                            rapidfire_a[0] = 0;
-                            rapidfire_b[0] = 0;
-                            temp = strstr(options[i],"AB");
-                            *temp = 0;
-                            strcat(options[i],"Off");
-                            break;
-                        case 1: //A
-                            rapidfire_a[0] = 1;
-                            rapidfire_b[0] = 0;
-                            temp = strstr(options[i],"Off");
-                            *temp = 0;
-                            strcat(options[i],"A");
-                            break;
-                        case 2: //B
-                            rapidfire_a[0] = 0;
-                            rapidfire_b[0] = 1;
-                            temp = strstr(options[i]," A");
-                            *temp = 0;
-                            strcat(options[i]," B");
-                            break;
-                        case 3: //AB
-                            rapidfire_a[0] = 1;
-                            rapidfire_b[0] = 1;
-                            temp = strstr(options[i]," B");
-                            *temp = 0;
-                            strcat(options[i]," AB");
-                            break;
-                    }
-                    option_changed = 1;
-                    break;
                 case 8:
-                    aorborab[1]++;
-                    if(aorborab[1] > 3)
-                        aorborab[1] = 0;
-                    switch(aorborab[1]) {
+                {
+                    int player = i - 7; // 0 or 1
+                    aorborab[player]++;
+                    if(aorborab[player] > 3)
+                        aorborab[player] = 0;
+                    switch(aorborab[player]) {
                         case 0: //Off
-                            rapidfire_a[1] = 0;
-                            rapidfire_b[1] = 0;
+                            rapidfire_a[player] = 0;
+                            rapidfire_b[player] = 0;
                             temp = strstr(options[i],"AB");
                             *temp = 0;
                             strcat(options[i],"Off");
                             break;
                         case 1: //A
-                            rapidfire_a[1] = 1;
-                            rapidfire_b[1] = 0;
+                            rapidfire_a[player] = 1;
+                            rapidfire_b[player] = 0;
                             temp = strstr(options[i],"Off");
                             *temp = 0;
                             strcat(options[i],"A");
                             break;
                         case 2: //B
-                            rapidfire_a[1] = 0;
-                            rapidfire_b[1] = 1;
+                            rapidfire_a[player] = 0;
+                            rapidfire_b[player] = 1;
                             temp = strstr(options[i]," A");
                             *temp = 0;
                             strcat(options[i]," B");
                             break;
                         case 3: //AB
-                            rapidfire_a[1] = 1;
-                            rapidfire_b[1] = 1;
+                            rapidfire_a[player] = 1;
+                            rapidfire_b[player] = 1;
                             temp = strstr(options[i]," B");
                             *temp = 0;
                             strcat(options[i]," AB");
@@ -811,6 +800,7 @@ void Ingame_Menu(void)
                     }
                     option_changed = 1;
                     break;
+                }
                 case 9:
                     FCEUI_ResetNES();
                     SetupNESGS();
@@ -827,9 +817,9 @@ void Ingame_Menu(void)
                 case 13:
                     Settings.current_palette++;
                     if(Settings.current_palette > MAXPAL) {Settings.current_palette = 1;}
-					sprintf(options[i],"%s",palette_names[Settings.current_palette - 1].name);
-					SetupNESTexture();
-					option_changed = 1;
+                    sprintf(options[i],"%s",palette_names[Settings.current_palette - 1].name);
+                    SetupNESTexture();
+                    option_changed = 1;
                     break;
             }
         }
