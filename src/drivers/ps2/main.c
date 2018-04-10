@@ -636,11 +636,11 @@ void RenderFrame(const uint8 *frame)
 
     gsKit_texture_upload(gsGlobal, &NES_TEX);
 
-    /* vsync and flip buffer */
-    gsKit_sync_flip(gsGlobal);
-
     /* execute render queue */
     gsKit_queue_exec(gsGlobal);
+
+    /* vsync and flip buffer */
+    gsKit_sync_flip(gsGlobal);
 }
 
 #ifdef SOUND_ON
