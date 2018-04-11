@@ -19,9 +19,6 @@ int FONT_HEIGHT = 16;
 /************************************/
 #ifdef SOUND_ON
   #include <audsrv.h>
-  #define SAMPLERATE 22050
-#else
-  #define SAMPLERATE 0
 #endif
 FCEUGI *CurGame=NULL;
 const char * GetKeyboard(void) {
@@ -317,10 +314,10 @@ u32 NesPalette[64] =  //"AspiringSquire's NES Palette
 /************************************/
 extern void Set_NESInput();
 extern int Get_NESInput();
-int PS2_LoadGame(char *path);
+static int PS2_LoadGame(char *path);
 void SetupNESTexture();
 void SetupNESGS();
-void DoFun();
+static void DoFun();
 
 int main(int argc, char *argv[])
 {
@@ -333,28 +330,27 @@ int main(int argc, char *argv[])
     mpartitions[1][0] = 0;
     mpartitions[2][0] = 0;
 
-    //Setup PS2 here
+    // Setup PS2 here
     InitPS2();
     setupPS2Pad();
 
-    //Init Settings
-
+    // Init Settings
     strcpy(boot_path, argv[0]);
-    if(((p=strrchr(boot_path, '/'))==NULL)&&((p=strrchr(boot_path, '\\'))==NULL))
-        p=strrchr(boot_path, ':');
-    if(p!=NULL)
-        *(p+1)=0;
-    //The above cuts away the ELF filename from argv[0], leaving a pure path
-    if(!strncmp(boot_path,"hdd0:", 5)) {
+    if (((p = strrchr(boot_path, '/')) == NULL) && ((p = strrchr(boot_path, '\\')) == NULL))
+        p = strrchr(boot_path, ':');
+    if (p != NULL)
+        *(p+1) = 0;
+    // The above cuts away the ELF filename from argv[0], leaving a pure path
+    if (!strncmp(boot_path, "hdd0:", 5)) {
         char hdd_path[256];
         char *t;
         sprintf(hdd_path, "%s", boot_path+5);
-        t=strchr(hdd_path, ':');
-        if(t!=NULL)
-            *(t)=0;
+        t = strchr(hdd_path, ':');
+        if (t != NULL)
+            *t=0;
         //hdd0:HDDPATH:pfs:PFSPATH
-        sprintf(boot_path, "hdd0:/%s%s", hdd_path, boot_path+5+strlen(hdd_path)+5);//
-        if (boot_path[5+1+strlen(hdd_path)]!='/')
+        sprintf(boot_path, "hdd0:/%s%s", hdd_path, boot_path+5+strlen(hdd_path)+5); //
+        if (boot_path[5+1+strlen(hdd_path)] != '/')
             sprintf(boot_path, "hdd0:/%s/", hdd_path);
         //hdd0:/HDDPATHPFSPATH
     }
@@ -362,45 +358,45 @@ int main(int argc, char *argv[])
     Default_Global_CNF();
     Load_Global_CNF(boot_path);
 
-    for (ret  = 0; ret < 3; ret++) {
+    for (ret = 0; ret < 3; ret++) {
         sometime = 0x10000;
-        while(sometime--) asm("nop\nnop\nnop\nnop");
+        while (sometime--) asm("nop\nnop\nnop\nnop");
     }
 
     SetupGSKit();
 
-    gsKit_init_screen(gsGlobal); //initialize everything
-    //init_custom_screen(); //init user screen settings
+    gsKit_init_screen(gsGlobal); // Initialize everything
+    //init_custom_screen(); // Init user screen settings
 
     loadFont(0);
 
-    //Init Skin
+    // Init Skin
     FCEUSkin.textcolor = 0;
     Load_Skin_CNF(Settings.skinpath);
-    for (ret  = 0; ret < 3; ret++) {
+    for (ret = 0; ret < 3; ret++) {
         sometime = 0x10000;
-        while(sometime--) asm("nop\nnop\nnop\nnop");
+        while (sometime--) asm("nop\nnop\nnop\nnop");
     }
-    if(!FCEUSkin.textcolor) { //initialize default values
+    if (!FCEUSkin.textcolor) { //initialize default values
         printf("Load Skin Failed\n");
         Default_Skin_CNF();
     }
 
-    //Setup GUI Textures
+    // Setup GUI Textures
     jpgData *Jpg;
     u8 *ImgData;
-    if(strstr(FCEUSkin.bgTexture,".png") != NULL) {
-         if(gsKit_texture_png(gsGlobal, &BG_TEX, FCEUSkin.bgTexture) < 0) {
+    if (strstr(FCEUSkin.bgTexture,".png") != NULL) {
+         if (gsKit_texture_png(gsGlobal, &BG_TEX, FCEUSkin.bgTexture) < 0) {
             printf("Error with browser background png!\n");
             bgtex = 1;
          }
     }
-    else if(strstr(FCEUSkin.bgTexture,".jpg") || strstr(FCEUSkin.bgTexture,".jpeg") != NULL){
-        //if(gsKit_texture_jpeg(gsGlobal, &BG_TEX, FCEUSkin.bgTexture) < 0) {
+    else if (strstr(FCEUSkin.bgTexture,".jpg") || strstr(FCEUSkin.bgTexture,".jpeg") != NULL){
+        //if (gsKit_texture_jpeg(gsGlobal, &BG_TEX, FCEUSkin.bgTexture) < 0) {
         FILE *File = fopen(FCEUSkin.bgTexture, "r");
-        if(File != NULL) {
-            Jpg = jpgOpenFILE( File, JPG_WIDTH_FIX);// > 0)
-            ImgData = malloc ( Jpg->width * Jpg->height * (Jpg->bpp / 8) );// > 0)
+        if (File != NULL) {
+            Jpg = jpgOpenFILE(File, JPG_WIDTH_FIX); // > 0)
+            ImgData = malloc(Jpg->width * Jpg->height * (Jpg->bpp / 8) ); // > 0)
             jpgReadImage( Jpg, ImgData  );
             BG_TEX.PSM = GS_PSM_CT24;
             BG_TEX.Clut = NULL;
@@ -426,19 +422,19 @@ int main(int argc, char *argv[])
     Jpg = 0;
     ImgData = 0;
 
-    if(strstr(FCEUSkin.bgMenu,".png") != NULL) {
-          if(gsKit_texture_png(gsGlobal, &MENU_TEX, FCEUSkin.bgMenu) == -1) {
+    if (strstr(FCEUSkin.bgMenu,".png") != NULL) {
+          if (gsKit_texture_png(gsGlobal, &MENU_TEX, FCEUSkin.bgMenu) == -1) {
             printf("Error with menu background png!\n");
             menutex = 1;
           }
     }
-    else if(strstr(FCEUSkin.bgMenu,".jpg") || strstr(FCEUSkin.bgMenu,".jpeg") != NULL) {
-        //if(gsKit_texture_jpeg(gsGlobal, &MENU_TEX, FCEUSkin.bgMenu) < 0) { //apparently didn't like the "myps2" libjpg
+    else if (strstr(FCEUSkin.bgMenu,".jpg") || strstr(FCEUSkin.bgMenu,".jpeg") != NULL) {
+        //if (gsKit_texture_jpeg(gsGlobal, &MENU_TEX, FCEUSkin.bgMenu) < 0) { // Apparently didn't like the "myps2" libjpg
         FILE *File = fopen(FCEUSkin.bgMenu, "r");
-        if(File != NULL) {
-            Jpg = jpgOpenFILE( File, JPG_WIDTH_FIX);// > 0)
-            ImgData = malloc ( Jpg->width * Jpg->height * (Jpg->bpp / 8) );// > 0)
-            jpgReadImage( Jpg, ImgData  );
+        if (File != NULL) {
+            Jpg = jpgOpenFILE(File, JPG_WIDTH_FIX); // > 0)
+            ImgData = malloc(Jpg->width * Jpg->height * (Jpg->bpp / 8)); // > 0)
+            jpgReadImage(Jpg, ImgData);
             MENU_TEX.PSM = GS_PSM_CT24;
             MENU_TEX.Clut = NULL;
             MENU_TEX.VramClut = 0;
@@ -461,13 +457,13 @@ int main(int argc, char *argv[])
     }
 
 
-    if(!(ret=FCEUI_Initialize())) { //allocates all memory for FCEU* functions
+    if (!(ret = FCEUI_Initialize())) { // Allocates all memory for FCEU* functions
         printf("FCEUltra did not initialize.\n");
         return 0;
     }
 
-    //Setup FCEUltra here
-    FCEUI_SetVidSystem(Settings.emulation); //0=ntsc 1=pal
+    // Setup FCEUltra here
+    FCEUI_SetVidSystem(Settings.emulation); // 0 = ntsc, 1 = pal
     FCEUI_SetGameGenie(1);
     FCEUI_DisableSpriteLimitation(1);
 //    FCEUI_SetRenderedLines(8, 231, 0, 239);
@@ -479,8 +475,13 @@ int main(int argc, char *argv[])
     FCEUI_SetSoundVolume(0);
 #endif
     FCEUI_SetSoundQuality(0);
-    FCEUI_SetLowPass(Settings.lowpass);
-    FCEUI_Sound(SAMPLERATE);
+    FCEUI_SetLowPass(0); // Not used if Quality = 0
+    if (Settings.sound) {
+        FCEUI_Sound(SAMPLERATE);
+    }
+    else {
+        FCEUI_Sound(0);
+    }
 
 #ifdef SOUND_ON
     struct audsrv_fmt_t format;
@@ -493,24 +494,24 @@ int main(int argc, char *argv[])
 
     SetupNESTexture();
 
-    //main emulation loop
+    // Main emulation loop
     for (;;) {
-        strcpy((char *)path,Browser(1,0));
+        strcpy((char *)path, Browser(1,0));
 
-        if(PS2_LoadGame((char *)path) == 0) {
+        if (PS2_LoadGame((char *)path) == 0) {
             continue;
         }
 
         Set_NESInput();
         SetupNESGS();
 
-        while(CurGame) //FCEUI_CloseGame turns this false
+        while (CurGame) // FCEUI_CloseGame turns this false
             DoFun();
 
 #ifdef SOUND_ON
         audsrv_stop_audio();
 #endif
-        temp = strrchr((char *)path,'/');
+        temp = strrchr((char *)path, '/');
         temp++;
         *temp = 0;
     }
@@ -518,14 +519,14 @@ int main(int argc, char *argv[])
     return 0;
 }
 
-int PS2_LoadGame(char *path)
+static int PS2_LoadGame(char *path)
 {
     FCEUGI *tmp;
 
 //    CloseGame();
-    if((tmp=FCEUI_LoadGame(path))) {
+    if ((tmp = FCEUI_LoadGame(path))) {
         printf("Loaded!\n");
-        CurGame=tmp;
+        CurGame = tmp;
         return 1;
     }
     else {
@@ -536,44 +537,44 @@ int PS2_LoadGame(char *path)
 
 void SetupNESTexture()
 {
-    int i,r,g,b;
+    int i, r, g, b;
 
-    //comments after settings are for regular clut lookup
+    // Comments after settings are for regular clut lookup
     //Setup NES_TEX Texture
     NES_TEX.PSM = GS_PSM_T8; //GS_PSM_CT32
-    NES_TEX.ClutPSM = GS_PSM_CT32; //comment out
+    NES_TEX.ClutPSM = GS_PSM_CT32; // Comment out
     NES_TEX.Clut = memalign(128, gsKit_texture_size_ee(16, 16, NES_TEX.ClutPSM)); //NULL
     NES_TEX.VramClut = gsKit_vram_alloc(gsGlobal, gsKit_texture_size(16, 16, NES_TEX.ClutPSM), GSKIT_ALLOC_USERBUFFER); //0
-    NES_TEX.Width = 256; //full size 256x240
+    NES_TEX.Width = 256; // Full size 256x240
     NES_TEX.Height = 240;
     NES_TEX.TBW = 4;
     //NES_TEX.Mem = memalign(128, gsKit_texture_size_ee(NES_TEX.Width, NES_TEX.Height, NES_TEX.PSM));
     NES_TEX.Vram = gsKit_vram_alloc(gsGlobal, gsKit_texture_size(NES_TEX.Width, NES_TEX.Height, NES_TEX.PSM), GSKIT_ALLOC_USERBUFFER);
 
-    //Setup NES Clut
-    for( i = 0; i< 64 ; i++ )
+    // Setup NES Clut
+    for (i = 0; i< 64; i++)
     {
         // 32-bit bgr -< rgb
-        r =  ( palettes[Settings.current_palette - 1].data[ i ] & 0xff0000 )>>16;
-        g =  ( palettes[Settings.current_palette - 1].data[ i ] & 0xff00 )>>8;
-        b =  ( palettes[Settings.current_palette - 1].data[ i ] & 0xff )<<0;
-        NES_TEX.Clut[ i ] = ((b<<16)|(g<<8)|(r<<0));  //NES_TEX.Clut = ps2palette;
-        NES_TEX.Clut[i+64] = ((b<<16)|(g<<8)|(r<<0));
-        NES_TEX.Clut[i+128] = ((b<<16)|(g<<8)|(r<<0));
-        NES_TEX.Clut[i+192] = ((b<<16)|(g<<8)|(r<<0));
+        r = (palettes[Settings.current_palette - 1].data[i] & 0xff0000) >> 16;
+        g = (palettes[Settings.current_palette - 1].data[i] &   0xff00) >>  8;
+        b = (palettes[Settings.current_palette - 1].data[i] &     0xff) >>  0;
+        NES_TEX.Clut[i +   0] = ((b<<16)|(g<<8)|(r<<0)); //NES_TEX.Clut = ps2palette;
+        NES_TEX.Clut[i +  64] = ((b<<16)|(g<<8)|(r<<0));
+        NES_TEX.Clut[i + 128] = ((b<<16)|(g<<8)|(r<<0));
+        NES_TEX.Clut[i + 192] = ((b<<16)|(g<<8)|(r<<0));
     }
 
 }
 
 void SetupNESGS(void)
 {
-    uint8 r,g,b;
-    int v1,v2,y1,y2;
+    uint8 r, g, b;
+    int v1, v2, y1, y2;
     gsGlobal->DrawOrder = GS_OS_PER;
     gsKit_mode_switch(gsGlobal, GS_PERSISTENT);
     gsKit_queue_reset(gsGlobal->Per_Queue);
 
-    if(Settings.filter) {
+    if (Settings.filter) {
         NES_TEX.Filter = GS_FILTER_LINEAR;
     }
     else {
@@ -586,7 +587,7 @@ void SetupNESGS(void)
 //    g =  ( NesPalette[ 0 ] & 0xff00   )>>8;
 //    b =  ( NesPalette[ 0 ] & 0xff     )<<0;
 
-    gsKit_clear(gsGlobal, GS_SETREG_RGBA(r, g ,b ,0x80));
+    gsKit_clear(gsGlobal, GS_SETREG_RGBA(r, g, b, 0x80));
     y1 = 0;
     v1 = 0;
     y2 = NES_TEX.Height*2;
@@ -625,14 +626,14 @@ void RenderFrame(const uint8 *frame)
     //int i;
 
 /*
-    for(h=0; h<240; h++) { //correctly displays 256x240 nes screen
-        for(w=0; w<256; w++) {
+    for (h=0; h<240; h++) { //correctly displays 256x240 nes screen
+        for (w=0; w<256; w++) {
             c = (h << 8) + w; //color index, increments height by 256, then adds width
             NES_TEX.Mem[c] = ps2palette[frame[c]];
         }
     }
 */
-    NES_TEX.Mem=(u32 *)frame; //set frame as NES_TEX.Mem location
+    NES_TEX.Mem = (u32 *)frame; //set frame as NES_TEX.Mem location
 
     gsKit_texture_upload(gsGlobal, &NES_TEX);
 
@@ -650,13 +651,13 @@ void inline OutputSound(const int32 *tmpsnd, int32 ssize)
     /*static int16 MBuffer[2 * 96000 / 50];  // * 2 for safety.
     int P;
 
-    if(!bittage) {
-        for(P=0;P<Count;P++)
+    if (!bittage) {
+        for (P=0;P<Count;P++)
             *(((uint8*)MBuffer)+P)=((int8)(Buffer[P]>>8))^128;
         RawWrite(MBuffer,Count);
     }
     else {
-        for(P=0;P<Count;P++)
+        for (P=0;P<Count;P++)
         MBuffer[P]=Buffer[P];
         //FCEU_printf("Pre: %d\n",RawCanWrite() / 2);
         RawWrite(MBuffer,Count * 2);
@@ -667,12 +668,12 @@ void inline OutputSound(const int32 *tmpsnd, int32 ssize)
     s16 ssound[ssize]; //no need for an 2*ssized 8bit array with this
 
     //audsrv_wait_audio(ssize<<1); //commented out because the sound buffer is filled at need
-    for (i=0;i<ssize;i++) {
-        //something[i]=((tmpsnd[i]>>8))^128; //for 8bit sound
-        ssound[i]=tmpsnd[i];
+    for (i = 0; i < ssize; i++) {
+        //something[i] = ((tmpsnd[i]>>8))^128; //for 8bit sound
+        ssound[i] = tmpsnd[i];
     }
 
-    audsrv_play_audio((char *)ssound,ssize<<1); //
+    audsrv_play_audio((char *)ssound, ssize << 1); //
 }
 #endif
 
@@ -682,13 +683,13 @@ void FCEUD_Update(const uint8 *XBuf, const int32 *tmpsnd, int32 ssize)
 #ifdef SOUND_ON
     OutputSound(tmpsnd, ssize);
 #endif
-    if ( Get_NESInput() ) {
+    if (Get_NESInput()) {
         FCEUI_CloseGame();
-        CurGame=0;
+        CurGame = 0;
     }
 }
 
-void DoFun()
+static void DoFun()
 {
     uint8 *gfx;
     int32 *sound;
@@ -697,5 +698,3 @@ void DoFun()
     FCEUI_Emulate(&gfx, &sound, &ssize, 0);
     FCEUD_Update(gfx, sound, ssize);
 }
-
-

@@ -17,21 +17,19 @@ extern vars Settings;
 static char padBuf[4][256] __attribute__((aligned(64)));
 
 u32 old_pad[4];
-int mtapGetConnectionCached;
+static int mtapGetConnectionCached;
 
-extern int rapidfire_a[4];
-extern int rapidfire_b[4];
-int rapid_a[4] = {0,0};
-int rapid_b[4] = {0,0};
+static int rapid_a[4] = { 0 };
+static int rapid_b[4] = { 0 };
 
 u8 exitgame = 0;
 u8 fdsswap = 0;
-int NESButtons;
-struct padButtonStatus buttons[4];
+static int NESButtons;
+static struct padButtonStatus buttons[4];
 
-void Ingame_Menu(void);
+extern void Ingame_Menu(void);
 
-void waitPadReady(int port, int slot)
+static void waitPadReady(int port, int slot)
 {
     int state;
     int lastState;
@@ -39,15 +37,14 @@ void waitPadReady(int port, int slot)
 
     state = padGetState(port, slot);
     lastState = -1;
-    while((state != PAD_STATE_DISCONN) && (state != PAD_STATE_STABLE) && (state != PAD_STATE_FINDCTP1)) {
+    while ((state != PAD_STATE_DISCONN) && (state != PAD_STATE_STABLE) && (state != PAD_STATE_FINDCTP1)) {
         if (state != lastState) {
             padStateInt2String(state, stateString);
-            printf("Please wait, pad(%d,%d) is in state %s\n",
-                       port, slot, stateString);
+            printf("Please wait, pad(%d,%d) is in state %s\n", port, slot, stateString);
         }
         lastState = state;
-        state=padGetState(port, slot);
-        if(port == 1)
+        state = padGetState(port, slot);
+        if (port == 1)
             break;
     }
     // Were the pad ever 'out of sync'?
@@ -56,9 +53,8 @@ void waitPadReady(int port, int slot)
     }
 }
 
-int initializePad(int port, int slot)
+static int initializePad(int port, int slot)
 {
-
     int ret;
     int modes;
     int i;
@@ -78,8 +74,7 @@ int initializePad(int port, int slot)
         printf(")");
     }
 
-    printf("It is currently using mode %d\n",
-               padInfoMode(port, slot, PAD_MODECURID, 0));
+    printf("It is currently using mode %d\n", padInfoMode(port, slot, PAD_MODECURID, 0));
 
     // If modes == 0, this is not a Dual shock controller
     // (it has no actuator engines)
@@ -115,21 +110,21 @@ int initializePad(int port, int slot)
     return 1;
 }
 
-//FCEUltra related functions
+// FCEUltra related functions
 void setupPS2Pad()
 {
     int port = 0;
     int slot = 0;
     int ret;
 
-    if((ret = mtapGetConnection(0)) != 1) {
-        for(port=0; port<2; port++) {
-            if((ret = padPortOpen(port, slot, padBuf[port])) == 0) {
+    if ((ret = mtapGetConnection(0)) != 1) {
+        for (port = 0; port < 2; port++) {
+            if ((ret = padPortOpen(port, slot, padBuf[port])) == 0) {
                 printf("padOpenPort failed: %d\n", ret);
             }
             else
                 printf("padOpenPort success: %d\n", port);
-            if(!initializePad(port, slot)) {
+            if (!initializePad(port, slot)) {
                 printf("pad initalization failed!\n");
             }
             else
@@ -138,13 +133,13 @@ void setupPS2Pad()
     }
     else {
         printf("Multitap 1 connected\n");
-        for(slot=0; slot<4; slot++) {
-            if((ret = padPortOpen(port, slot, padBuf[slot])) == 0) {
+        for (slot = 0; slot < 4; slot++) {
+            if ((ret = padPortOpen(port, slot, padBuf[slot])) == 0) {
                 printf("padOpenPort failed: %d\n", ret);
             }
             else
                 printf("padOpenPort success: %d\n", slot);
-            if(!initializePad(port, slot)) {
+            if (!initializePad(port, slot)) {
                 printf("pad initalization failed!\n");
             }
             else
@@ -153,7 +148,7 @@ void setupPS2Pad()
     }
 }
 
-unsigned char Get_PS2Input(int mport)
+static unsigned char Get_PS2Input(int mport)
 {
     int ret[4];
     u32 paddata[4];
@@ -162,80 +157,63 @@ unsigned char Get_PS2Input(int mport)
     u16 port = 0;
     u16 slot = 0;
 
-    if(mtapGetConnectionCached == 1)
-        slot = mport;//using first port connected multitap, port=0
+    if (mtapGetConnectionCached == 1)
+        slot = mport;// Using first port connected multitap, port=0
     else
-        port = mport;//using first and second gamepad, slot=0
+        port = mport;// Using first and second gamepad, slot=0
 
-    //check to see if pads are disconnected
-    ret[mport]=padGetState(port, slot);
-    while((ret[mport] != PAD_STATE_STABLE) && (ret[mport] != PAD_STATE_FINDCTP1)) {
-        if(ret[mport]==PAD_STATE_DISCONN) {
+    // Check to see if pads are disconnected
+    ret[mport] = padGetState(port, slot);
+    while ((ret[mport] != PAD_STATE_STABLE) && (ret[mport] != PAD_STATE_FINDCTP1)) {
+        if (ret[mport] == PAD_STATE_DISCONN) {
             printf("Pad(%d, %d) is disconnected\n", port, slot);
         }
-        ret[mport]=padGetState(port, slot);
-        if(port == 1)
+        ret[mport] = padGetState(port, slot);
+        if (port == 1)
             break;
     }
     ret[mport] = padRead(port, slot, &buttons[mport]); // port, slot, buttons
     if (ret[mport] != 0) {
         paddata[mport] = 0xffff ^ buttons[mport].btns;
-        new_pad[mport] = paddata[mport] & ~old_pad[mport]; //for each press
+        new_pad[mport] = paddata[mport] & ~old_pad[mport]; // For each press
         old_pad[mport] = paddata[mport];
 
-        //JOY_Button is NES
-        //P |= JOY_Button
-        if(new_pad[mport] == Settings.PlayerInput[mport][0]) {
+        // JOY_Button is NES
+        // P |= JOY_Button
+        if (new_pad[mport] == Settings.PlayerInput[mport][0]) {
             Ingame_Menu();
         }
-        if(new_pad[mport] == Settings.PlayerInput[mport][1]) {
+        if (new_pad[mport] == Settings.PlayerInput[mport][1]) {
             FCEUI_SaveState(NULL);
         }
-        if(new_pad[mport] == Settings.PlayerInput[mport][2]) {
+        if (new_pad[mport] == Settings.PlayerInput[mport][2]) {
             FCEUI_LoadState(NULL);
         }
-        if(new_pad[mport] == Settings.PlayerInput[mport][3]) {//FDS_Disk_Swap
+        if (new_pad[mport] == Settings.PlayerInput[mport][3]) { // FDS_Disk_Swap
             fdsswap ^= 1;
-            if(fdsswap) {
+            if (fdsswap) {
                 FCEUI_FDSEject();
             }
             else {
                 FCEUI_FDSInsert(0);
             }
         }
-        if(new_pad[mport] == Settings.PlayerInput[mport][4]) {//FDS_Side_Swap
+        if (new_pad[mport] == Settings.PlayerInput[mport][4]) { // FDS_Side_Swap
             FCEUI_FDSSelect();
         }
-        if(paddata[mport] & Settings.PlayerInput[mport][5]) {
-            if(rapidfire_a[mport]) {
-                rapid_a[mport] ^= 1;
-            }
-            else {
-                P |= JOY_A;
-            }
+        if (paddata[mport] & Settings.PlayerInput[mport][5]) {
+            P |= JOY_A;
         }
-        if(!(paddata[mport] & Settings.PlayerInput[mport][5]) && rapid_a[mport]) {
-            rapid_a[mport] = 0;
+        if (paddata[mport] & Settings.PlayerInput[mport][6]) {
+            P |= JOY_B;
         }
-        if(paddata[mport] & Settings.PlayerInput[mport][6]) {
-            if(rapidfire_b[mport]) {
-                rapid_b[mport] ^= 1;
-            }
-            else {
-                P |= JOY_B;
-            }
-
-        }
-        if(!(paddata[mport] & Settings.PlayerInput[mport][6]) && rapid_b[mport]) {
-            rapid_b[mport] = 0;
-        }
-        if(paddata[mport] & Settings.PlayerInput[mport][7]) {
+        if (paddata[mport] & Settings.PlayerInput[mport][7]) {
             P |= JOY_SELECT;
         }
-        if(paddata[mport] & Settings.PlayerInput[mport][8]) {
+        if (paddata[mport] & Settings.PlayerInput[mport][8]) {
             P |= JOY_START;
         }
-        //Analog
+        // Analog
         if ((buttons[mport].mode >> 4) == 0x07) {
             if (buttons[mport].ljoy_h < 64)
                 P |= JOY_LEFT;
@@ -246,18 +224,38 @@ unsigned char Get_PS2Input(int mport)
             else if (buttons[mport].ljoy_v > 192)
                 P |= JOY_DOWN;
         }
-        //Digital
-        if(paddata[mport] & Settings.PlayerInput[mport][9]) {
+        // Digital
+        if (paddata[mport] & Settings.PlayerInput[mport][9]) {
             P |= JOY_UP;
         }
-        if(paddata[mport] & Settings.PlayerInput[mport][10]) {
+        if (paddata[mport] & Settings.PlayerInput[mport][10]) {
             P |= JOY_DOWN;
         }
-        if(paddata[mport] & Settings.PlayerInput[mport][11]) {
+        if (paddata[mport] & Settings.PlayerInput[mport][11]) {
             P |= JOY_LEFT;
         }
-        if(paddata[mport] & Settings.PlayerInput[mport][12]) {
+        if (paddata[mport] & Settings.PlayerInput[mport][12]) {
             P |= JOY_RIGHT;
+        }
+        // Turbo A
+        if (paddata[mport] & Settings.PlayerInput[mport][13]) {
+            rapid_a[mport] ^= 1;
+            if (rapid_a[mport]) {
+                P |= JOY_A;
+            }
+        }
+        if (!(paddata[mport] & Settings.PlayerInput[mport][13]) && rapid_a[mport]) {
+            rapid_a[mport] = 0;
+        }
+        // Turbo B
+        if (paddata[mport] & Settings.PlayerInput[mport][14]) {
+            rapid_b[mport] ^= 1;
+            if (rapid_b[mport]) {
+                P |= JOY_B;
+            }
+        }
+        if (!(paddata[mport] & Settings.PlayerInput[mport][14]) && rapid_b[mport]) {
+            rapid_b[mport] = 0;
         }
     }
 
@@ -269,7 +267,7 @@ void Set_NESInput()
     int attrib = 0;
     
     mtapGetConnectionCached = mtapGetConnection(0);
-    if(mtapGetConnectionCached != 1) {
+    if (mtapGetConnectionCached != 1) {
         FCEUI_DisableFourScore(1);
     }
     else {
@@ -281,30 +279,16 @@ void Set_NESInput()
 
 int Get_NESInput()
 {
-    if(exitgame) {
+    if (exitgame) {
         exitgame = 0;
         return 1;
     }
     
-    NESButtons  = ( Get_PS2Input(0) << 0); //first player
-    NESButtons |= ( Get_PS2Input(1) << 8); //second player
+    NESButtons  = ( Get_PS2Input(0) << 0); // First player
+    NESButtons |= ( Get_PS2Input(1) << 8); // Second player
     if (mtapGetConnectionCached == 1) {
-        NESButtons |= ( Get_PS2Input(2) << 16); //third player
-        NESButtons |= ( Get_PS2Input(3) << 24); //4th player
-    }
-    
-    if(Settings.turbo) {
-        if(rapid_a[0])
-            NESButtons |= JOY_A;
-
-        if(rapid_b[0])
-            NESButtons |= JOY_B;
-
-        if(rapid_a[1])
-            NESButtons |= JOY_A << 8;
-
-        if(rapid_b[1])
-            NESButtons |= JOY_B << 8;
+        NESButtons |= ( Get_PS2Input(2) << 16); // Third player
+        NESButtons |= ( Get_PS2Input(3) << 24); // 4th player
     }
 
     return 0;

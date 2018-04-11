@@ -33,7 +33,7 @@ extern GSFONTM *gsFontM;
 /* Pad Variables                    */
 /************************************/
 extern u32 old_pad[2];
-struct padButtonStatus buttons[2];
+static struct padButtonStatus buttons[2];
 
 extern int defaultx,defaulty;
 int oldselect = -1;
@@ -46,7 +46,7 @@ char mpartitions[4][256];
 u16 history[20]; //20 levels should be enough
 u8 h = 0;
 
-int Browser_Menu(void);
+extern int Browser_Menu(void);
 
 static inline char* strzncpy(char *d, char *s, int l) { d[0] = 0; return strncat(d, s, l); }
 
@@ -624,7 +624,7 @@ char* Browser(int files_too, int menu_id)
         if(selection != oldselect) {
 
             gsKit_clear(gsGlobal,GS_SETREG_RGBAQ(0x00,0x00,0x00,0x80,0x00));
-            browser_primitive("FCEUltra PS2 B0.93 [x.1.1]","Browser", &BG_TEX, menu_x1, menu_y1, menu_x2, menu_y2);
+            browser_primitive("FCEUltra PS2 B0.93 [x.2.0]","Browser", &BG_TEX, menu_x1, menu_y1, menu_x2, menu_y2);
 
             if(selection > max_item) {
                 list_offset = text_line - (selection - max_item) * FONT_HEIGHT;
