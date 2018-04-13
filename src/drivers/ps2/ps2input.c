@@ -27,7 +27,7 @@ u8 fdsswap = 0;
 static int NESButtons;
 static struct padButtonStatus buttons[4];
 
-extern void Ingame_Menu(void);
+extern void Ingame_Menu();
 
 static void waitPadReady(int port, int slot)
 {
@@ -190,16 +190,23 @@ static unsigned char Get_PS2Input(int mport)
             FCEUI_LoadState(NULL);
         }
         if (new_pad[mport] == Settings.PlayerInput[mport][3]) { // FDS_Disk_Swap
-            fdsswap ^= 1;
-            if (fdsswap) {
-                FCEUI_FDSEject();
+            if (GameInfo->type == GIT_FDS) {
+                fdsswap ^= 1;
+                if (fdsswap) {
+                    FCEUI_FDSEject();
+                }
+                else {
+                    FCEUI_FDSInsert(0);
+                }
             }
-            else {
-                FCEUI_FDSInsert(0);
+            else if (GameInfo->type == GIT_VSUNI) {
+                FCEUI_VSUniCoin();
             }
         }
         if (new_pad[mport] == Settings.PlayerInput[mport][4]) { // FDS_Side_Swap
-            FCEUI_FDSSelect();
+            if (GameInfo->type == GIT_FDS) {
+                FCEUI_FDSSelect();
+            }
         }
         if (paddata[mport] & Settings.PlayerInput[mport][5]) {
             P |= JOY_A;

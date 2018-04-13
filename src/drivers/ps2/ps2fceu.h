@@ -3,12 +3,6 @@
 #include <dmaKit.h>
 #include <gsToolkit.h>
 
-#ifdef SOUND_ON
-  #define SAMPLERATE 22050
-#else
-  #define SAMPLERATE 0
-#endif
-
 typedef struct {
     char displayname[64];
     int  dircheck;
@@ -44,11 +38,11 @@ typedef struct {
 } skin;
 
 // Initialization prototypes
-void SetupGSKit(void);
-void InitPS2(void);
-void normalize_screen(void);
-void init_custom_screen(void);
-void setupPS2Pad(void);
+void SetupGSKit();
+void InitPS2();
+void normalize_screen();
+void init_custom_screen();
+void setupPS2Pad();
 
 void DrawScreen(GSGLOBAL *gsGlobal);
 
@@ -67,8 +61,8 @@ void browser_primitive(char *title1, char *title2, GSTEXTURE *gsTexture, float x
   // Global
 void Load_Global_CNF(char *CNF_path_p);
 void Save_Global_CNF(char *CNF_path_p);
-void Default_Global_CNF(void);
+void Default_Global_CNF();
   // Skin
 void Load_Skin_CNF(char *CNF_path_p);
 void Save_Skin_CNF(char *CNF_path_p);
-void Default_Skin_CNF(void);
+void Default_Skin_CNF();

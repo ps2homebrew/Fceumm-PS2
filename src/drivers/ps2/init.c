@@ -77,7 +77,7 @@ void poweroffps2(int i)
     poweroffShutdown();
 }
 
-void SetupGSKit(void)
+void SetupGSKit()
 {
     /* detect and set screentype */
     //gsGlobal = gsKit_init_global(GS_MODE_PAL);
@@ -107,7 +107,7 @@ void SetupGSKit(void)
 
 }
 
-void InitPS2(void)
+void InitPS2()
 {
     int i, sometime;
     static char hddarg[] = "-o" "\0" "4" "\0" "-n" "\0" "20";
@@ -174,7 +174,7 @@ printf("Failed to load module: cdInit2\n");
     mtapPortOpen(0);
 }
 
-void normalize_screen(void)
+void normalize_screen()
 {
     GS_SET_DISPLAY1(gsGlobal->StartX, // X position in the display area (in VCK unit
         gsGlobal->StartY,             // Y position in the display area (in Raster u
@@ -191,7 +191,7 @@ void normalize_screen(void)
         gsGlobal->DH - 1);            // Display area height
 }
 
-void init_custom_screen(void)
+void init_custom_screen()
 {
     //init real non-interlaced mode
     if(Settings.display) {
