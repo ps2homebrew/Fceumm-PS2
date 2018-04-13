@@ -31,26 +31,13 @@ extern char partitions[4][256];
 extern u8 h;
 
 // Palette for FCEU
-#define MAXPAL 13
-struct st_palette_names {
+#define MAXPAL 29
+struct st_palettes {
     char name[32];
+    char desc[32];
+    unsigned int data[64];
 };
-
-struct st_palette_names palette_names[] = {
-    {"AspiringSquire's Real"},
-    {"Loopy's"},
-    {"Quor's"},
-    {"Chris Covell's"},
-    {"Matthew Conte's"},
-    {"PasoFami/99"},
-    {"CrashMan's"},
-    {"MESS"},
-    {"Zaphod's VS Castlevania"},
-    {"Zaphod's VS SMB"},
-    {"VS Dr. Mario"},
-    {"VS Castlevania"},
-    {"VS SMB/VS Ice Climber"}
-};
+extern struct st_palettes palettes[];
 
 int statenum = 0;
 u8 power_off = 0;
@@ -247,7 +234,7 @@ int menu_input(int port, int center_screen)
         Exit to Elf Path
         Exit to PS2Browser
 **/
-int Browser_Menu(void)
+int Browser_Menu()
 {
     char cnfpath[2048];
     int i,selection = 0;
@@ -522,10 +509,13 @@ int Browser_Menu(void)
         Set Input "DisplayName" (pushing left or right here cycles though 0-9, which parses the control(number).cnf)
         Exit Game (Saves Sram)
 **/
-extern void SetupNESGS(void);
-extern void SetupNESTexture(void);
+extern void SetupNESGS();
+extern void SetupNESClut();
 
-void Ingame_Menu(void)
+extern void SND_SetNextSampleRate();
+extern  int SND_GetCurrSampleRate();
+
+void Ingame_Menu()
 {
     int i, selection = 0;
     oldselect = -1;
@@ -571,9 +561,9 @@ void Ingame_Menu(void)
                 break;
             case 4:
                 if (!Settings.sound)
-                    strcpy(options_state[i], "Off (faster)");
+                    strcpy(options_state[i], "Off");
                 else
-                    strcpy(options_state[i], "22050Hz");
+                    sprintf(options_state[i], "%dHz", SND_GetCurrSampleRate());
                 break;
             case 5:
                 if (!Settings.input_4p_adaptor)
@@ -588,7 +578,7 @@ void Ingame_Menu(void)
             case 8:
                 break;
             case 13:
-                strcpy(options_state[i], palette_names[Settings.current_palette - 1].name);
+                strcpy(options_state[i], palettes[Settings.current_palette - 1].desc);
                 break;
         }
     }
@@ -668,15 +658,11 @@ void Ingame_Menu(void)
                     option_changed = 1;
                     break;
                 case 4:
-                    Settings.sound ^= 1;
-                    if (Settings.sound) {
-                        FCEUI_Sound(SAMPLERATE);
-                        strcpy(options_state[i], "22050Hz");
-                    }
-                    else {
-                        FCEUI_Sound(0);
-                        strcpy(options_state[i], "Off (faster)");
-                    }
+                    SND_SetNextSampleRate();
+                    if (!Settings.sound)
+                        strcpy(options_state[i], "Off");
+                    else
+                        sprintf(options_state[i], "%dHz", SND_GetCurrSampleRate());
                     option_changed = 1;
                     break;
                 case 5:
@@ -713,8 +699,8 @@ void Ingame_Menu(void)
                 case 13:
                     Settings.current_palette++;
                     if (Settings.current_palette > MAXPAL) { Settings.current_palette = 1; }
-                    strcpy(options_state[i], palette_names[Settings.current_palette - 1].name);
-                    SetupNESTexture();
+                    strcpy(options_state[i], palettes[Settings.current_palette - 1].desc);
+                    SetupNESClut();
                     option_changed = 1;
                     break;
             }

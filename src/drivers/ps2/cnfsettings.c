@@ -583,7 +583,7 @@ void Save_Global_CNF(char *CNF_path_p)
 
 }  // Ends Save_Global_CNF
 
-void Default_Global_CNF(void)
+void Default_Global_CNF()
 {
     Settings.input_4p_adaptor = 0;
     Settings.current_palette  = 1;
@@ -623,7 +623,7 @@ void Default_Global_CNF(void)
     Settings.PlayerInput[0][4] = PAD_R3;
 }
 
-void Default_Skin_CNF(void)
+void Default_Skin_CNF()
 {
     FCEUSkin.frame     = GS_SETREG_RGBAQ(0xFF,0xFF,0xFF,0x80,0x00);
     FCEUSkin.textcolor = GS_SETREG_RGBAQ(0xFF,0xFF,0xFF,0x80,0x00);
