@@ -1,6 +1,7 @@
 Fceumm-PS2
 ==========
 
+[![Build Status](https://travis-ci.org/AKuHAK/Fceumm-PS2.svg?branch=master)](https://travis-ci.org/AKuHAK/Fceumm-PS2)
 *(ragnarok2040)
 	I ported FCEUltra to PS2 to play a couple NES games on a TV in a different room for the holiday season. I have an autistic brother who loves Megaman, heh.
 	The built-in game genie rom support works if you put the game genie rom as gg.rom. I haven't used any codes, so I'm not sure if they actually work on the PS2.
