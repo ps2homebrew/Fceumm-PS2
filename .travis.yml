@@ -25,10 +25,15 @@ before_script:
 - git clone https://github.com/ps2dev/ps2sdk.git
 - cd ps2sdk
 #- git checkout 9d1d184
-- make -j2 install --silent
+- make install --silent
+- cd $TRAVIS_BUILD_DIR
+# installing ports
+- git clone https://github.com/ps2dev/ps2sdk-ports.git
+# installing zlib
+- cd ps2sdk-ports/zlib
+- make install
 - cd $TRAVIS_BUILD_DIR
 # installing libjpeg
-- git clone https://github.com/ps2dev/ps2sdk-ports.git
 - cd ps2sdk-ports/libjpeg
 - make install
 - cd $TRAVIS_BUILD_DIR
