@@ -1,5 +1,6 @@
 FCEUmm-PS2
 ===========
+[![forthebadge](https://forthebadge.com/images/badges/contains-technical-debt.svg)](https://forthebadge.com)
 
 [Download](https://github.com/infval/Fceumm-PS2/releases) binary release (ELF file).
 
