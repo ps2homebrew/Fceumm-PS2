@@ -101,16 +101,16 @@ void menu_bgtexture(GSTEXTURE *gsTexture, float x1, float y1, float x2, float y2
     gsKit_prim_sprite(gsGlobal, x1, y2-thickness, x2, y2, z, FCEUSkin.frame); // Bottom
 
     gsKit_prim_sprite_texture(gsGlobal, gsTexture,
-        x1+thickness,                       /* X1 */
-        y1+thickness,                       /* Y1 */
-        0.0f,                               /* U1 */
-        0.0f,                               /* V1 */
-        x2-thickness,                       /* X2 */
-        y2-thickness,                       /* Y2 */
-        gsTexture->Width,                   /* U2 */
-        gsTexture->Height,                  /* V2*/
-        z+1,                                /* Z */
-        GS_SETREG_RGBA(0x80,0x80,0x80,0x80) /* RGBA */
+        x1 + thickness,                        /* X1 */
+        y1 + thickness,                        /* Y1 */
+        0.0f,                                  /* U1 */
+        0.0f,                                  /* V1 */
+        x2 - thickness,                        /* X2 */
+        y2 - thickness,                        /* Y2 */
+        gsTexture->Width,                      /* U2 */
+        gsTexture->Height,                     /* V2 */
+        z + 1,                                 /* Z  */
+        GS_SETREG_RGBA(0x80, 0x80, 0x80, 0x80) /* RGBA */
     );
 }
 
@@ -123,7 +123,7 @@ void menu_primitive(char *title, GSTEXTURE *gsTexture, float x1, float y1, float
     else {
         menu_background(x1, y1, x2, y2, 1);
     }
-    menu_background(x2-(strlen(title)*12), y1, x2, y1+FONT_HEIGHT*2,2);
+    menu_background(x2-(strlen(title)*12), y1, x2, y1+FONT_HEIGHT*2, 2);
 
     printXY(title, x2-(strlen(title)*10), y1+FONT_HEIGHT/2, 3, FCEUSkin.textcolor, 2, 0);
 }
@@ -137,8 +137,8 @@ void browser_primitive(char *title1, char *title2, GSTEXTURE *gsTexture, float x
     else {
         menu_background(x1, y1, x2, y2, 1);
     }
-    menu_background(x1, y1, x1+(strlen(title1)*9), y1+FONT_HEIGHT*2,2);
-    menu_background(x2-(strlen(title2)*12), y1, x2, y1+FONT_HEIGHT*2,2);
+    menu_background(x1, y1, x1+(strlen(title1)*9), y1+FONT_HEIGHT*2, 2);
+    menu_background(x2-(strlen(title2)*12), y1, x2, y1+FONT_HEIGHT*2, 2);
 
     printXY(title1, x1+(strlen(title2)+4), y1+FONT_HEIGHT/2, 3, FCEUSkin.textcolor, 2, 0);
     printXY(title2, x2-(strlen(title2)*10), y1+FONT_HEIGHT/2, 3, FCEUSkin.textcolor, 2, 0);
@@ -213,7 +213,7 @@ int menu_input(int port, int center_screen)
 
         normalize_screen();
 
-        gsKit_clear(gsGlobal, GS_SETREG_RGBAQ(0x00,0x00,0x00,0x00,0x00));
+        gsKit_clear(gsGlobal, GS_SETREG_RGBAQ(0x00, 0x00, 0x00, 0x00, 0x00));
 
         menu_primitive("Centering", &BG_TEX, 0, 0, gsGlobal->Width, gsGlobal->Height);
 
@@ -237,7 +237,7 @@ int menu_input(int port, int center_screen)
 int Browser_Menu()
 {
     char cnfpath[2048];
-    int i,selection = 0;
+    int i, selection = 0;
     oldselect = -1;
     int option_changed = 0;
 
@@ -316,7 +316,7 @@ int Browser_Menu()
 
         if ((oldselect != selection) || option_changed) {
 
-            gsKit_clear(gsGlobal, GS_SETREG_RGBAQ(0x00,0x00,0x00,0x80,0x00));
+            gsKit_clear(gsGlobal, GS_SETREG_RGBAQ(0x00, 0x00, 0x00, 0x80, 0x00));
 
             menu_primitive("Options", &MENU_TEX, menu_x1, menu_y1, menu_x2, menu_y2);
 
@@ -394,7 +394,7 @@ int Browser_Menu()
                     text_line = menu_y1 + 4;
 
                     option_changed = 1;
-                    //SetGsCrt(gsGlobal->Interlace,gsGlobal->Mode,gsGlobal->Field);
+                    //SetGsCrt(gsGlobal->Interlace, gsGlobal->Mode, gsGlobal->Field);
                     break;
                 case 1: // Interlacing Off/On
                     Settings.interlace ^= 1;
@@ -425,7 +425,7 @@ int Browser_Menu()
                     menu_y2 = gsGlobal->Height*0.85 + FONT_HEIGHT;
                     text_line = menu_y1 + 4;
                     option_changed = 1;
-                    //SetGsCrt(gsGlobal->Interlace,gsGlobal->Mode,gsGlobal->Field);
+                    //SetGsCrt(gsGlobal->Interlace, gsGlobal->Mode, gsGlobal->Field);
                     break;
                 case 2: // Emulated System
                     Settings.emulation ^= 1;
@@ -534,9 +534,9 @@ void Ingame_Menu()
         { "Save State" },
         { "Load State" },
         { "Filtering: "},
+        { "Aspect Ratio: "},
         { "Sound: " },
         { "4-Players Adaptor: " },
-        { "---"},
         { "---" },
         { "---" },
         { "Reset Game" },
@@ -551,7 +551,7 @@ void Ingame_Menu()
     for (i = 0; i < 14; i++) {
         switch (i) {
             case 0:
-                sprintf(options_state[i],"%d",statenum);
+                sprintf(options_state[i], "%d", statenum);
                 break;
             case 3:
                 if (!Settings.filter)
@@ -560,18 +560,22 @@ void Ingame_Menu()
                     strcpy(options_state[i], "On");
                 break;
             case 4:
+                if (Settings.aspect_ratio == 0)
+                    strcpy(options_state[i], "Full Screen");
+                else if (Settings.aspect_ratio == 1)
+                    strcpy(options_state[i], "Best Fit (4:3 NTSC)");
+                break;
+            case 5:
                 if (!Settings.sound)
                     strcpy(options_state[i], "Off");
                 else
                     sprintf(options_state[i], "%dHz", SND_GetCurrSampleRate());
                 break;
-            case 5:
+            case 6:
                 if (!Settings.input_4p_adaptor)
                     strcpy(options_state[i], "Off");
                 else
                     strcpy(options_state[i], "On");
-                break;
-            case 6:
                 break;
             case 7:
                 break;
@@ -658,6 +662,17 @@ void Ingame_Menu()
                     option_changed = 1;
                     break;
                 case 4:
+                    Settings.aspect_ratio++;
+                    if (Settings.aspect_ratio > 1) {
+                        Settings.aspect_ratio = 0;
+                    }
+                    if (Settings.aspect_ratio == 0)
+                        strcpy(options_state[i], "Full Screen");
+                    else if (Settings.aspect_ratio == 1)
+                        strcpy(options_state[i], "Best Fit (4:3 NTSC)");
+                    option_changed = 1;
+                    break;
+                case 5:
                     SND_SetNextSampleRate();
                     if (!Settings.sound)
                         strcpy(options_state[i], "Off");
@@ -665,7 +680,7 @@ void Ingame_Menu()
                         sprintf(options_state[i], "%dHz", SND_GetCurrSampleRate());
                     option_changed = 1;
                     break;
-                case 5:
+                case 6:
                     Settings.input_4p_adaptor ^= 1;
                     if (Settings.input_4p_adaptor) {
                         FCEUI_SetInputFC(SIFC_4PLAYER, NULL, 0);
@@ -676,8 +691,6 @@ void Ingame_Menu()
                         strcpy(options_state[i], "Off");
                     }
                     option_changed = 1;
-                    break;
-                case 6:
                     break;
                 case 7:
                     break;

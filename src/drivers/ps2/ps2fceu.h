@@ -16,6 +16,7 @@ typedef struct {
     u8 emulation;
     u8 interlace;
     u8 filter;
+    u8 aspect_ratio;
     u8 sound;
     char elfpath[1024];
     char savepath[1024];

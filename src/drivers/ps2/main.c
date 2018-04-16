@@ -3,7 +3,7 @@
 #include <string.h>
 #include <libjpg.h>
 
-//FCEUltra headers
+// FCEUltra headers
 #include "../../driver.h"
 #include "../../fceu-types.h"
 
@@ -528,7 +528,7 @@ u8 bgtex = 0;
 
 extern GSGLOBAL *gsGlobal;
 //unsigned int ps2palette[256];
-/* normal loopy palette
+/* Normal loopy palette
 u32 NesPalette[ 64 ] =
 {
     0x757575, 0x271b8f, 0x0000ab, 0x47009f, 0x8f0077, 0xab0013, 0xa70000, 0x7f0b00,
@@ -542,14 +542,14 @@ u32 NesPalette[ 64 ] =
 };
 u32 NesPalette[ 64 ] = // Modified palette for GS
 {
-    0x757575, 0x271b8f, 0x0000ab, 0x47009f, 0x8f0077, 0xab0013, 0xa70000, 0x7f0b00, //1 start
-    0xbcbcbc, 0x0073ef, 0x233bef, 0x8300f3, 0xbf00bf, 0xe7005b, 0xdb2b00, 0xcb4f0f, //2 start
-    0x432f00, 0x004700, 0x005100, 0x003f17, 0x1b3f5f, 0x000000, 0x000000, 0x000000, //1 finish
-    0x8b7300, 0x009700, 0x00ab00, 0x00933b, 0x00838b, 0x000000, 0x000000, 0x000000, //2 finish
-    0xffffff, 0x3fbfff, 0x5f97ff, 0xa78bfd, 0xf77bff, 0xff77b7, 0xff7763, 0xff9b3b, //3 start
-    0xffffff, 0xabe7ff, 0xc7d7ff, 0xd7cbff, 0xffc7ff, 0xffc7db, 0xffbfb3, 0xffdbab, //4 start
-    0xf3bf3f, 0x83d313, 0x4fdf4b, 0x58f898, 0x00ebdb, 0x000000, 0x000000, 0x000000, //3 finish
-    0xffe7a3, 0xe3ffa3, 0xabf3bf, 0xb3ffcf, 0x9ffff3, 0x000000, 0x000000, 0x000000  //4 finish
+    0x757575, 0x271b8f, 0x0000ab, 0x47009f, 0x8f0077, 0xab0013, 0xa70000, 0x7f0b00, // 1 start
+    0xbcbcbc, 0x0073ef, 0x233bef, 0x8300f3, 0xbf00bf, 0xe7005b, 0xdb2b00, 0xcb4f0f, // 2 start
+    0x432f00, 0x004700, 0x005100, 0x003f17, 0x1b3f5f, 0x000000, 0x000000, 0x000000, // 1 finish
+    0x8b7300, 0x009700, 0x00ab00, 0x00933b, 0x00838b, 0x000000, 0x000000, 0x000000, // 2 finish
+    0xffffff, 0x3fbfff, 0x5f97ff, 0xa78bfd, 0xf77bff, 0xff77b7, 0xff7763, 0xff9b3b, // 3 start
+    0xffffff, 0xabe7ff, 0xc7d7ff, 0xd7cbff, 0xffc7ff, 0xffc7db, 0xffbfb3, 0xffdbab, // 4 start
+    0xf3bf3f, 0x83d313, 0x4fdf4b, 0x58f898, 0x00ebdb, 0x000000, 0x000000, 0x000000, // 3 finish
+    0xffe7a3, 0xe3ffa3, 0xabf3bf, 0xb3ffcf, 0x9ffff3, 0x000000, 0x000000, 0x000000  // 4 finish
 };
 u32 NesPalette[64] =  // "AspiringSquire's NES Palette
 {
@@ -585,7 +585,7 @@ static void SND_Init();
 
 int main(int argc, char *argv[])
 {
-    int ret,sometime;
+    int ret, sometime;
     char *temp;
     char boot_path[256];
     char *p;
@@ -611,7 +611,7 @@ int main(int argc, char *argv[])
         sprintf(hdd_path, "%s", boot_path+5);
         t = strchr(hdd_path, ':');
         if (t != NULL)
-            *t=0;
+            *t = 0;
         //hdd0:HDDPATH:pfs:PFSPATH
         sprintf(boot_path, "hdd0:/%s%s", hdd_path, boot_path+5+strlen(hdd_path)+5); //
         if (boot_path[5+1+strlen(hdd_path)] != '/')
@@ -641,7 +641,7 @@ int main(int argc, char *argv[])
         sometime = 0x10000;
         while (sometime--) asm("nop\nnop\nnop\nnop");
     }
-    if (!FCEUSkin.textcolor) { //initialize default values
+    if (!FCEUSkin.textcolor) { // Initialize default values
         printf("Load Skin Failed\n");
         Default_Skin_CNF();
     }
@@ -649,19 +649,19 @@ int main(int argc, char *argv[])
     // Setup GUI Textures
     jpgData *Jpg;
     u8 *ImgData;
-    if (strstr(FCEUSkin.bgTexture,".png") != NULL) {
+    if (strstr(FCEUSkin.bgTexture, ".png") != NULL) {
          if (gsKit_texture_png(gsGlobal, &BG_TEX, FCEUSkin.bgTexture) < 0) {
             printf("Error with browser background png!\n");
             bgtex = 1;
          }
     }
-    else if (strstr(FCEUSkin.bgTexture,".jpg") || strstr(FCEUSkin.bgTexture,".jpeg") != NULL){
+    else if (strstr(FCEUSkin.bgTexture, ".jpg") || strstr(FCEUSkin.bgTexture, ".jpeg") != NULL){
         //if (gsKit_texture_jpeg(gsGlobal, &BG_TEX, FCEUSkin.bgTexture) < 0) {
         FILE *File = fopen(FCEUSkin.bgTexture, "r");
         if (File != NULL) {
             Jpg = jpgOpenFILE(File, JPG_WIDTH_FIX); // > 0)
-            ImgData = malloc(Jpg->width * Jpg->height * (Jpg->bpp / 8) ); // > 0)
-            jpgReadImage( Jpg, ImgData  );
+            ImgData = malloc(Jpg->width * Jpg->height * (Jpg->bpp / 8)); // > 0)
+            jpgReadImage(Jpg, ImgData);
             BG_TEX.PSM = GS_PSM_CT24;
             BG_TEX.Clut = NULL;
             BG_TEX.VramClut = 0;
@@ -686,13 +686,13 @@ int main(int argc, char *argv[])
     Jpg = 0;
     ImgData = 0;
 
-    if (strstr(FCEUSkin.bgMenu,".png") != NULL) {
+    if (strstr(FCEUSkin.bgMenu, ".png") != NULL) {
         if (gsKit_texture_png(gsGlobal, &MENU_TEX, FCEUSkin.bgMenu) == -1) {
             printf("Error with menu background png!\n");
             menutex = 1;
         }
     }
-    else if (strstr(FCEUSkin.bgMenu,".jpg") || strstr(FCEUSkin.bgMenu,".jpeg") != NULL) {
+    else if (strstr(FCEUSkin.bgMenu, ".jpg") || strstr(FCEUSkin.bgMenu, ".jpeg") != NULL) {
         //if (gsKit_texture_jpeg(gsGlobal, &MENU_TEX, FCEUSkin.bgMenu) < 0) { // Apparently didn't like the "myps2" libjpg
         FILE *File = fopen(FCEUSkin.bgMenu, "r");
         if (File != NULL) {
@@ -783,7 +783,7 @@ static int PS2_LoadGame(char *path)
 void SetupNESTexture()
 {
     // Comments after settings are for regular clut lookup
-    //Setup NES_TEX Texture
+    // Setup NES_TEX Texture
     NES_TEX.PSM = GS_PSM_T8; //GS_PSM_CT32
     NES_TEX.ClutPSM = GS_PSM_CT32; // Comment out
     NES_TEX.Clut = memalign(128, gsKit_texture_size_ee(16, 16, NES_TEX.ClutPSM)); //NULL
@@ -844,11 +844,11 @@ void SetupNESGS()
         NES_TEX.Filter = GS_FILTER_NEAREST;
     }
 
-//    gsKit_clear(gsGlobal, GS_SETREG_RGBA(0x00,0x00,0x00,0x80));
+//    gsKit_clear(gsGlobal, GS_SETREG_RGBA(0x00, 0x00, 0x00, 0x80));
     FCEUD_GetPalette(0, &r, &g, &b);
-//    r =  ( NesPalette[ 0 ] & 0xff0000 )>>16;
-//    g =  ( NesPalette[ 0 ] & 0xff00   )>>8;
-//    b =  ( NesPalette[ 0 ] & 0xff     )<<0;
+//    r =  (NesPalette[ 0 ] & 0xff0000)>>16;
+//    g =  (NesPalette[ 0 ] & 0xff00  )>> 8;
+//    b =  (NesPalette[ 0 ] & 0xff    )<< 0;
 
     gsKit_clear(gsGlobal, GS_SETREG_RGBA(r, g, b, 0x80));
     y1 = 0;
@@ -856,10 +856,18 @@ void SetupNESGS()
     y2 = NES_TEX.Height*2;
     v2 = NES_TEX.Height;
 
+    int offsetX = 0, width = gsGlobal->Width;
+
     if (gsGlobal->Mode == GS_MODE_NTSC) {
         v1 = 8;
         v2 = (NES_TEX.Height - 16) + 8;
         y2 = (NES_TEX.Height - 16);
+
+        if (Settings.aspect_ratio == 1) {
+            int newWidth = (width * 3 / 4) * 256 / 224;  // 548 if width = 640
+            offsetX = (width - newWidth) / 2; // (640 - 548) / 2
+            width = newWidth;
+        }
     }
     else {
         v1 = 0;
@@ -868,36 +876,36 @@ void SetupNESGS()
     }
     if (gsGlobal->Interlace == GS_INTERLACED)
         y2 = y2*2;
-    //gsKit_prim_sprite_striped_texture(gsGlobal, &NES_TEX,  //thought this might be needed for different modes, but it just looks bad
+    //gsKit_prim_sprite_striped_texture(gsGlobal, &NES_TEX,  // Thought this might be needed for different modes, but it just looks bad
 
     gsKit_prim_sprite_texture(gsGlobal, &NES_TEX,
-        0,                                  /* X1 */
-        y1,                                 /* Y1 */
-        0,                                  /* U1 */
-        v1,                                 /* V1 */
-        320*2 - 1,                          /* X2 */ //stretch to screen width -1
-        y2 - 1,                             /* Y2 */ //stretch to screen height -1
-        NES_TEX.Width,                      /* U2 */
-        v2,                                 /* V2*/
-        2,                                  /* Z */
-        GS_SETREG_RGBA(0x80,0x80,0x80,0x80) /* RGBA */
+        0 + offsetX,                           /* X1 */
+        y1,                                    /* Y1 */
+        0,                                     /* U1 */
+        v1,                                    /* V1 */
+        width + offsetX,                       /* X2 */ // Stretch to screen width
+        y2,                                    /* Y2 */ // Stretch to screen height
+        NES_TEX.Width,                         /* U2 */
+        v2,                                    /* V2 */
+        2,                                     /* Z  */
+        GS_SETREG_RGBA(0x80, 0x80, 0x80, 0x80) /* RGBA */
     );
 }
 
 void RenderFrame(const uint8 *frame)
 {
-    //int w,h,c;
+    //int w, h, c;
     //int i;
 
 /*
-    for (h=0; h<240; h++) { //correctly displays 256x240 nes screen
-        for (w=0; w<256; w++) {
-            c = (h << 8) + w; //color index, increments height by 256, then adds width
+    for (h = 0; h < 240; h++) { // Correctly displays 256x240 nes screen
+        for (w = 0; w < 256; w++) {
+            c = (h << 8) + w; // Color index, increments height by 256, then adds width
             NES_TEX.Mem[c] = ps2palette[frame[c]];
         }
     }
 */
-    NES_TEX.Mem = (u32 *)frame; //set frame as NES_TEX.Mem location
+    NES_TEX.Mem = (u32 *)frame; // Set frame as NES_TEX.Mem location
 
     gsKit_texture_upload(gsGlobal, &NES_TEX);
 
@@ -912,29 +920,29 @@ void RenderFrame(const uint8 *frame)
 #ifdef SOUND_ON
 void inline OutputSound(const int32 *tmpsnd, int32 ssize)
 {
-    //used as an example from the windows driver
+    // Used as an example from the windows driver
     /*static int16 MBuffer[2 * 96000 / 50];  // * 2 for safety.
     int P;
 
     if (!bittage) {
-        for (P=0;P<Count;P++)
-            *(((uint8*)MBuffer)+P)=((int8)(Buffer[P]>>8))^128;
-        RawWrite(MBuffer,Count);
+        for (P = 0; P < Count; P++)
+            *(((uint8*)MBuffer)+P) = ((int8)(Buffer[P]>>8))^128;
+        RawWrite(MBuffer, Count);
     }
     else {
-        for (P=0;P<Count;P++)
-        MBuffer[P]=Buffer[P];
-        //FCEU_printf("Pre: %d\n",RawCanWrite() / 2);
-        RawWrite(MBuffer,Count * 2);
-        //FCEU_printf("Post: %d\n",RawCanWrite() / 2);
+        for (P = 0; P < Count; P++)
+        MBuffer[P] = Buffer[P];
+        //FCEU_printf("Pre: %d\n", RawCanWrite() / 2);
+        RawWrite(MBuffer, Count * 2);
+        //FCEU_printf("Post: %d\n", RawCanWrite() / 2);
      }*/
 
     int i;
-    s16 ssound[ssize]; //no need for an 2*ssized 8bit array with this
+    s16 ssound[ssize]; // No need for an 2*ssized 8bit array with this
 
-    //audsrv_wait_audio(ssize<<1); //commented out because the sound buffer is filled at need
+    //audsrv_wait_audio(ssize<<1); // Commented out because the sound buffer is filled at need
     for (i = 0; i < ssize; i++) {
-        //something[i] = ((tmpsnd[i]>>8))^128; //for 8bit sound
+        //something[i] = ((tmpsnd[i]>>8))^128; // For 8bit sound
         ssound[i] = tmpsnd[i];
     }
 
