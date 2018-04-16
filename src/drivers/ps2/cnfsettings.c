@@ -175,65 +175,65 @@ void Load_Global_CNF(char *CNF_path_p)
     for (var_cnt = 0; get_CNF_string(&CNF_p, &name, &value); var_cnt++) {
         // A variable was found, now we dispose of its value.
         printf("Found variable \"%s\" with value \"%s\"\r\n", name, value);
-        if (!strcmp(name,"OffsetX"))               { Settings.offset_x  = atoi(value); }
-        else if (!strcmp(name,"OffsetY"))          { Settings.offset_y  = atoi(value); }
-        else if (!strcmp(name,"Display"))          { Settings.display   = atoi(value); }
-        else if (!strcmp(name,"Emulation"))        { Settings.emulation = atoi(value); }
-        else if (!strcmp(name,"Interlace"))        { Settings.interlace = atoi(value); }
-        else if (!strcmp(name,"Filter"))           { Settings.filter    = atoi(value); }
-        else if (!strcmp(name,"Sound"))            { Settings.sound     = atoi(value); }
-        else if (!strcmp(name,"Elfpath"))          { strcpy(Settings.elfpath,value);   }
-        else if (!strcmp(name,"Savepath"))         { strcpy(Settings.savepath,value);  }
-        else if (!strcmp(name,"Skinpath"))         { strcpy(Settings.skinpath,value);  }
+        if (!strcmp(name, "OffsetX"))               { Settings.offset_x  = atoi(value); }
+        else if (!strcmp(name, "OffsetY"))          { Settings.offset_y  = atoi(value); }
+        else if (!strcmp(name, "Display"))          { Settings.display   = atoi(value); }
+        else if (!strcmp(name, "Emulation"))        { Settings.emulation = atoi(value); }
+        else if (!strcmp(name, "Interlace"))        { Settings.interlace = atoi(value); }
+        else if (!strcmp(name, "Filter"))           { Settings.filter    = atoi(value); }
+        else if (!strcmp(name, "Sound"))            { Settings.sound     = atoi(value); }
+        else if (!strcmp(name, "Elfpath"))          { strcpy(Settings.elfpath,  value); }
+        else if (!strcmp(name, "Savepath"))         { strcpy(Settings.savepath, value); }
+        else if (!strcmp(name, "Skinpath"))         { strcpy(Settings.skinpath, value); }
         // Player 1 Settings
-        else if (!strcmp(name,"JOY1_Menu"))        { Settings.PlayerInput[0][0]  = (u16)strtoul(value,NULL,16); }
-        else if (!strcmp(name,"JOY1_SaveState"))   { Settings.PlayerInput[0][1]  = (u16)strtoul(value,NULL,16); }
-        else if (!strcmp(name,"JOY1_LoadState"))   { Settings.PlayerInput[0][2]  = (u16)strtoul(value,NULL,16); }
-        else if (!strcmp(name,"JOY1_FDS_DiskSwap")){ Settings.PlayerInput[0][3]  = (u16)strtoul(value,NULL,16); }
-        else if (!strcmp(name,"JOY1_FDS_SideSwap")){ Settings.PlayerInput[0][4]  = (u16)strtoul(value,NULL,16); }
-        else if (!strcmp(name,"JOY1_A"))           { Settings.PlayerInput[0][5]  = (u16)strtoul(value,NULL,16); }
-        else if (!strcmp(name,"JOY1_B"))           { Settings.PlayerInput[0][6]  = (u16)strtoul(value,NULL,16); }
-        else if (!strcmp(name,"JOY1_Select"))      { Settings.PlayerInput[0][7]  = (u16)strtoul(value,NULL,16); }
-        else if (!strcmp(name,"JOY1_Start"))       { Settings.PlayerInput[0][8]  = (u16)strtoul(value,NULL,16); }
-        else if (!strcmp(name,"JOY1_Up"))          { Settings.PlayerInput[0][9]  = (u16)strtoul(value,NULL,16); }
-        else if (!strcmp(name,"JOY1_Down"))        { Settings.PlayerInput[0][10] = (u16)strtoul(value,NULL,16); }
-        else if (!strcmp(name,"JOY1_Left"))        { Settings.PlayerInput[0][11] = (u16)strtoul(value,NULL,16); }
-        else if (!strcmp(name,"JOY1_Right"))       { Settings.PlayerInput[0][12] = (u16)strtoul(value,NULL,16); }
-        else if (!strcmp(name,"JOY1_Turbo_A"))     { Settings.PlayerInput[0][13] = (u16)strtoul(value,NULL,16); }
-        else if (!strcmp(name,"JOY1_Turbo_B"))     { Settings.PlayerInput[0][14] = (u16)strtoul(value,NULL,16); }
+        else if (!strcmp(name, "JOY1_Menu"))        { Settings.PlayerInput[0][0]  = (u16)strtoul(value, NULL, 16); }
+        else if (!strcmp(name, "JOY1_SaveState"))   { Settings.PlayerInput[0][1]  = (u16)strtoul(value, NULL, 16); }
+        else if (!strcmp(name, "JOY1_LoadState"))   { Settings.PlayerInput[0][2]  = (u16)strtoul(value, NULL, 16); }
+        else if (!strcmp(name, "JOY1_FDS_DiskSwap")){ Settings.PlayerInput[0][3]  = (u16)strtoul(value, NULL, 16); }
+        else if (!strcmp(name, "JOY1_FDS_SideSwap")){ Settings.PlayerInput[0][4]  = (u16)strtoul(value, NULL, 16); }
+        else if (!strcmp(name, "JOY1_A"))           { Settings.PlayerInput[0][5]  = (u16)strtoul(value, NULL, 16); }
+        else if (!strcmp(name, "JOY1_B"))           { Settings.PlayerInput[0][6]  = (u16)strtoul(value, NULL, 16); }
+        else if (!strcmp(name, "JOY1_Select"))      { Settings.PlayerInput[0][7]  = (u16)strtoul(value, NULL, 16); }
+        else if (!strcmp(name, "JOY1_Start"))       { Settings.PlayerInput[0][8]  = (u16)strtoul(value, NULL, 16); }
+        else if (!strcmp(name, "JOY1_Up"))          { Settings.PlayerInput[0][9]  = (u16)strtoul(value, NULL, 16); }
+        else if (!strcmp(name, "JOY1_Down"))        { Settings.PlayerInput[0][10] = (u16)strtoul(value, NULL, 16); }
+        else if (!strcmp(name, "JOY1_Left"))        { Settings.PlayerInput[0][11] = (u16)strtoul(value, NULL, 16); }
+        else if (!strcmp(name, "JOY1_Right"))       { Settings.PlayerInput[0][12] = (u16)strtoul(value, NULL, 16); }
+        else if (!strcmp(name, "JOY1_Turbo_A"))     { Settings.PlayerInput[0][13] = (u16)strtoul(value, NULL, 16); }
+        else if (!strcmp(name, "JOY1_Turbo_B"))     { Settings.PlayerInput[0][14] = (u16)strtoul(value, NULL, 16); }
         // Player 2 Settings
-        else if (!strcmp(name,"JOY2_A"))           { Settings.PlayerInput[1][5]  = (u16)strtoul(value,NULL,16); }
-        else if (!strcmp(name,"JOY2_B"))           { Settings.PlayerInput[1][6]  = (u16)strtoul(value,NULL,16); }
-        else if (!strcmp(name,"JOY2_Select"))      { Settings.PlayerInput[1][7]  = (u16)strtoul(value,NULL,16); }
-        else if (!strcmp(name,"JOY2_Start"))       { Settings.PlayerInput[1][8]  = (u16)strtoul(value,NULL,16); }
-        else if (!strcmp(name,"JOY2_Up"))          { Settings.PlayerInput[1][9]  = (u16)strtoul(value,NULL,16); }
-        else if (!strcmp(name,"JOY2_Down"))        { Settings.PlayerInput[1][10] = (u16)strtoul(value,NULL,16); }
-        else if (!strcmp(name,"JOY2_Left"))        { Settings.PlayerInput[1][11] = (u16)strtoul(value,NULL,16); }
-        else if (!strcmp(name,"JOY2_Right"))       { Settings.PlayerInput[1][12] = (u16)strtoul(value,NULL,16); }
-        else if (!strcmp(name,"JOY2_Turbo_A"))     { Settings.PlayerInput[1][13] = (u16)strtoul(value,NULL,16); }
-        else if (!strcmp(name,"JOY2_Turbo_B"))     { Settings.PlayerInput[1][14] = (u16)strtoul(value,NULL,16); }
+        else if (!strcmp(name, "JOY2_A"))           { Settings.PlayerInput[1][5]  = (u16)strtoul(value, NULL, 16); }
+        else if (!strcmp(name, "JOY2_B"))           { Settings.PlayerInput[1][6]  = (u16)strtoul(value, NULL, 16); }
+        else if (!strcmp(name, "JOY2_Select"))      { Settings.PlayerInput[1][7]  = (u16)strtoul(value, NULL, 16); }
+        else if (!strcmp(name, "JOY2_Start"))       { Settings.PlayerInput[1][8]  = (u16)strtoul(value, NULL, 16); }
+        else if (!strcmp(name, "JOY2_Up"))          { Settings.PlayerInput[1][9]  = (u16)strtoul(value, NULL, 16); }
+        else if (!strcmp(name, "JOY2_Down"))        { Settings.PlayerInput[1][10] = (u16)strtoul(value, NULL, 16); }
+        else if (!strcmp(name, "JOY2_Left"))        { Settings.PlayerInput[1][11] = (u16)strtoul(value, NULL, 16); }
+        else if (!strcmp(name, "JOY2_Right"))       { Settings.PlayerInput[1][12] = (u16)strtoul(value, NULL, 16); }
+        else if (!strcmp(name, "JOY2_Turbo_A"))     { Settings.PlayerInput[1][13] = (u16)strtoul(value, NULL, 16); }
+        else if (!strcmp(name, "JOY2_Turbo_B"))     { Settings.PlayerInput[1][14] = (u16)strtoul(value, NULL, 16); }
         // Player 3 Settings
-        else if (!strcmp(name,"JOY3_A"))           { Settings.PlayerInput[2][5]  = (u16)strtoul(value,NULL,16); }
-        else if (!strcmp(name,"JOY3_B"))           { Settings.PlayerInput[2][6]  = (u16)strtoul(value,NULL,16); }
-        else if (!strcmp(name,"JOY3_Select"))      { Settings.PlayerInput[2][7]  = (u16)strtoul(value,NULL,16); }
-        else if (!strcmp(name,"JOY3_Start"))       { Settings.PlayerInput[2][8]  = (u16)strtoul(value,NULL,16); }
-        else if (!strcmp(name,"JOY3_Up"))          { Settings.PlayerInput[2][9]  = (u16)strtoul(value,NULL,16); }
-        else if (!strcmp(name,"JOY3_Down"))        { Settings.PlayerInput[2][10] = (u16)strtoul(value,NULL,16); }
-        else if (!strcmp(name,"JOY3_Left"))        { Settings.PlayerInput[2][11] = (u16)strtoul(value,NULL,16); }
-        else if (!strcmp(name,"JOY3_Right"))       { Settings.PlayerInput[2][12] = (u16)strtoul(value,NULL,16); }
-        else if (!strcmp(name,"JOY3_Turbo_A"))     { Settings.PlayerInput[2][13] = (u16)strtoul(value,NULL,16); }
-        else if (!strcmp(name,"JOY3_Turbo_B"))     { Settings.PlayerInput[2][14] = (u16)strtoul(value,NULL,16); }
+        else if (!strcmp(name, "JOY3_A"))           { Settings.PlayerInput[2][5]  = (u16)strtoul(value, NULL, 16); }
+        else if (!strcmp(name, "JOY3_B"))           { Settings.PlayerInput[2][6]  = (u16)strtoul(value, NULL, 16); }
+        else if (!strcmp(name, "JOY3_Select"))      { Settings.PlayerInput[2][7]  = (u16)strtoul(value, NULL, 16); }
+        else if (!strcmp(name, "JOY3_Start"))       { Settings.PlayerInput[2][8]  = (u16)strtoul(value, NULL, 16); }
+        else if (!strcmp(name, "JOY3_Up"))          { Settings.PlayerInput[2][9]  = (u16)strtoul(value, NULL, 16); }
+        else if (!strcmp(name, "JOY3_Down"))        { Settings.PlayerInput[2][10] = (u16)strtoul(value, NULL, 16); }
+        else if (!strcmp(name, "JOY3_Left"))        { Settings.PlayerInput[2][11] = (u16)strtoul(value, NULL, 16); }
+        else if (!strcmp(name, "JOY3_Right"))       { Settings.PlayerInput[2][12] = (u16)strtoul(value, NULL, 16); }
+        else if (!strcmp(name, "JOY3_Turbo_A"))     { Settings.PlayerInput[2][13] = (u16)strtoul(value, NULL, 16); }
+        else if (!strcmp(name, "JOY3_Turbo_B"))     { Settings.PlayerInput[2][14] = (u16)strtoul(value, NULL, 16); }
         // Player 4 Settings
-        else if (!strcmp(name,"JOY4_A"))           { Settings.PlayerInput[3][5]  = (u16)strtoul(value,NULL,16); }
-        else if (!strcmp(name,"JOY4_B"))           { Settings.PlayerInput[3][6]  = (u16)strtoul(value,NULL,16); }
-        else if (!strcmp(name,"JOY4_Select"))      { Settings.PlayerInput[3][7]  = (u16)strtoul(value,NULL,16); }
-        else if (!strcmp(name,"JOY4_Start"))       { Settings.PlayerInput[3][8]  = (u16)strtoul(value,NULL,16); }
-        else if (!strcmp(name,"JOY4_Up"))          { Settings.PlayerInput[3][9]  = (u16)strtoul(value,NULL,16); }
-        else if (!strcmp(name,"JOY4_Down"))        { Settings.PlayerInput[3][10] = (u16)strtoul(value,NULL,16); }
-        else if (!strcmp(name,"JOY4_Left"))        { Settings.PlayerInput[3][11] = (u16)strtoul(value,NULL,16); }
-        else if (!strcmp(name,"JOY4_Right"))       { Settings.PlayerInput[3][12] = (u16)strtoul(value,NULL,16); }
-        else if (!strcmp(name,"JOY4_Turbo_A"))     { Settings.PlayerInput[3][13] = (u16)strtoul(value,NULL,16); }
-        else if (!strcmp(name,"JOY4_Turbo_B"))     { Settings.PlayerInput[3][14] = (u16)strtoul(value,NULL,16); }
+        else if (!strcmp(name, "JOY4_A"))           { Settings.PlayerInput[3][5]  = (u16)strtoul(value, NULL, 16); }
+        else if (!strcmp(name, "JOY4_B"))           { Settings.PlayerInput[3][6]  = (u16)strtoul(value, NULL, 16); }
+        else if (!strcmp(name, "JOY4_Select"))      { Settings.PlayerInput[3][7]  = (u16)strtoul(value, NULL, 16); }
+        else if (!strcmp(name, "JOY4_Start"))       { Settings.PlayerInput[3][8]  = (u16)strtoul(value, NULL, 16); }
+        else if (!strcmp(name, "JOY4_Up"))          { Settings.PlayerInput[3][9]  = (u16)strtoul(value, NULL, 16); }
+        else if (!strcmp(name, "JOY4_Down"))        { Settings.PlayerInput[3][10] = (u16)strtoul(value, NULL, 16); }
+        else if (!strcmp(name, "JOY4_Left"))        { Settings.PlayerInput[3][11] = (u16)strtoul(value, NULL, 16); }
+        else if (!strcmp(name, "JOY4_Right"))       { Settings.PlayerInput[3][12] = (u16)strtoul(value, NULL, 16); }
+        else if (!strcmp(name, "JOY4_Turbo_A"))     { Settings.PlayerInput[3][13] = (u16)strtoul(value, NULL, 16); }
+        else if (!strcmp(name, "JOY4_Turbo_B"))     { Settings.PlayerInput[3][14] = (u16)strtoul(value, NULL, 16); }
     }
 
     // Set so only first player controls emulator controls
@@ -249,7 +249,7 @@ void Load_Global_CNF(char *CNF_path_p)
 
     if (!strncmp(Settings.elfpath, "hdd0:/", 6)) {
 
-        temp1 = strchr(Settings.elfpath,'/');
+        temp1 = strchr(Settings.elfpath, '/');
         temp1++;
 
         while (*temp1 != '/') { temp1++; }
@@ -261,9 +261,9 @@ void Load_Global_CNF(char *CNF_path_p)
         }
         else {
 
-            sprintf(partpath,"pfs%d:", needed_path[0]);
+            sprintf(partpath, "pfs%d:", needed_path[0]);
 
-            sprintf(partpath,"%s%s", partpath, temp1);
+            sprintf(partpath, "%s%s", partpath, temp1);
             strcpy(Settings.elfpath, partpath);
         }
 
@@ -271,7 +271,7 @@ void Load_Global_CNF(char *CNF_path_p)
     }
     if (!strncmp(Settings.savepath, "hdd0:/", 6)) {
 
-        temp1 = strchr(Settings.savepath,'/');
+        temp1 = strchr(Settings.savepath, '/');
         temp1++;
 
         // All my paths have two /'s
@@ -283,9 +283,9 @@ void Load_Global_CNF(char *CNF_path_p)
             strcpy(Settings.savepath, "mc0:/FCEUMM/");
         }
         else {
-            sprintf(partpath,"pfs%d:", needed_path[1]);
+            sprintf(partpath, "pfs%d:", needed_path[1]);
 
-            sprintf(partpath,"%s%s", partpath, temp1);
+            sprintf(partpath, "%s%s", partpath, temp1);
             strcpy(Settings.savepath, partpath);
 
             printf("partpath: %s\n", Settings.savepath);
@@ -329,15 +329,15 @@ void Load_Skin_CNF(char *CNF_path_p)
     for (var_cnt = 0; get_CNF_string(&CNF_p, &name, &value); var_cnt++) {
         // A variable was found, now we dispose of its value.
         printf("Found variable \"%s\" with value \"%s\"\r\n", name, value);
-        if (!strcmp(name,"FrameColor"))          { FCEUSkin.frame      = strtoul(value,NULL,16); }
-        else if (!strcmp(name,"TextColor"))      { FCEUSkin.textcolor  = strtoul(value,NULL,16); }
-        else if (!strcmp(name,"Highlight"))      { FCEUSkin.highlight  = strtoul(value,NULL,16); }
-        else if (!strcmp(name,"BGColor1"))       { FCEUSkin.bgColor1   = strtoul(value,NULL,16); }
-        else if (!strcmp(name,"BGColor2"))       { FCEUSkin.bgColor2   = strtoul(value,NULL,16); }
-        else if (!strcmp(name,"BGColor3"))       { FCEUSkin.bgColor3   = strtoul(value,NULL,16); }
-        else if (!strcmp(name,"BGColor4"))       { FCEUSkin.bgColor4   = strtoul(value,NULL,16); }
-        else if (!strcmp(name,"BGTexture"))      { strcpy(FCEUSkin.bgTexture,value);   }
-        else if (!strcmp(name,"BGMenu"))         { strcpy(FCEUSkin.bgMenu, value);     }
+        if (!strcmp(name, "FrameColor"))          { FCEUSkin.frame      = strtoul(value, NULL, 16); }
+        else if (!strcmp(name, "TextColor"))      { FCEUSkin.textcolor  = strtoul(value, NULL, 16); }
+        else if (!strcmp(name, "Highlight"))      { FCEUSkin.highlight  = strtoul(value, NULL, 16); }
+        else if (!strcmp(name, "BGColor1"))       { FCEUSkin.bgColor1   = strtoul(value, NULL, 16); }
+        else if (!strcmp(name, "BGColor2"))       { FCEUSkin.bgColor2   = strtoul(value, NULL, 16); }
+        else if (!strcmp(name, "BGColor3"))       { FCEUSkin.bgColor3   = strtoul(value, NULL, 16); }
+        else if (!strcmp(name, "BGColor4"))       { FCEUSkin.bgColor4   = strtoul(value, NULL, 16); }
+        else if (!strcmp(name, "BGTexture"))      { strcpy(FCEUSkin.bgTexture, value);   }
+        else if (!strcmp(name, "BGMenu"))         { strcpy(FCEUSkin.bgMenu, value);     }
     }
 
     /*if (strlen(CNF_p))  // Was there any unprocessed CNF remainder ?
@@ -407,12 +407,12 @@ void Save_Global_CNF(char *CNF_path_p)
     char temp4[1024];
     char *temp3;
 
-    strcpy(temp1,Settings.elfpath);
-    strcpy(temp2,Settings.savepath);
+    strcpy(temp1, Settings.elfpath);
+    strcpy(temp2, Settings.savepath);
 
     if (needed_path[0] > -1) {
         if (!strncmp(temp1, "pfs", 3)) {
-            temp3 = strchr(temp1,'/');
+            temp3 = strchr(temp1, '/');
             memcpy(temp4, temp3, strlen(temp3));
             temp3[strlen(temp3)] = 0;
             sprintf(temp1, "hdd0:/%s%s", mpartitions[needed_path[0]], temp4);
@@ -585,15 +585,16 @@ void Save_Global_CNF(char *CNF_path_p)
 
 void Default_Global_CNF()
 {
-    Settings.input_4p_adaptor = 0;
-    Settings.current_palette  = 1;
+    Settings.aspect_ratio     = 0; // Full Screen
+    Settings.input_4p_adaptor = 0; // False
+    Settings.current_palette  = 1; // 1 - First
     Settings.offset_x         = 0;
     Settings.offset_y         = 0;
-    Settings.interlace        = 0;
-    Settings.filter           = 0;
-    Settings.sound            = 1;
-    Settings.display          = 0;
-    Settings.emulation        = 0;
+    Settings.interlace        = 1; // True
+    Settings.filter           = 0; // False
+    Settings.sound            = 2; // 22050Hz
+    Settings.display          = 0; // NTSC
+    Settings.emulation        = 0; // NTSC
     strcpy(Settings.elfpath,  "mc0:/BOOT/BOOT.ELF");
     strcpy(Settings.savepath, "mc0:/FCEUMM/");
     strcpy(Settings.skinpath, "mc0:/FCEUMM/skin.cnf");
@@ -625,13 +626,13 @@ void Default_Global_CNF()
 
 void Default_Skin_CNF()
 {
-    FCEUSkin.frame     = GS_SETREG_RGBAQ(0xFF,0xFF,0xFF,0x80,0x00);
-    FCEUSkin.textcolor = GS_SETREG_RGBAQ(0xFF,0xFF,0xFF,0x80,0x00);
-    FCEUSkin.highlight = GS_SETREG_RGBAQ(0x80,0x80,0x40,0x80,0x00);
-    FCEUSkin.bgColor1  = GS_SETREG_RGBAQ(0x80,0x00,0x00,0x80,0x00);
-    FCEUSkin.bgColor2  = GS_SETREG_RGBAQ(0x00,0x00,0x00,0x80,0x00);
-    FCEUSkin.bgColor3  = GS_SETREG_RGBAQ(0x00,0x00,0x00,0x80,0x00);
-    FCEUSkin.bgColor4  = GS_SETREG_RGBAQ(0x80,0x00,0x00,0x80,0x00);
+    FCEUSkin.frame     = GS_SETREG_RGBAQ(0xFF, 0xFF, 0xFF, 0x80, 0x00);
+    FCEUSkin.textcolor = GS_SETREG_RGBAQ(0xFF, 0xFF, 0xFF, 0x80, 0x00);
+    FCEUSkin.highlight = GS_SETREG_RGBAQ(0x80, 0x80, 0x40, 0x80, 0x00);
+    FCEUSkin.bgColor1  = GS_SETREG_RGBAQ(0x80, 0x00, 0x00, 0x80, 0x00);
+    FCEUSkin.bgColor2  = GS_SETREG_RGBAQ(0x00, 0x00, 0x00, 0x80, 0x00);
+    FCEUSkin.bgColor3  = GS_SETREG_RGBAQ(0x00, 0x00, 0x00, 0x80, 0x00);
+    FCEUSkin.bgColor4  = GS_SETREG_RGBAQ(0x80, 0x00, 0x00, 0x80, 0x00);
     strcpy(FCEUSkin.bgTexture, "mc0:/FCEUMM/backg.jpg");
     strcpy(FCEUSkin.bgMenu, "mc0:/FCEUMM/strtg.jpg");
 }

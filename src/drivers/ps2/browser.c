@@ -179,7 +179,7 @@ int listcdvd(const char *path, entries *FileEntry) {
         if (TocEntryList[i].fileProperties & 0x02 && (!strcmp(
                 TocEntryList[i].filename, ".") || !strcmp(
                         TocEntryList[i].filename, "..")))
-            continue; //Skip pseudopaths "." and ".."
+            continue; // Skip pseudopaths "." and ".."
 
         FileEntry[t].dircheck = 0;
         strcpy(FileEntry[t].filename, TocEntryList[i].filename);
@@ -283,7 +283,7 @@ int listpfs(char *path, entries *FileEntry, int files_too)
     int dd, n = 0;
     iox_dirent_t buf;
 
-    if (!(strchr(path, '/'))) { //if path is not valid then load default device menu
+    if (!(strchr(path, '/'))) { // If path is not valid then load default device menu
         strcpy(FileEntry[0].displayname, "mc0:");
         strcpy(FileEntry[1].displayname, "mc1:");
         strcpy(FileEntry[2].displayname, "mass:");
@@ -293,7 +293,7 @@ int listpfs(char *path, entries *FileEntry, int files_too)
         strcpy(FileEntry[1].filename, "mc1:/");
         strcpy(FileEntry[2].filename, "mass:/");
         strcpy(FileEntry[3].filename, "hdd0:/");
-        strcpy(FileEntry[4].filename, "cdfs:");
+        strcpy(FileEntry[4].filename, "cdfs:/");
         FileEntry[0].dircheck = 1;
         FileEntry[1].dircheck = 1;
         FileEntry[2].dircheck = 1;
@@ -572,7 +572,7 @@ char* Browser(int files_too, int menu_id)
             else {
                 strcpy(path, browseup(path));
             }
-            if (h != 0 )
+            if (h != 0)
                 h = h - 1;
             selection = history[h];
             oldselect = selection + 1;
@@ -625,7 +625,7 @@ char* Browser(int files_too, int menu_id)
         if (selection != oldselect) {
 
             gsKit_clear(gsGlobal, GS_SETREG_RGBAQ(0x00, 0x00, 0x00, 0x80, 0x00));
-            browser_primitive("FCEUltra PS2 B0.93 [x.2.2]", "Browser", &BG_TEX, menu_x1, menu_y1, menu_x2, menu_y2);
+            browser_primitive("FCEUltra PS2 B0.93 [x.2.3]", "Browser", &BG_TEX, menu_x1, menu_y1, menu_x2, menu_y2);
 
             if (selection > max_item) {
                 list_offset = text_line - (selection - max_item) * FONT_HEIGHT;
@@ -681,7 +681,7 @@ char* Browser(int files_too, int menu_id)
                 else {
                     strcpy(path, browseup(path));
                 }
-                if (h != 0 )
+                if (h != 0)
                     h = h - 1;
                 selection = history[h];
                 oldselect = selection + 1;

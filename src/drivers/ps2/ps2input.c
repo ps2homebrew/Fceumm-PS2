@@ -40,7 +40,7 @@ static void waitPadReady(int port, int slot)
     while ((state != PAD_STATE_DISCONN) && (state != PAD_STATE_STABLE) && (state != PAD_STATE_FINDCTP1)) {
         if (state != lastState) {
             padStateInt2String(state, stateString);
-            printf("Please wait, pad(%d,%d) is in state %s\n", port, slot, stateString);
+            printf("Please wait, pad(%d, %d) is in state %s\n", port, slot, stateString);
         }
         lastState = state;
         state = padGetState(port, slot);
@@ -158,9 +158,9 @@ static unsigned char Get_PS2Input(int mport)
     u16 slot = 0;
 
     if (mtapGetConnectionCached == 1)
-        slot = mport;// Using first port connected multitap, port=0
+        slot = mport; // Using first port connected multitap, port = 0
     else
-        port = mport;// Using first and second gamepad, slot=0
+        port = mport; // Using first and second gamepad, slot = 0
 
     // Check to see if pads are disconnected
     ret[mport] = padGetState(port, slot);
