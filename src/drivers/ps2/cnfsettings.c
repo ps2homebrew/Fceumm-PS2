@@ -175,13 +175,15 @@ void Load_Global_CNF(char *CNF_path_p)
     for (var_cnt = 0; get_CNF_string(&CNF_p, &name, &value); var_cnt++) {
         // A variable was found, now we dispose of its value.
         printf("Found variable \"%s\" with value \"%s\"\r\n", name, value);
-        if (!strcmp(name, "OffsetX"))               { Settings.offset_x  = atoi(value); }
-        else if (!strcmp(name, "OffsetY"))          { Settings.offset_y  = atoi(value); }
-        else if (!strcmp(name, "Display"))          { Settings.display   = atoi(value); }
-        else if (!strcmp(name, "Emulation"))        { Settings.emulation = atoi(value); }
-        else if (!strcmp(name, "Interlace"))        { Settings.interlace = atoi(value); }
-        else if (!strcmp(name, "Filter"))           { Settings.filter    = atoi(value); }
-        else if (!strcmp(name, "Sound"))            { Settings.sound     = atoi(value); }
+        if (!strcmp(name, "OffsetX"))               { Settings.offset_x        = atoi(value); }
+        else if (!strcmp(name, "OffsetY"))          { Settings.offset_y        = atoi(value); }
+        else if (!strcmp(name, "Display"))          { Settings.display         = atoi(value); }
+        else if (!strcmp(name, "Emulation"))        { Settings.emulation       = atoi(value); }
+        else if (!strcmp(name, "Interlace"))        { Settings.interlace       = atoi(value); }
+        else if (!strcmp(name, "Filter"))           { Settings.filter          = atoi(value); }
+        else if (!strcmp(name, "AspectRatio"))      { Settings.aspect_ratio    = atoi(value); }
+        else if (!strcmp(name, "Sound"))            { Settings.sound           = atoi(value); }
+        else if (!strcmp(name, "Palette"))          { Settings.current_palette = atoi(value); }
         else if (!strcmp(name, "Elfpath"))          { strcpy(Settings.elfpath,  value); }
         else if (!strcmp(name, "Savepath"))         { strcpy(Settings.savepath, value); }
         else if (!strcmp(name, "Skinpath"))         { strcpy(Settings.skinpath, value); }
@@ -293,6 +295,11 @@ void Load_Global_CNF(char *CNF_path_p)
     }
 
     // End hdd path mounting
+
+    // If default config is loaded
+    if (!strcmp(CNF_path_p, "mc0:/FCEUMM")) {
+        FCEUI_SetBaseDirectory(Settings.savepath);
+    }
 
     if (strlen(CNF_p))  //Was there any unprocessed CNF remainder ?
         CNF_edited = false;  //false == current settings match CNF file
@@ -416,7 +423,7 @@ void Save_Global_CNF(char *CNF_path_p)
             memcpy(temp4, temp3, strlen(temp3));
             temp3[strlen(temp3)] = 0;
             sprintf(temp1, "hdd0:/%s%s", mpartitions[needed_path[0]], temp4);
-            printf("Savepath: %s\n", temp1);
+            printf("Elfpath: %s\n", temp1);
         }
     }
     if (needed_path[1] > -1) {
@@ -425,7 +432,7 @@ void Save_Global_CNF(char *CNF_path_p)
             memcpy(temp4, temp3, strlen(temp3));
             temp3[strlen(temp3)] = 0;
             sprintf(temp2, "hdd0:/%s%s", mpartitions[needed_path[1]], temp4);
-            printf("Elfpath: %s\n", temp2);
+            printf("Savepath: %s\n", temp2);
         }
     }
     // End hdd path conversion
@@ -446,7 +453,9 @@ void Save_Global_CNF(char *CNF_path_p)
         "Emulation   = %d\r\n"
         "Interlace   = %d\r\n"
         "Filter      = %d\r\n"
+        "AspectRatio = %d\r\n"
         "Sound       = %d\r\n"
+        "Palette     = %d\r\n"
         "Elfpath     = %s\r\n"
         "Savepath    = %s\r\n"
         "Skinpath    = %s\r\n"
@@ -508,7 +517,9 @@ void Save_Global_CNF(char *CNF_path_p)
         Settings.emulation,
         Settings.interlace,
         Settings.filter,
+        Settings.aspect_ratio,
         Settings.sound,
+        Settings.current_palette,
         temp1,
         temp2,
         Settings.skinpath,
@@ -575,26 +586,53 @@ void Save_Global_CNF(char *CNF_path_p)
     free(CNF_p);
 
     if (*temp1)
-        strcpy(Settings.savepath, temp1);
+        strcpy(Settings.elfpath, temp1);
 
-    if (*temp2)
-        strcpy(Settings.elfpath, temp2);
+    if (*temp2) {
+        strcpy(Settings.savepath, temp2);
+        // Copy-paste
+        char partpath[1024];
+        char *temp1;
+        if (!strncmp(Settings.savepath, "hdd0:/", 6)) {
+
+            temp1 = strchr(Settings.savepath, '/');
+            temp1++;
+
+            // All my paths have two /'s
+            while (*temp1 != '/') { temp1++; }
+
+            needed_path[1] = mountPartition(Settings.savepath);
+
+            if (needed_path[1] == -1) {
+                strcpy(Settings.savepath, "mc0:/FCEUMM/");
+            }
+            else {
+                sprintf(partpath, "pfs%d:", needed_path[1]);
+
+                sprintf(partpath, "%s%s", partpath, temp1);
+                strcpy(Settings.savepath, partpath);
+
+                printf("partpath: %s\n", Settings.savepath);
+            }
+        }
+        FCEUI_SetBaseDirectory(Settings.savepath);
+    }
 
 
 }  // Ends Save_Global_CNF
 
 void Default_Global_CNF()
 {
-    Settings.aspect_ratio     = 0; // Full Screen
-    Settings.input_4p_adaptor = 0; // False
-    Settings.current_palette  = 1; // 1 - First
     Settings.offset_x         = 0;
     Settings.offset_y         = 0;
-    Settings.interlace        = 1; // True
-    Settings.filter           = 0; // False
-    Settings.sound            = 2; // 22050Hz
     Settings.display          = 0; // NTSC
     Settings.emulation        = 0; // NTSC
+    Settings.interlace        = 1; // True
+    Settings.filter           = 0; // False
+    Settings.aspect_ratio     = 0; // Full Screen
+    Settings.sound            = 2; // 22050Hz
+    Settings.input_4p_adaptor = 0; // False
+    Settings.current_palette  = 0; // 0 - Default
     strcpy(Settings.elfpath,  "mc0:/BOOT/BOOT.ELF");
     strcpy(Settings.savepath, "mc0:/FCEUMM/");
     strcpy(Settings.skinpath, "mc0:/FCEUMM/skin.cnf");
