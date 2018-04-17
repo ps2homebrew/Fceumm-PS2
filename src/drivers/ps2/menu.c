@@ -31,7 +31,7 @@ extern char partitions[4][256];
 extern u8 h;
 
 // Palette for FCEU
-#define MAXPAL 29
+#define MAXPAL (29 + 1)
 struct st_palettes {
     char name[32];
     char desc[32];
@@ -582,7 +582,10 @@ void Ingame_Menu()
             case 8:
                 break;
             case 13:
-                strcpy(options_state[i], palettes[Settings.current_palette - 1].desc);
+                if (Settings.current_palette == 0)
+                    strcpy(options_state[i], "Default (FCEU)");
+                else
+                    strcpy(options_state[i], palettes[Settings.current_palette - 1].desc);
                 break;
         }
     }
@@ -711,8 +714,11 @@ void Ingame_Menu()
                     return;
                 case 13:
                     Settings.current_palette++;
-                    if (Settings.current_palette > MAXPAL) { Settings.current_palette = 1; }
-                    strcpy(options_state[i], palettes[Settings.current_palette - 1].desc);
+                    if (Settings.current_palette >= MAXPAL) { Settings.current_palette = 0; }
+                    if (Settings.current_palette == 0)
+                        strcpy(options_state[i], "Default (FCEU)");
+                    else
+                        strcpy(options_state[i], palettes[Settings.current_palette - 1].desc);
                     SetupNESClut();
                     option_changed = 1;
                     break;

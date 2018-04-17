@@ -7,15 +7,15 @@ struct pcpal {
     unsigned char g;
     unsigned char b;
 } pcpalette[256];
-extern unsigned int ps2palette[256];
+//extern unsigned int ps2palette[256];
 
-//main
+// Main
 FILE *FCEUD_UTF8fopen(const char *fn, const char *mode)
 {
-    return(fopen(fn,mode));
+    return(fopen(fn, mode));
 }
 
-//Functions to display messages differently
+// Functions to display messages differently
 void FCEUD_PrintError(char *s)
 {
     printf("Error %s", s);
@@ -31,16 +31,16 @@ void FCEUD_SetEmulationSpeed(int cmd)
     printf("SetEmulationSpeed not implemented.\n");
 }
 
-//Sound related functions
-//could be implemented, but no real reason to
-static int soundvolume=1024;
+// Sound related functions
+// could be implemented, but no real reason to
+static int soundvolume = 1024;
 void FCEUD_SoundVolumeAdjust(int adjust)
 {
     switch(adjust)
     {
-    case -1: soundvolume-=50; if(soundvolume<0) soundvolume=0; break; //lower volume
-    case  0: soundvolume=1024; break;
-    case  1: soundvolume+=50; if(soundvolume>1024) soundvolume=1024; break; //raise volume
+    case -1: soundvolume -=  50; if (soundvolume <    0) soundvolume =    0; break; // Lower volume
+    case  0: soundvolume = 1024; break;
+    case  1: soundvolume +=  50; if (soundvolume > 1024) soundvolume = 1024; break; // Raise volume
     }
     FCEUI_SetSoundVolume(soundvolume);
     FCEU_DispMessage("Sound volume %d.", soundvolume);
@@ -49,21 +49,19 @@ void FCEUD_SoundVolumeAdjust(int adjust)
 int mute = 0;
 void FCEUD_SoundToggle(void)
 {
-    if(mute)
-    {
-        mute=0;
+    if (mute) {
+        mute = 0;
         FCEUI_SetSoundVolume(soundvolume);
         FCEU_DispMessage("Sound mute off.");
     }
-    else
-    {
-        mute=1;
+    else {
+        mute = 1;
         FCEUI_SetSoundVolume(0);
         FCEU_DispMessage("Sound mute on.");
     }
 }
 
-//Network
+// Network
 int FCEUD_SendData(void *data, uint32 len)
 {
     printf("Send Network Data");
@@ -86,7 +84,7 @@ void FCEUD_NetplayText(uint8 *text)
     printf("Network Text");
 }
 
-//Video
+// Video
 void FCEUD_SetPalette(uint8 index, uint8 r, uint8 g, uint8 b)
 {
     pcpalette[index].r = r;
@@ -102,8 +100,8 @@ void FCEUD_GetPalette(uint8 i,uint8 *r, uint8 *g, uint8 *b)
 }
 
 
-#define DUMMY(f) void f(void) {FCEU_DispMessage("Not implemented.");}
-//#define DUMMY(f) void f(void) {;}; //was getting the message above, but seems to have disappeared
+#define DUMMY(f) void f(void) { FCEU_DispMessage("Not implemented."); }
+//#define DUMMY(f) void f(void) {;}; // Was getting the message above, but seems to have disappeared
 DUMMY(FCEUD_HideMenuToggle)
 DUMMY(FCEUD_TurboOn)
 DUMMY(FCEUD_TurboOff)
@@ -114,6 +112,6 @@ DUMMY(FCEUD_MovieReplayFrom)
 DUMMY(FCEUD_ToggleStatusIcon)
 DUMMY(FCEUD_AviRecordTo)
 DUMMY(FCEUD_AviStop)
-void FCEUI_AviVideoUpdate(const unsigned char* buffer) {/*FCEU_DispMessage("Not implemented.");*/}
-int FCEUD_ShowStatusIcon(void) {/*FCEU_DispMessage("Not implemented.");*/ return 0; }
-int FCEUI_AviIsRecording(void) {return 0;}
+void FCEUI_AviVideoUpdate(const unsigned char* buffer) { /*FCEU_DispMessage("Not implemented.");*/ }
+int FCEUD_ShowStatusIcon(void) { /*FCEU_DispMessage("Not implemented.");*/ return 0; }
+int FCEUI_AviIsRecording(void) { return 0; }
