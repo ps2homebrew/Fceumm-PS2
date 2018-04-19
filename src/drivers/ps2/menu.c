@@ -241,10 +241,10 @@ int Browser_Menu()
     oldselect = -1;
     int option_changed = 0;
 
-    int menu_x1 = gsGlobal->Width*0.25;
-    int menu_y1 = gsGlobal->Height*0.15;
-    int menu_x2 = gsGlobal->Width*0.75;
-    int menu_y2 = gsGlobal->Height*0.85 + FONT_HEIGHT;
+    int menu_x1 = gsGlobal->Width  * 0.25;
+    int menu_y1 = gsGlobal->Height * 0.15;
+    int menu_x2 = gsGlobal->Width  * 0.75;
+    int menu_y2 = gsGlobal->Height * 0.85 + FONT_HEIGHT;
     int text_line = menu_y1 + 4;
 
     char options[12][32] = {
@@ -515,6 +515,8 @@ extern void SetupNESClut();
 extern void SND_SetNextSampleRate();
 extern  int SND_GetCurrSampleRate();
 
+void Ingame_Menu_Controls();
+
 void Ingame_Menu()
 {
     int i, selection = 0;
@@ -522,10 +524,10 @@ void Ingame_Menu()
 
     int option_changed = 0;
 
-    int menu_x1 = gsGlobal->Width*0.25;
-    int menu_y1 = gsGlobal->Height*0.15;
-    int menu_x2 = gsGlobal->Width*0.75;
-    int menu_y2 = gsGlobal->Height*0.85 + FONT_HEIGHT;
+    int menu_x1 = gsGlobal->Width  * 0.25;
+    int menu_y1 = gsGlobal->Height * 0.15;
+    int menu_x2 = gsGlobal->Width  * 0.75;
+    int menu_y2 = gsGlobal->Height * 0.85 + FONT_HEIGHT;
 
     int text_line = menu_y1 + 4;
 
@@ -537,7 +539,7 @@ void Ingame_Menu()
         { "Aspect Ratio: "},
         { "Sound: " },
         { "4-Players Adaptor: " },
-        { "---" },
+        { "Configure Input >" },
         { "---" },
         { "Reset Game" },
         { "Exit Game" },
@@ -554,10 +556,10 @@ void Ingame_Menu()
                 sprintf(options_state[i], "%d", statenum);
                 break;
             case 3:
-                if (!Settings.filter)
-                    strcpy(options_state[i], "Off");
-                else
+                if (Settings.filter)
                     strcpy(options_state[i], "On");
+                else
+                    strcpy(options_state[i], "Off");
                 break;
             case 4:
                 if (Settings.aspect_ratio == 0)
@@ -572,10 +574,10 @@ void Ingame_Menu()
                     sprintf(options_state[i], "%dHz", SND_GetCurrSampleRate());
                 break;
             case 6:
-                if (!Settings.input_4p_adaptor)
-                    strcpy(options_state[i], "Off");
-                else
+                if (Settings.input_4p_adaptor)
                     strcpy(options_state[i], "On");
+                else
+                    strcpy(options_state[i], "Off");
                 break;
             case 7:
                 break;
@@ -696,6 +698,7 @@ void Ingame_Menu()
                     option_changed = 1;
                     break;
                 case 7:
+                    Ingame_Menu_Controls();
                     break;
                 case 8:
                     break;
@@ -722,6 +725,214 @@ void Ingame_Menu()
                     SetupNESClut();
                     option_changed = 1;
                     break;
+            }
+        }
+    }
+}
+
+int menu_input_controls(int port, int is_changing_button, u32 *new_button)
+{
+    int ret[2];
+    u32 paddata[2];
+    u32 new_pad[2];
+    u16 slot = 0;
+
+    int change = 0;
+
+    // Check to see if pads are disconnected
+    ret[port] = padGetState(0, slot);
+    if ((ret[port] != PAD_STATE_STABLE) && (ret[port] != PAD_STATE_FINDCTP1)) {
+        if (ret[port] == PAD_STATE_DISCONN) {
+            printf("Pad(%d, %d) is disconnected\n", 0, slot);
+        }
+        ret[port] = padGetState(0, slot);
+    }
+    ret[port] = padRead(0, slot, &buttons[port]); // port, slot, buttons
+    if (ret[port] != 0) {
+        paddata[port]= 0xffff ^ buttons[port].btns;
+        new_pad[port] = paddata[port] & ~old_pad[port]; // Buttons pressed AND NOT buttons previously pressed
+        old_pad[port] = paddata[port];
+
+        if (new_pad[port]) {
+            if (is_changing_button) {
+                *new_button = new_pad[port];
+                selected = 1;
+            }
+            else {
+                if (new_pad[port] & PAD_DOWN) {
+                    change = 1;
+                }
+                if (new_pad[port] & PAD_UP) {
+                    change = -1;
+                }
+                if (new_pad[port] & PAD_CIRCLE) {
+                    selected = 1;
+                }
+                if ((new_pad[port] == Settings.PlayerInput[port][0]
+                || new_pad[port] == PAD_TRIANGLE)) {
+                    selected = 2;
+                }
+            }
+        }
+    }
+    return change;
+}
+
+void padbuttonToStr(u16 button, char button_name[9])
+{
+    if (button == 0) {
+        strcpy(button_name, "---");
+        return;
+    }
+    int i;
+    for (i = 0; i < 16; i++) {
+        if (button & (1 << i)) {
+            break;
+        }
+    }
+    char *buttons[16] = {
+        "Select", "L3"   , "R3"  , "Start",
+        "Up       \xFF""=",
+        "Right    \xFF"":",
+        "Down     \xFF"";",
+        "Left     \xFF""<" ,
+        "L2"    , "R2"   , "L1"  , "R1"   ,
+        "Triangle \xFF""3",
+        "Circle   \xFF""0",
+        "Cross    \xFF""1",
+        "Square   \xFF""2"
+    };
+    strcpy(button_name, buttons[i]);
+}
+
+#define CONTROLS_N 12
+#define CONTROLS_OFFSET 2
+
+void Ingame_Menu_Controls()
+{
+    int i, b, selection = 0;
+    oldselect = -1;
+
+    int option_changed = 0;
+
+    int menu_x1 = gsGlobal->Width  * 0.25;
+    int menu_y1 = gsGlobal->Height * 0.15;
+    int menu_x2 = gsGlobal->Width  * 0.75;
+    int menu_y2 = gsGlobal->Height * 0.85 + FONT_HEIGHT;
+
+    int text_line = menu_y1 + 4;
+
+    char options[CONTROLS_N][32] = {
+        { "< Back" },
+        { "Player: "},
+        { "Joy A       | " },
+        { "Joy B       | " },
+        { "Joy Select  | " },
+        { "Joy Start   | " },
+        { "Joy Up      | " },
+        { "Joy Down    | " },
+        { "Joy Left    | " },
+        { "Joy Right   | " },
+        { "Joy Turbo A | " },
+        { "Joy Turbo B | " }
+    };
+
+    char options_state[CONTROLS_N][16] = { { 0 } };
+
+    int player = 0;
+    int is_changing_button = 0;
+    u32 new_button = 0;
+
+    strcpy(options_state[1], "1");
+    for (i = 0; i < 10; i++) {
+        padbuttonToStr(Settings.PlayerInput[player][i + 5], options_state[i + CONTROLS_OFFSET]);
+    }
+
+    while (1) {
+        selected = 0; // Clear selected flag
+        selection += menu_input_controls(0, is_changing_button, &new_button);
+
+        if (selection >= CONTROLS_N) { selection =  0; }
+        if (selection < 0) { selection = CONTROLS_N - 1; }
+
+        if (oldselect != selection || option_changed) {
+            i = 0x10000;
+            while (i--) asm("nop\nnop\nnop\nnop");
+            gsKit_queue_reset(gsGlobal->Os_Queue);
+
+            option_changed = 0;
+
+            menu_primitive("Controls", &MENU_TEX, menu_x1, menu_y1, menu_x2, menu_y2);
+
+            for (i = 0; i < CONTROLS_N; i++) {
+                char buffer[32+16];
+                strcpy(buffer, options[i]);
+                strcat(buffer, options_state[i]);
+                if (selection == i) {
+                    //font_print(gsGlobal, menu_x1+10.0f, text_line + i*FONT_HEIGHT, 2, DarkYellowFont, options[i]);
+                    printXY(buffer, menu_x1+10, text_line + i*FONT_HEIGHT, 4, FCEUSkin.highlight, 1, 0);
+                }
+                else {
+                    //font_print(gsGlobal, menu_x1+10.0f, text_line + i*FONT_HEIGHT, 2, WhiteFont, options[i]);
+                    printXY(buffer, menu_x1+10, text_line + i*FONT_HEIGHT, 4, FCEUSkin.textcolor, 1, 0);
+                }
+            }
+
+            DrawScreen(gsGlobal);
+        }
+
+        oldselect = selection;
+
+        if (selected) {
+            if (selected == 2) { // Menu combo pressed again
+                return;
+            }
+            i = selection;
+
+            if (i == 0) {
+                return;
+            }
+            else if (i == 1) {
+                player++;
+                if (player >= 4) {
+                    player = 0;
+                }
+                sprintf(options_state[i], "%d", player + 1);
+                for (b = 0; b < 10; b++) {
+                    padbuttonToStr(Settings.PlayerInput[player][b + 5], options_state[b + CONTROLS_OFFSET]);
+                }
+                option_changed = 1;
+            }
+            else {
+                if (!is_changing_button) {
+                    strcpy(options_state[i], "<Press Button>");
+                }
+                else {
+                    i -= CONTROLS_OFFSET;
+
+                    // Skip special buttons
+                    int is_safe = 1;
+                    for (b = 0; b < 5 && player == 0; b++) {
+                        if (Settings.PlayerInput[0][b] == (u16)new_button) {
+                            is_safe = 0;
+                            break;
+                        }
+                    }
+                    if (is_safe) {
+                        Settings.PlayerInput[player][i + 5] = (u16)new_button;
+                        // Resolve conflict
+                        for (b = 0; b < 10; b++) {
+                            if (b != i && Settings.PlayerInput[player][i + 5] == Settings.PlayerInput[player][b + 5]) {
+                                Settings.PlayerInput[player][b + 5] = 0;
+                                padbuttonToStr(0, options_state[b + CONTROLS_OFFSET]);
+                                break;
+                            }
+                        }
+                    }
+                    padbuttonToStr(Settings.PlayerInput[player][i + 5], options_state[i + CONTROLS_OFFSET]);
+                }
+                is_changing_button ^= 1;
+                option_changed = 1;
             }
         }
     }
