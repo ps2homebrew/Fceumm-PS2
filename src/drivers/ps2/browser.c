@@ -40,15 +40,22 @@ int oldselect = -1;
 s8 selected = 0;
 u8 selected_dir = 0;
 extern int FONT_HEIGHT;
+extern int FONT_WIDTH;
 char path[4096] = "path";
 int needed_path[2] = { -1, -1 };
 char mpartitions[4][256];
 u16 history[20]; // 20 levels should be enough
 u8 h = 0;
+int first_file_index;
 
 extern int Browser_Menu();
 
 static inline char* strzncpy(char *d, const char *s, size_t l) { d[0] = 0; return strncat(d, s, l); }
+
+int comp_entries_by_filename(const void *elem1, const void *elem2)
+{
+    return strcmp(((entries*)elem1)->filename, ((entries*)elem2)->filename);
+}
 
 char* browseup(char *path)
 {
@@ -253,7 +260,9 @@ int listdir(char *path, entries *FileEntry, int files_too)
                 fioDclose(dd);
                 printf("Directory closed!\n");
             }
+            qsort(FileEntry, n, sizeof(entries), comp_entries_by_filename);
             if (files_too) {
+                first_file_index = n;
                 dd = 0;
                 dd = fioDopen(path);
                 while (fioDread(dd, &buf) > 0) {
@@ -269,6 +278,7 @@ int listdir(char *path, entries *FileEntry, int files_too)
                     fioDclose(dd);
                     printf("Directory closed!\n");
                 }
+                qsort(FileEntry + first_file_index, n - first_file_index, sizeof(entries), comp_entries_by_filename);
             }
 
         }
@@ -333,7 +343,9 @@ int listpfs(char *path, entries *FileEntry, int files_too)
                 fileXioDclose(dd);
                 printf("Directory closed!\n");
             }
+            qsort(FileEntry, n, sizeof(entries), comp_entries_by_filename);
             if (files_too) {
+                first_file_index = n;
                 dd = 0;
                 dd = fileXioDopen(path);
                 while (fileXioDread(dd, &buf) > 0) {
@@ -349,6 +361,7 @@ int listpfs(char *path, entries *FileEntry, int files_too)
                     fileXioDclose(dd);
                     printf("Directory closed!\n");
                 }
+                qsort(FileEntry + first_file_index, n - first_file_index, sizeof(entries), comp_entries_by_filename);
             }
         }
     }
@@ -587,6 +600,7 @@ char* Browser(int files_too, int menu_id)
 
         // List files below
         if (strcmp(path, oldpath) != 0) {
+            first_file_index = 2048;
             if (!strncmp(path, "hdd0:/", 6)) {
                 if (!strcmp(path, "hdd0:/")) { // hdd0: selected so list partitions
                     n = listpartitions(FileEntry);
@@ -625,7 +639,7 @@ char* Browser(int files_too, int menu_id)
         if (selection != oldselect) {
 
             gsKit_clear(gsGlobal, GS_SETREG_RGBAQ(0x00, 0x00, 0x00, 0x80, 0x00));
-            browser_primitive("FCEUltra PS2 B0.93 [x.2.4]", "Browser", &BG_TEX, menu_x1, menu_y1, menu_x2, menu_y2);
+            browser_primitive("FCEUltra PS2 B0.93 [x.3.0]", "Browser", &BG_TEX, menu_x1, menu_y1, menu_x2, menu_y2);
 
             if (selection > max_item) {
                 list_offset = text_line - (selection - max_item) * FONT_HEIGHT;
@@ -640,11 +654,22 @@ char* Browser(int files_too, int menu_id)
                 if (i*16+list_offset < text_line) {
                     continue;
                 }
-                if (i == selection) {
-                    printXY(FileEntry[i].displayname, menu_x1+10, i*16+list_offset, 2, FCEUSkin.highlight, 1, 0);
+
+                // Draw folder/file icons
+                if (i < first_file_index) {
+                    drawChar(0x11C, menu_x1+10, i*16+list_offset, 4, GS_SETREG_RGBA(96, 96, 0, 0));
+                    drawChar(0x11C + 1, menu_x1+10 + FONT_WIDTH, i*16+list_offset, 4, GS_SETREG_RGBA(96, 96, 0, 0));
                 }
                 else {
-                    printXY(FileEntry[i].displayname, menu_x1+10, i*16+list_offset, 2, FCEUSkin.textcolor, 1, 0);
+                    drawChar(0x120, menu_x1+10, i*16+list_offset, 4, GS_SETREG_RGBA(224, 224, 224, 0));
+                    drawChar(0x120 + 1, menu_x1+10 + FONT_WIDTH, i*16+list_offset, 4, GS_SETREG_RGBA(224, 224, 224, 0));
+                }
+
+                if (i == selection) {
+                    printXY(FileEntry[i].displayname, menu_x1+10 + FONT_WIDTH*2, i*16+list_offset, 2, FCEUSkin.highlight, 1, 0);
+                }
+                else {
+                    printXY(FileEntry[i].displayname, menu_x1+10 + FONT_WIDTH*2, i*16+list_offset, 2, FCEUSkin.textcolor, 1, 0);
                 }
             }
 

@@ -29,7 +29,7 @@ extern vars Settings;
 int defaultx;
 int defaulty;
 
-//input
+// Input
 #define NEW_PADMAN
 #include <libpad.h>
 #include <libmtap.h>
@@ -44,7 +44,7 @@ extern unsigned int size_freemtap_irx;
 extern unsigned char freepad_irx;
 extern unsigned int size_freepad_irx;
 
-//video
+// Video
 GSGLOBAL *gsGlobal;
 
 extern unsigned char poweroff_irx;
@@ -82,17 +82,17 @@ void SetupGSKit()
     /* detect and set screentype */
     //gsGlobal = gsKit_init_global(GS_MODE_PAL);
     //gsGlobal = gsKit_init_global_custom(GS_RENDER_QUEUE_OS_POOLSIZE+GS_RENDER_QUEUE_OS_POOLSIZE/2, GS_RENDER_QUEUE_PER_POOLSIZE+GS_RENDER_QUEUE_PER_POOLSIZE/2);
-    if(gsGlobal!=NULL) gsKit_deinit_global(gsGlobal);
-    gsGlobal=gsKit_init_global();
+    if (gsGlobal != NULL) gsKit_deinit_global(gsGlobal);
+    gsGlobal = gsKit_init_global();
 
-    //gsGlobal->Height = 512;//no need for it
+    //gsGlobal->Height = 512; // No need for it
 
     defaultx = gsGlobal->StartX;
     defaulty = gsGlobal->StartY;
 
     /* initialize dmaKit */
-    //dmaKit_init(D_CTRL_RELE_OFF,D_CTRL_MFD_OFF, D_CTRL_STS_UNSPEC, D_CTRL_STD_OFF, D_CTRL_RCYC_8);
-    dmaKit_init(D_CTRL_RELE_OFF,D_CTRL_MFD_OFF, D_CTRL_STS_UNSPEC, D_CTRL_STD_OFF, D_CTRL_RCYC_8, 1 << DMA_CHANNEL_GIF);
+    //dmaKit_init(D_CTRL_RELE_OFF, D_CTRL_MFD_OFF, D_CTRL_STS_UNSPEC, D_CTRL_STD_OFF, D_CTRL_RCYC_8);
+    dmaKit_init(D_CTRL_RELE_OFF, D_CTRL_MFD_OFF, D_CTRL_STS_UNSPEC, D_CTRL_STD_OFF, D_CTRL_RCYC_8, 1 << DMA_CHANNEL_GIF);
 
     dmaKit_chan_init(DMA_CHANNEL_GIF);
     dmaKit_chan_init(DMA_CHANNEL_FROMSPR);
@@ -101,9 +101,9 @@ void SetupGSKit()
     gsGlobal->DoubleBuffering = GS_SETTING_OFF;
     gsGlobal->ZBuffering      = GS_SETTING_OFF;
 
-    //640x448, ntsc, tv
-    //640x512, pal, tv
-    //gsGlobal->Width  = 640;//no need for it
+    // 640x448, ntsc, tv
+    // 640x512, pal, tv
+    //gsGlobal->Width  = 640; // No need for it
 
 }
 
@@ -114,9 +114,9 @@ void InitPS2()
     static char pfsarg[] = "-m" "\0" "4" "\0" "-o" "\0" "10" "\0" "-n" "\0" "40";
 
     SifInitRpc(0);
-    //Reset IOP borrowed from uLaunchelf
-    while(!SifIopReset(NULL, 0)){};
-    while(!SifIopSync()){};
+    // Reset IOP borrowed from uLaunchelf
+    while (!SifIopReset(NULL, 0)){};
+    while (!SifIopSync()){};
     SifInitRpc(0);
 
     sbv_patch_enable_lmb();
@@ -145,16 +145,16 @@ void InitPS2()
     SifExecModuleBuffer(&SMSUTILS_irx, size_SMSUTILS_irx, 0, NULL, NULL);
     SifExecModuleBuffer(&usbd_irx, size_usbd_irx, 0, NULL, NULL);
     SifExecModuleBuffer(&usbhdfsd_irx, size_usbhdfsd_irx, 0, NULL, NULL);
-    for (i  = 0; i < 3; i++) { //taken from ulaunchelf
+    for (i = 0; i < 3; i++) { // Taken from ulaunchelf
         sometime = 0x01000000;
-        while(sometime--) asm("nop\nnop\nnop\nnop");
+        while (sometime--) asm("nop\nnop\nnop\nnop");
     }
 
     SifExecModuleBuffer(&poweroff_irx, size_poweroff_irx, 0, NULL, NULL);
     SifExecModuleBuffer(&ps2dev9_irx, size_ps2dev9_irx, 0, NULL, NULL);
     SifExecModuleBuffer(&ps2atad_irx, size_ps2atad_irx, 0, NULL, NULL);
-    SifExecModuleBuffer(&ps2hdd_irx, size_ps2hdd_irx,sizeof(hddarg), hddarg, NULL);
-    SifExecModuleBuffer(&ps2fs_irx, size_ps2fs_irx,sizeof(pfsarg), pfsarg, NULL);
+    SifExecModuleBuffer(&ps2hdd_irx, size_ps2hdd_irx, sizeof(hddarg), hddarg, NULL);
+    SifExecModuleBuffer(&ps2fs_irx, size_ps2fs_irx, sizeof(pfsarg), pfsarg, NULL);
 
     mcInit(MC_TYPE_XMC);
 
@@ -193,8 +193,8 @@ void normalize_screen()
 
 void init_custom_screen()
 {
-    //init real non-interlaced mode
-    if(Settings.display) {
+    // Init real non-interlaced mode
+    if (Settings.display) {
         gsGlobal->Mode = GS_MODE_PAL;
         gsGlobal->Height = 512;
         defaulty = 72;
@@ -210,15 +210,15 @@ void init_custom_screen()
     gsGlobal->StartX = defaultx + Settings.offset_x;
     gsGlobal->StartY = defaulty + Settings.offset_y;
 
-    if(!Settings.interlace) {
+    if (!Settings.interlace) {
         gsGlobal->Interlace = GS_NONINTERLACED;
-        gsGlobal->Height = gsGlobal->Height /2;
-        gsGlobal->StartY = gsGlobal->StartY/2 + 1;
+        gsGlobal->Height = gsGlobal->Height / 2;
+        gsGlobal->StartY = gsGlobal->StartY / 2 + 1;
     }
     //else if (gsGlobal->Mode == GS_MODE_NTSC)
         //gsGlobal->StartY = gsGlobal->StartY + 22;
 
-//    SetGsCrt(gsGlobal->Interlace,gsGlobal->Mode,gsGlobal->Field);
+//    SetGsCrt(gsGlobal->Interlace, gsGlobal->Mode, gsGlobal->Field);
     gsKit_init_screen(gsGlobal); /* Apply settings. */
     gsKit_mode_switch(gsGlobal, GS_ONESHOT);
 
@@ -231,7 +231,7 @@ void DrawScreen(GSGLOBAL *gsGlobal)
     int i;
 
     i = 0x10000;
-    while(i--) asm("nop\nnop\nnop\nnop");
+    while (i--) asm("nop\nnop\nnop\nnop");
 
     gsKit_sync_flip(gsGlobal);
 

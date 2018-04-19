@@ -14,6 +14,7 @@ extern skin FCEUSkin;
 extern u8 partitions[2];
 char mpartitions[4][256];
 int FONT_HEIGHT = 16;
+int FONT_WIDTH = 8;
 /************************************/
 /* FCEUltra Variables               */
 /************************************/

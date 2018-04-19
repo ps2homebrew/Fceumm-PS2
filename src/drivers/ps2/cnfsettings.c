@@ -635,6 +635,7 @@ void Default_Global_CNF()
     Settings.current_palette  = 0; // 0 - Default
     strcpy(Settings.elfpath,  "mc0:/BOOT/BOOT.ELF");
     strcpy(Settings.savepath, "mc0:/FCEUMM/");
+    FCEUI_SetBaseDirectory(Settings.savepath);
     strcpy(Settings.skinpath, "mc0:/FCEUMM/skin.cnf");
 
     int player;

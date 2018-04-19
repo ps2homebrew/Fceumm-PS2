@@ -12,21 +12,26 @@ u8        *FontBuffer;
 
 extern unsigned char font_uLE[];
 enum {
-//0x100-0x109 are 5 double width characters for D-Pad buttons, which are accessed as:
-//"ÿ0"==Circle  "ÿ1"==Cross  "ÿ2"==Square  "ÿ3"==Triangle  "ÿ4"==filled Square
-	RIGHT_CUR = 0x10A, //Triangle pointing left, for use to the right of an item
-	LEFT_CUR  = 0x10B, //Triangle pointing right, for use to the left of an item
-	UP_ARROW  = 0x10C, //Arrow pointing up
-	DN_ARROW  = 0x10D, //Arrow pointing up
-	LT_ARROW  = 0x10E, //Arrow pointing up
-	RT_ARROW  = 0x10F, //Arrow pointing up
-	TEXT_CUR  = 0x110, //Vertical bar, for use between two text characters
-	UL_ARROW  = 0x111, //Arrow pointing up and to the left, from a vertical start.
-	BR_SPLIT  = 0x112, //Splits rectangle from BL to TR with BR portion filled
-	BL_SPLIT  = 0x113, //Splits rectangle from TL to BR with BL portion filled
-//0x114-0x11B are 4 double width characters for D-Pad buttons, which are accessed as:
-//"ÿ:"==Right  "ÿ;"==Down  "ÿ<"==Left  "ÿ="==Up
-	FONT_COUNT= 0x11C  //Total number of characters in font
+    //0x100-0x109 are 5 double width characters for D-Pad buttons, which are accessed as:
+    //"ï¿½0"==Circle  "ï¿½1"==Cross  "ï¿½2"==Square  "ï¿½3"==Triangle  "ï¿½4"==filled Square
+    RIGHT_CUR = 0x10A, //Triangle pointing left, for use to the right of an item
+    LEFT_CUR  = 0x10B, //Triangle pointing right, for use to the left of an item
+    UP_ARROW  = 0x10C, //Arrow pointing up
+    DN_ARROW  = 0x10D, //Arrow pointing up
+    LT_ARROW  = 0x10E, //Arrow pointing up
+    RT_ARROW  = 0x10F, //Arrow pointing up
+    TEXT_CUR  = 0x110, //Vertical bar, for use between two text characters
+    UL_ARROW  = 0x111, //Arrow pointing up and to the left, from a vertical start.
+    BR_SPLIT  = 0x112, //Splits rectangle from BL to TR with BR portion filled
+    BL_SPLIT  = 0x113, //Splits rectangle from TL to BR with BL portion filled
+                       //0x114-0x11B are 4 double width characters for D-Pad buttons, which are accessed as:
+                       //"ï¿½:"==Right  "ï¿½;"==Down  "ï¿½<"==Left  "ï¿½="==Up
+                       //0x11C-0x123 are 4 doubled characters used as normal/marked folder/file icons
+    ICON_FOLDER = 0x11C,
+    ICON_M_FOLDER = 0x11E,
+    ICON_FILE = 0x120,
+    ICON_M_FILE = 0x122,
+	FONT_COUNT = 0x124 //Total number of characters in font
 };
 
 /*GSTEXTURE FONT_TEX;
@@ -147,127 +152,132 @@ void font_print(GSGLOBAL *gsGlobal, float X, float Y, int Z, unsigned long color
 
 int loadFont(char *path_arg)
 {
-/*	int fd;
+/*    int fd;
 
-	if(strlen(path_arg) != 0 ){
-	char FntPath[1025];
-	genFixPath(path_arg, FntPath);
-	fd = genOpen( FntPath, O_RDONLY );
-		if(fd < 0){
-			genClose( fd );
-			goto use_default;
-		} // end if failed open file
-		genLseek( fd, 0, SEEK_SET );
-		if(genLseek( fd, 0, SEEK_END ) > 4700){
-			genClose( fd );
-			goto use_default;
-		}
-		genLseek( fd, 0, SEEK_SET );
-		u8 FontHeader[100];
-		genRead( fd, FontHeader, 100 );
-		if((FontHeader[ 0]==0x00) &&
-		   (FontHeader[ 1]==0x02) &&
-		   (FontHeader[70]==0x60) &&
-		   (FontHeader[72]==0x60) &&
-		   (FontHeader[83]==0x90)){
-			genLseek( fd, 1018, SEEK_SET );
-			if(FontBuffer)
-				free(FontBuffer);
-			FontBuffer = malloc( 4096 + 1 );
-			genRead( fd, FontBuffer+32*16, 3584 ); // First 32 Chars Are Not Present In .fnt Files
-			genClose( fd );
-			free(FontHeader);
-			return 1;
-		}else{ // end if good fnt file
-			genClose( fd );
-			free(FontHeader);
-			goto use_default;
-		} // end else bad fnt file
-	}else{ // end if external font file*/
+    if(strlen(path_arg) != 0 ){
+    char FntPath[1025];
+    genFixPath(path_arg, FntPath);
+    fd = genOpen( FntPath, O_RDONLY );
+        if(fd < 0){
+            genClose( fd );
+            goto use_default;
+        } // end if failed open file
+        genLseek( fd, 0, SEEK_SET );
+        if(genLseek( fd, 0, SEEK_END ) > 4700){
+            genClose( fd );
+            goto use_default;
+        }
+        genLseek( fd, 0, SEEK_SET );
+        u8 FontHeader[100];
+        genRead( fd, FontHeader, 100 );
+        if((FontHeader[ 0]==0x00) &&
+           (FontHeader[ 1]==0x02) &&
+           (FontHeader[70]==0x60) &&
+           (FontHeader[72]==0x60) &&
+           (FontHeader[83]==0x90)){
+            genLseek( fd, 1018, SEEK_SET );
+            if(FontBuffer)
+                free(FontBuffer);
+            FontBuffer = malloc( 4096 + 1 );
+            genRead( fd, FontBuffer+32*16, 3584 ); // First 32 Chars Are Not Present In .fnt Files
+            genClose( fd );
+            free(FontHeader);
+            return 1;
+        }else{ // end if good fnt file
+            genClose( fd );
+            free(FontHeader);
+            goto use_default;
+        } // end else bad fnt file
+    }else{ // end if external font file*/
 //use_default:
-		if(FontBuffer)
-			free(FontBuffer);
-		FontBuffer = malloc( 4096 + 1 );
-		memcpy( FontBuffer, &font_uLE, 4096 );
-	//} // end else build-in font
-	return 0;
+        if(FontBuffer)
+            free(FontBuffer);
+        FontBuffer = malloc(4096 + 1);
+        memcpy(FontBuffer, &font_uLE, 4096);
+    //} // end else build-in font
+    return 0;
 }
 
 void drawChar(unsigned int c, int x, int y, int z, u64 colour)
 {
-	int i, j, pixBase, pixMask;
-	u8  *cm;
+    int i, j, pixBase, pixMask;
+    u8 *cm;
 
-	if(!Settings.interlace){
-		y = y & -2;
-	}
+    if (!Settings.interlace) {
+        y = y & -2;
+    }
 
-	if(c >= FONT_COUNT) c = '_';
-	if(c > 0xFF)              //if char is beyond normal ascii range
-		cm = &font_uLE[c*16];   //  cm points to special char def in default font
-	else                      //else char is inside normal ascii range
-		cm = &FontBuffer[c*16]; //  cm points to normal char def in active font
+    if (c >= FONT_COUNT)
+        c = '_';
+    if (c > 0xFF)                  //if char is beyond normal ascii range
+        cm = &font_uLE[c * 16];    //  cm points to special char def in default font
+    else                           //else char is inside normal ascii range
+        cm = &FontBuffer[c * 16];  //  cm points to normal char def in active font
 
-	pixMask = 0x80;
-	for(i=0; i<8; i++){	//for i == each pixel column
-		pixBase = -1;
-		for(j=0; j<16; j++){ //for j == each pixel row
-			if((pixBase < 0) && (cm[j] & pixMask)){ //if start of sequence
-				pixBase = j;
-			} else if((pixBase > -1) && !(cm[j] & pixMask)){ //if end of sequence
-				gsKit_prim_sprite(gsGlobal, x+i, y+pixBase-1, x+i+1, y+j-1, z, colour);
-				pixBase = -1;
-			}
-		}//ends for j == each pixel row
-		if(pixBase > -1) //if end of sequence including final row
-			gsKit_prim_sprite(gsGlobal, x+i, y+pixBase-1, x+i+1, y+j-1, z, colour);
-		pixMask >>= 1;
-	}//ends for i == each pixel column
+    pixMask = 0x80;
+    for (i = 0; i < 8; i++) {  //for i == each pixel column
+        pixBase = -1;
+        for (j = 0; j < 16; j++) {                     //for j == each pixel row
+            if ((pixBase < 0) && (cm[j] & pixMask)) {  //if start of sequence
+                pixBase = j;
+            } else if ((pixBase > -1) && !(cm[j] & pixMask)) {  //if end of sequence
+                gsKit_prim_sprite(gsGlobal, x + i, y + pixBase - 1, x + i + 1, y + j - 1, z, colour);
+                pixBase = -1;
+            }
+        }                  //ends for j == each pixel row
+        if (pixBase > -1)  //if end of sequence including final row
+            gsKit_prim_sprite(gsGlobal, x + i, y + pixBase - 1, x + i + 1, y + j - 1, z, colour);
+        pixMask >>= 1;
+	} //ends for i == each pixel column
 }
+
+#define SCREEN_MARGIN 6
+#define FONT_WIDTH 8
 
 int printXY(const char *s, int x, int y, int z, u64 colour, int draw, int space)
 {
-	unsigned int c1, c2;
-	int i;
-	int text_spacing=8;
+    unsigned int c1, c2;
+    int i;
+    int text_spacing = 8;
 
-	if(space>0){
-		while((strlen(s)*text_spacing) > space)
-			if(--text_spacing<=5)
-				break;
-	}else{
-		while((strlen(s)*text_spacing) > gsGlobal->Width-6-8*2)
-			if(--text_spacing<=5)
-				break;
-	}
+    if (space > 0) {
+        while ((strlen(s) * text_spacing) > space)
+            if (--text_spacing <= 5)
+                break;
+    } else {
+        while ((strlen(s) * text_spacing) > gsGlobal->Width - SCREEN_MARGIN - FONT_WIDTH * 2)
+            if (--text_spacing <= 5)
+                break;
+    }
 
-	i=0;
-	while((c1=s[i++])!=0) {
-		if(c1 != 0xFF) { // Normal character
-			if(draw) drawChar(c1, x, y, z, colour);
-			x += text_spacing;
-			if(x > gsGlobal->Width-6-8)
-				break;
-			continue;
-		}  //End if for normal character
-		// Here we got a sequence starting with 0xFF ('ÿ')
-		if((c2=s[i++])==0)
-			break;
-		if((c2 < '0') || (c2 > '='))
-			continue;
-		c1=(c2-'0')*2+0x100;
-		if(draw) {
-			//expand sequence ÿ0=Circle  ÿ1=Cross  ÿ2=Square  ÿ3=Triangle  ÿ4=FilledBox
-			//"ÿ:"=Pad_Right  "ÿ;"=Pad_Down  "ÿ<"=Pad_Left  "ÿ="=Pad_Up
-			drawChar(c1, x, y, z, colour);
-			x += 8;
-			if(x > gsGlobal->Width-6-8)
-				break;
-			drawChar(c1+1, x, y, z, colour);
-			x += 8;
-			if(x >gsGlobal->Width-6-8)
-				break;
-		}
-	}  // ends while(1)
-	return x;
+    i = 0;
+    while ((c1 = (unsigned char)s[i++]) != 0) {
+        if (c1 != 0xFF) {  // Normal character
+            if (draw)
+                drawChar(c1, x, y, z, colour);
+            x += text_spacing;
+            if (x > gsGlobal->Width - SCREEN_MARGIN - FONT_WIDTH)
+                break;
+            continue;
+        }  // End if for normal character
+        // Here we got a sequence starting with 0xFF ('ï¿½')
+        if ((c2 = (unsigned char)s[i++]) == 0)
+            break;
+        if ((c2 < '0') || (c2 > '='))
+            continue;
+        c1 = (c2 - '0') * 2 + 0x100;
+		if (draw) {
+            //expand sequence ï¿½0=Circle  ï¿½1=Cross  ï¿½2=Square  ï¿½3=Triangle  ï¿½4=FilledBox
+            //"ï¿½:"=Pad_Right  "ï¿½;"=Pad_Down  "ï¿½<"=Pad_Left  "ï¿½="=Pad_Up
+            drawChar(c1, x, y, z, colour);
+            x += 8;
+            if (x > gsGlobal->Width - SCREEN_MARGIN - FONT_WIDTH)
+                break;
+            drawChar(c1 + 1, x, y, z, colour);
+            x += 8;
+            if (x > gsGlobal->Width - SCREEN_MARGIN - FONT_WIDTH)
+                break;
+        }
+    }  // ends while(1)
+    return x;
 }
