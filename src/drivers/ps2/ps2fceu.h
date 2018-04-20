@@ -16,13 +16,14 @@ typedef struct {
     u8 emulation;
     u8 interlace;
     u8 filter;
-    u8 aspect_ratio;
+    int aspect_ratio;
     u8 sound;
     char elfpath[1024];
     char savepath[1024];
     char skinpath[1024];
     u16 PlayerInput[4][15];
     u8 input_4p_adaptor;
+    int autofire_pattern;
     int current_palette;
 } vars;
 
