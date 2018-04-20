@@ -175,15 +175,16 @@ void Load_Global_CNF(char *CNF_path_p)
     for (var_cnt = 0; get_CNF_string(&CNF_p, &name, &value); var_cnt++) {
         // A variable was found, now we dispose of its value.
         printf("Found variable \"%s\" with value \"%s\"\r\n", name, value);
-        if (!strcmp(name, "OffsetX"))               { Settings.offset_x        = atoi(value); }
-        else if (!strcmp(name, "OffsetY"))          { Settings.offset_y        = atoi(value); }
-        else if (!strcmp(name, "Display"))          { Settings.display         = atoi(value); }
-        else if (!strcmp(name, "Emulation"))        { Settings.emulation       = atoi(value); }
-        else if (!strcmp(name, "Interlace"))        { Settings.interlace       = atoi(value); }
-        else if (!strcmp(name, "Filter"))           { Settings.filter          = atoi(value); }
-        else if (!strcmp(name, "AspectRatio"))      { Settings.aspect_ratio    = atoi(value); }
-        else if (!strcmp(name, "Sound"))            { Settings.sound           = atoi(value); }
-        else if (!strcmp(name, "Palette"))          { Settings.current_palette = atoi(value); }
+        if (!strcmp(name, "OffsetX"))               { Settings.offset_x         = atoi(value); }
+        else if (!strcmp(name, "OffsetY"))          { Settings.offset_y         = atoi(value); }
+        else if (!strcmp(name, "Display"))          { Settings.display          = atoi(value); }
+        else if (!strcmp(name, "Emulation"))        { Settings.emulation        = atoi(value); }
+        else if (!strcmp(name, "Interlace"))        { Settings.interlace        = atoi(value); }
+        else if (!strcmp(name, "Filter"))           { Settings.filter           = atoi(value); }
+        else if (!strcmp(name, "AspectRatio"))      { Settings.aspect_ratio     = atoi(value); }
+        else if (!strcmp(name, "Sound"))            { Settings.sound            = atoi(value); }
+        else if (!strcmp(name, "AutofirePattern"))  { Settings.autofire_pattern = atoi(value); }
+        else if (!strcmp(name, "Palette"))          { Settings.current_palette  = atoi(value); }
         else if (!strcmp(name, "Elfpath"))          { strcpy(Settings.elfpath,  value); }
         else if (!strcmp(name, "Savepath"))         { strcpy(Settings.savepath, value); }
         else if (!strcmp(name, "Skinpath"))         { strcpy(Settings.skinpath, value); }
@@ -447,18 +448,19 @@ void Save_Global_CNF(char *CNF_path_p)
         "# FCEULTRA.CNF == Configuration file for the emulator FCEUltra\r\n"
         "# CNF Handling Code (c)2006 Ronald Andersson aka dlanor       \r\n"
         "# ------------------------------------------------------------\r\n"
-        "OffsetX     = %d\r\n"
-        "OffsetY     = %d\r\n"
-        "Display     = %d\r\n"
-        "Emulation   = %d\r\n"
-        "Interlace   = %d\r\n"
-        "Filter      = %d\r\n"
-        "AspectRatio = %d\r\n"
-        "Sound       = %d\r\n"
-        "Palette     = %d\r\n"
-        "Elfpath     = %s\r\n"
-        "Savepath    = %s\r\n"
-        "Skinpath    = %s\r\n"
+        "OffsetX         = %d\r\n"
+        "OffsetY         = %d\r\n"
+        "Display         = %d\r\n"
+        "Emulation       = %d\r\n"
+        "Interlace       = %d\r\n"
+        "Filter          = %d\r\n"
+        "AspectRatio     = %d\r\n"
+        "Sound           = %d\r\n"
+        "AutofirePattern = %d\r\n"
+        "Palette         = %d\r\n"
+        "Elfpath         = %s\r\n"
+        "Savepath        = %s\r\n"
+        "Skinpath        = %s\r\n"
         ";Player 1 Controls\r\n"
         "JOY1_Menu         = 0x%04x\r\n"
         "JOY1_SaveState    = 0x%04x\r\n"
@@ -519,6 +521,7 @@ void Save_Global_CNF(char *CNF_path_p)
         Settings.filter,
         Settings.aspect_ratio,
         Settings.sound,
+        Settings.autofire_pattern,
         Settings.current_palette,
         temp1,
         temp2,
@@ -632,6 +635,7 @@ void Default_Global_CNF()
     Settings.aspect_ratio     = 0; // Full Screen
     Settings.sound            = 2; // 22050Hz
     Settings.input_4p_adaptor = 0; // False
+    Settings.autofire_pattern = 0; // 0 - 1-on, 1-off
     Settings.current_palette  = 0; // 0 - Default
     strcpy(Settings.elfpath,  "mc0:/BOOT/BOOT.ELF");
     strcpy(Settings.savepath, "mc0:/FCEUMM/");

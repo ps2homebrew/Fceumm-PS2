@@ -53,7 +53,7 @@ extern GSTEXTURE MENU_TEX;
 /************************************/
 /* Pad Variables                    */
 /************************************/
-extern u32 old_pad[2];
+extern u32 old_pad[4];
 static struct padButtonStatus buttons[2];
 extern u8 fdsswap;
 
@@ -538,8 +538,8 @@ void Ingame_Menu()
         { "Filtering: "},
         { "Aspect Ratio: "},
         { "Sound: " },
-        { "4-Players Adaptor: " },
         { "Configure Input >" },
+        { "---" },
         { "---" },
         { "Reset Game" },
         { "Exit Game" },
@@ -574,10 +574,6 @@ void Ingame_Menu()
                     sprintf(options_state[i], "%dHz", SND_GetCurrSampleRate());
                 break;
             case 6:
-                if (Settings.input_4p_adaptor)
-                    strcpy(options_state[i], "On");
-                else
-                    strcpy(options_state[i], "Off");
                 break;
             case 7:
                 break;
@@ -686,19 +682,9 @@ void Ingame_Menu()
                     option_changed = 1;
                     break;
                 case 6:
-                    Settings.input_4p_adaptor ^= 1;
-                    if (Settings.input_4p_adaptor) {
-                        FCEUI_SetInputFC(SIFC_4PLAYER, NULL, 0);
-                        strcpy(options_state[i], "On");
-                    }
-                    else {
-                        FCEUI_SetInputFC(SIFC_NONE, NULL, 0);
-                        strcpy(options_state[i], "Off");
-                    }
-                    option_changed = 1;
+                    Ingame_Menu_Controls();
                     break;
                 case 7:
-                    Ingame_Menu_Controls();
                     break;
                 case 8:
                     break;
@@ -805,8 +791,8 @@ void padbuttonToStr(u16 button, char button_name[9])
     strcpy(button_name, buttons[i]);
 }
 
-#define CONTROLS_N 12
-#define CONTROLS_OFFSET 2
+#define CONTROLS_N 14
+#define CONTROLS_OFFSET (CONTROLS_N - 10)
 
 void Ingame_Menu_Controls()
 {
@@ -824,6 +810,8 @@ void Ingame_Menu_Controls()
 
     char options[CONTROLS_N][32] = {
         { "< Back" },
+        { "Autofire Pattern: "},
+        { "4-Players Adaptor: " },
         { "Player: "},
         { "Joy A       | " },
         { "Joy B       | " },
@@ -843,7 +831,12 @@ void Ingame_Menu_Controls()
     int is_changing_button = 0;
     u32 new_button = 0;
 
-    strcpy(options_state[1], "1");
+    sprintf(options_state[1], "1 on, %d off", Settings.autofire_pattern + 1);
+    if (Settings.input_4p_adaptor)
+        strcpy(options_state[2], "On");
+    else
+        strcpy(options_state[2], "Off");
+    strcpy(options_state[3], "1");
     for (i = 0; i < 10; i++) {
         padbuttonToStr(Settings.PlayerInput[player][i + 5], options_state[i + CONTROLS_OFFSET]);
     }
@@ -870,11 +863,11 @@ void Ingame_Menu_Controls()
                 strcat(buffer, options_state[i]);
                 if (selection == i) {
                     //font_print(gsGlobal, menu_x1+10.0f, text_line + i*FONT_HEIGHT, 2, DarkYellowFont, options[i]);
-                    printXY(buffer, menu_x1+10, text_line + i*FONT_HEIGHT, 4, FCEUSkin.highlight, 1, 0);
+                    printXY(buffer, menu_x1+10, FONT_HEIGHT + text_line + i*FONT_HEIGHT, 4, FCEUSkin.highlight, 1, 0);
                 }
                 else {
                     //font_print(gsGlobal, menu_x1+10.0f, text_line + i*FONT_HEIGHT, 2, WhiteFont, options[i]);
-                    printXY(buffer, menu_x1+10, text_line + i*FONT_HEIGHT, 4, FCEUSkin.textcolor, 1, 0);
+                    printXY(buffer, menu_x1+10, FONT_HEIGHT + text_line + i*FONT_HEIGHT, 4, FCEUSkin.textcolor, 1, 0);
                 }
             }
 
@@ -893,6 +886,26 @@ void Ingame_Menu_Controls()
                 return;
             }
             else if (i == 1) {
+                Settings.autofire_pattern++;
+                if (Settings.autofire_pattern >= 5) {
+                    Settings.autofire_pattern = 0;
+                }
+                sprintf(options_state[1], "1 on, %d off", Settings.autofire_pattern + 1);
+                option_changed = 1;
+            }
+            else if (i == 2) {
+                Settings.input_4p_adaptor ^= 1;
+                if (Settings.input_4p_adaptor) {
+                    FCEUI_SetInputFC(SIFC_4PLAYER, NULL, 0);
+                    strcpy(options_state[i], "On");
+                }
+                else {
+                    FCEUI_SetInputFC(SIFC_NONE, NULL, 0);
+                    strcpy(options_state[i], "Off");
+                }
+                option_changed = 1;
+            }
+            else if (i == 3) {
                 player++;
                 if (player >= 4) {
                     player = 0;

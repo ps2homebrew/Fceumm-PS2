@@ -246,20 +246,20 @@ static unsigned char Get_PS2Input(int mport)
         }
         // Turbo A
         if (paddata[mport] & Settings.PlayerInput[mport][13]) {
-            rapid_a[mport] ^= 1;
-            if (rapid_a[mport]) {
+            if (!rapid_a[mport]) {
                 P |= JOY_A;
             }
+            rapid_a[mport] = (rapid_a[mport] + 1) % (Settings.autofire_pattern + 2);
         }
         if (!(paddata[mport] & Settings.PlayerInput[mport][13]) && rapid_a[mport]) {
             rapid_a[mport] = 0;
         }
         // Turbo B
         if (paddata[mport] & Settings.PlayerInput[mport][14]) {
-            rapid_b[mport] ^= 1;
-            if (rapid_b[mport]) {
+            if (!rapid_b[mport]) {
                 P |= JOY_B;
             }
+            rapid_b[mport] = (rapid_b[mport] + 1) % (Settings.autofire_pattern + 2);
         }
         if (!(paddata[mport] & Settings.PlayerInput[mport][14]) && rapid_b[mport]) {
             rapid_b[mport] = 0;
