@@ -8,30 +8,30 @@
 
 extern vars Settings;
 extern GSGLOBAL *gsGlobal;
-u8        *FontBuffer;
+u8 *FontBuffer;
 
 extern unsigned char font_uLE[];
 enum {
-    //0x100-0x109 are 5 double width characters for D-Pad buttons, which are accessed as:
-    //"�0"==Circle  "�1"==Cross  "�2"==Square  "�3"==Triangle  "�4"==filled Square
-    RIGHT_CUR = 0x10A, //Triangle pointing left, for use to the right of an item
-    LEFT_CUR  = 0x10B, //Triangle pointing right, for use to the left of an item
-    UP_ARROW  = 0x10C, //Arrow pointing up
-    DN_ARROW  = 0x10D, //Arrow pointing up
-    LT_ARROW  = 0x10E, //Arrow pointing up
-    RT_ARROW  = 0x10F, //Arrow pointing up
-    TEXT_CUR  = 0x110, //Vertical bar, for use between two text characters
-    UL_ARROW  = 0x111, //Arrow pointing up and to the left, from a vertical start.
-    BR_SPLIT  = 0x112, //Splits rectangle from BL to TR with BR portion filled
-    BL_SPLIT  = 0x113, //Splits rectangle from TL to BR with BL portion filled
-                       //0x114-0x11B are 4 double width characters for D-Pad buttons, which are accessed as:
-                       //"�:"==Right  "�;"==Down  "�<"==Left  "�="==Up
-                       //0x11C-0x123 are 4 doubled characters used as normal/marked folder/file icons
+    // 0x100-0x109 are 5 double width characters for D-Pad buttons, which are accessed as:
+    // "�0"==Circle  "�1"==Cross  "�2"==Square  "�3"==Triangle  "�4"==filled Square
+    RIGHT_CUR = 0x10A, // Triangle pointing left, for use to the right of an item
+    LEFT_CUR  = 0x10B, // Triangle pointing right, for use to the left of an item
+    UP_ARROW  = 0x10C, // Arrow pointing up
+    DN_ARROW  = 0x10D, // Arrow pointing up
+    LT_ARROW  = 0x10E, // Arrow pointing up
+    RT_ARROW  = 0x10F, // Arrow pointing up
+    TEXT_CUR  = 0x110, // Vertical bar, for use between two text characters
+    UL_ARROW  = 0x111, // Arrow pointing up and to the left, from a vertical start.
+    BR_SPLIT  = 0x112, // Splits rectangle from BL to TR with BR portion filled
+    BL_SPLIT  = 0x113, // Splits rectangle from TL to BR with BL portion filled
+                       // 0x114-0x11B are 4 double width characters for D-Pad buttons, which are accessed as:
+                       // "�:"==Right  "�;"==Down  "�<"==Left  "�="==Up
+                       // 0x11C-0x123 are 4 doubled characters used as normal/marked folder/file icons
     ICON_FOLDER = 0x11C,
     ICON_M_FOLDER = 0x11E,
     ICON_FILE = 0x120,
     ICON_M_FILE = 0x122,
-	FONT_COUNT = 0x124 //Total number of characters in font
+	FONT_COUNT = 0x124 // Total number of characters in font
 };
 
 /*GSTEXTURE FONT_TEX;
@@ -190,7 +190,7 @@ int loadFont(char *path_arg)
         } // end else bad fnt file
     }else{ // end if external font file*/
 //use_default:
-        if(FontBuffer)
+        if (FontBuffer)
             free(FontBuffer);
         FontBuffer = malloc(4096 + 1);
         memcpy(FontBuffer, &font_uLE, 4096);
@@ -203,32 +203,33 @@ void drawChar(unsigned int c, int x, int y, int z, u64 colour)
     int i, j, pixBase, pixMask;
     u8 *cm;
 
-    if (!Settings.interlace) {
+    if (gsGlobal->Interlace == GS_NONINTERLACED) {
         y = y & -2;
     }
 
     if (c >= FONT_COUNT)
         c = '_';
-    if (c > 0xFF)                  //if char is beyond normal ascii range
-        cm = &font_uLE[c * 16];    //  cm points to special char def in default font
-    else                           //else char is inside normal ascii range
-        cm = &FontBuffer[c * 16];  //  cm points to normal char def in active font
+    if (c > 0xFF)                  // If char is beyond normal ascii range
+        cm = &font_uLE[c * 16];    //   cm points to special char def in default font
+    else                           // Else char is inside normal ascii range
+        cm = &FontBuffer[c * 16];  //   cm points to normal char def in active font
 
     pixMask = 0x80;
-    for (i = 0; i < 8; i++) {  //for i == each pixel column
+    for (i = 0; i < 8; i++) {  // For i == each pixel column
         pixBase = -1;
-        for (j = 0; j < 16; j++) {                     //for j == each pixel row
-            if ((pixBase < 0) && (cm[j] & pixMask)) {  //if start of sequence
+        for (j = 0; j < 16; j++) {                     // For j == each pixel row
+            if ((pixBase < 0) && (cm[j] & pixMask)) {  // If start of sequence
                 pixBase = j;
-            } else if ((pixBase > -1) && !(cm[j] & pixMask)) {  //if end of sequence
+            }
+            else if ((pixBase > -1) && !(cm[j] & pixMask)) {  // If end of sequence
                 gsKit_prim_sprite(gsGlobal, x + i, y + pixBase - 1, x + i + 1, y + j - 1, z, colour);
                 pixBase = -1;
             }
-        }                  //ends for j == each pixel row
-        if (pixBase > -1)  //if end of sequence including final row
+        }                  // Ends for j == each pixel row
+        if (pixBase > -1)  // If end of sequence including final row
             gsKit_prim_sprite(gsGlobal, x + i, y + pixBase - 1, x + i + 1, y + j - 1, z, colour);
         pixMask >>= 1;
-	} //ends for i == each pixel column
+	} // Ends for i == each pixel column
 }
 
 #define SCREEN_MARGIN 6
@@ -267,8 +268,8 @@ int printXY(const char *s, int x, int y, int z, u64 colour, int draw, int space)
             continue;
         c1 = (c2 - '0') * 2 + 0x100;
 		if (draw) {
-            //expand sequence �0=Circle  �1=Cross  �2=Square  �3=Triangle  �4=FilledBox
-            //"�:"=Pad_Right  "�;"=Pad_Down  "�<"=Pad_Left  "�="=Pad_Up
+            // Expand sequence �0=Circle  �1=Cross  �2=Square  �3=Triangle  �4=FilledBox
+            // "�:"=Pad_Right  "�;"=Pad_Down  "�<"=Pad_Left  "�="=Pad_Up
             drawChar(c1, x, y, z, colour);
             x += 8;
             if (x > gsGlobal->Width - SCREEN_MARGIN - FONT_WIDTH)
@@ -278,6 +279,6 @@ int printXY(const char *s, int x, int y, int z, u64 colour, int draw, int space)
             if (x > gsGlobal->Width - SCREEN_MARGIN - FONT_WIDTH)
                 break;
         }
-    }  // ends while(1)
+    }  // Ends while(1)
     return x;
 }

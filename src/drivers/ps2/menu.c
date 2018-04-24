@@ -18,8 +18,6 @@
 
 // Settings
 extern vars Settings;
-extern int defaultx;
-extern int defaulty;
 // Skin
 extern skin FCEUSkin;
 extern u8 menutex;
@@ -207,11 +205,9 @@ int menu_input(int port, int center_screen)
             selected = 2;
         }
     }
+    // FIXME: Screen always updates 
     if ((center_screen && change) || (center_screen == 2)) {
-        gsGlobal->StartX = defaultx + Settings.offset_x;
-        gsGlobal->StartY = defaulty + Settings.offset_y;
-
-        normalize_screen();
+        SetDisplayOffset();
 
         gsKit_clear(gsGlobal, GS_SETREG_RGBAQ(0x00, 0x00, 0x00, 0x00, 0x00));
 
@@ -268,11 +264,14 @@ int Browser_Menu()
     for (i = 0; i < 12; i++) {
         switch (i) {
             case 0:
-                if (!Settings.display) {
+                if (Settings.display == 0) {
                     strcpy(options_state[i], "NTSC");
                 }
-                else {
+                else if (Settings.display == 1) {
                     strcpy(options_state[i], "PAL");
+                }
+                else if (Settings.display == 2) {
+                    strcpy(options_state[i], "DTV 640x480");
                 }
                 break;
             case 1:
@@ -358,74 +357,46 @@ int Browser_Menu()
             i = selection;
             switch (i) {
                 case 0: // Display PAL/NTSC
-                    Settings.display ^= 1;
-                    if (Settings.display) {
-                        gsGlobal->Mode = GS_MODE_PAL;
-                        gsGlobal->Height = 512;
-                        defaulty = 72;
-                        strcpy(options_state[i], "PAL");
+                    Settings.display++;
+                    if (Settings.display >= 3) {
+                        Settings.display = 0;
                     }
-                    else {
-                        gsGlobal->Mode = GS_MODE_NTSC;
-                        gsGlobal->Height = 448;
-                        defaulty = 50;
+                    if (Settings.display == 0) {
                         strcpy(options_state[i], "NTSC");
                     }
-                    gsGlobal->Width = 640;
-                    gsGlobal->Field = GS_FIELD;
-                    if (gsGlobal->Interlace == GS_NONINTERLACED) {
-                        gsGlobal->Height = gsGlobal->Height/2;
-                        gsGlobal->StartY = gsGlobal->StartY/2 -1 ;
+                    else if (Settings.display == 1) {
+                        strcpy(options_state[i], "PAL");
+                    }
+                    else if (Settings.display == 2) {
+                        strcpy(options_state[i], "DTV 640x480");
                     }
 
-                    gsGlobal->StartY = gsGlobal->StartY + Settings.offset_y;
-                    //if (Settings.interlace && (gsGlobal->Mode == GS_MODE_NTSC))
-                        //gsGlobal->StartY = gsGlobal->StartY + 22;
-                    //else
-                        //gsGlobal->StartY = gsGlobal->StartY + 11;
-                    //normalize_screen();
-                    gsKit_init_screen(gsGlobal);    /* Apply settings. */
-                    gsKit_mode_switch(gsGlobal, GS_ONESHOT);
+                    init_custom_screen();
 
-                    menu_x1 = gsGlobal->Width*0.25;
-                    menu_y1 = gsGlobal->Height*0.15;
-                    menu_x2 = gsGlobal->Width*0.75;
-                    menu_y2 = gsGlobal->Height*0.85 + FONT_HEIGHT;
+                    menu_x1 = gsGlobal->Width  * 0.25;
+                    menu_y1 = gsGlobal->Height * 0.15;
+                    menu_x2 = gsGlobal->Width  * 0.75;
+                    menu_y2 = gsGlobal->Height * 0.85 + FONT_HEIGHT;
                     text_line = menu_y1 + 4;
-
                     option_changed = 1;
-                    //SetGsCrt(gsGlobal->Interlace, gsGlobal->Mode, gsGlobal->Field);
                     break;
                 case 1: // Interlacing Off/On
                     Settings.interlace ^= 1;
-                    if (gsGlobal->Mode == GS_MODE_PAL)
-                        gsGlobal->Height = 512;
-                    else
-                        gsGlobal->Height = 448;
                     if (Settings.interlace) {
-                        gsGlobal->Interlace = GS_INTERLACED;
-                        //gsGlobal->StartY = (gsGlobal->StartY-1)*2;
                         strcpy(options_state[i], "On");
                     }
                     else {
-                        gsGlobal->Interlace = GS_NONINTERLACED;
-                        gsGlobal->StartY = gsGlobal->StartY/2 + 1;
-                        gsGlobal->Height = gsGlobal->Height/2;
                         strcpy(options_state[i], "Off");
                     }
-                    gsGlobal->Width = 640;
-                    gsGlobal->Field = GS_FIELD;
-                    //normalize_screen();
-                    gsKit_init_screen(gsGlobal);    /* Apply settings. */
-                    gsKit_mode_switch(gsGlobal, GS_ONESHOT);
 
-                    menu_x1 = gsGlobal->Width*0.25;
-                    menu_y1 = gsGlobal->Height*0.15;
-                    menu_x2 = gsGlobal->Width*0.75;
-                    menu_y2 = gsGlobal->Height*0.85 + FONT_HEIGHT;
+                    init_custom_screen();
+
+                    menu_x1 = gsGlobal->Width  * 0.25;
+                    menu_y1 = gsGlobal->Height * 0.15;
+                    menu_x2 = gsGlobal->Width  * 0.75;
+                    menu_y2 = gsGlobal->Height * 0.85 + FONT_HEIGHT;
                     text_line = menu_y1 + 4;
                     option_changed = 1;
-                    //SetGsCrt(gsGlobal->Interlace, gsGlobal->Mode, gsGlobal->Field);
                     break;
                 case 2: // Emulated System
                     Settings.emulation ^= 1;
@@ -482,7 +453,7 @@ int Browser_Menu()
                     break;
                 case 9: // Power Off
                     poweroffShutdown();
-                    if (Settings.display)
+                    if (Settings.display == 1)
                         power_off = 50/4;
                     else
                         power_off = 60/4;
@@ -565,7 +536,7 @@ void Ingame_Menu()
                 if (Settings.aspect_ratio == 0)
                     strcpy(options_state[i], "Full Screen");
                 else if (Settings.aspect_ratio == 1)
-                    strcpy(options_state[i], "Best Fit (4:3 NTSC)");
+                    strcpy(options_state[i], "Best Fit (4:3)");
                 break;
             case 5:
                 if (!Settings.sound)
@@ -664,13 +635,13 @@ void Ingame_Menu()
                     break;
                 case 4:
                     Settings.aspect_ratio++;
-                    if (Settings.aspect_ratio > 1) {
+                    if (Settings.aspect_ratio >= 2) {
                         Settings.aspect_ratio = 0;
                     }
                     if (Settings.aspect_ratio == 0)
                         strcpy(options_state[i], "Full Screen");
                     else if (Settings.aspect_ratio == 1)
-                        strcpy(options_state[i], "Best Fit (4:3 NTSC)");
+                        strcpy(options_state[i], "Best Fit (4:3)");
                     option_changed = 1;
                     break;
                 case 5:

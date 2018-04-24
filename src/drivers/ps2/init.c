@@ -26,8 +26,6 @@
 
 #include "ps2fceu.h"
 extern vars Settings;
-int defaultx;
-int defaulty;
 
 // Input
 #define NEW_PADMAN
@@ -72,6 +70,8 @@ extern unsigned int size_cdvd_irx;
 extern unsigned char SMSUTILS_irx;
 extern unsigned int size_SMSUTILS_irx;
 
+static int VCK;
+
 void poweroffps2(int i)
 {
     poweroffShutdown();
@@ -80,18 +80,10 @@ void poweroffps2(int i)
 void SetupGSKit()
 {
     /* detect and set screentype */
-    //gsGlobal = gsKit_init_global(GS_MODE_PAL);
-    //gsGlobal = gsKit_init_global_custom(GS_RENDER_QUEUE_OS_POOLSIZE+GS_RENDER_QUEUE_OS_POOLSIZE/2, GS_RENDER_QUEUE_PER_POOLSIZE+GS_RENDER_QUEUE_PER_POOLSIZE/2);
     if (gsGlobal != NULL) gsKit_deinit_global(gsGlobal);
     gsGlobal = gsKit_init_global();
 
-    //gsGlobal->Height = 512; // No need for it
-
-    defaultx = gsGlobal->StartX;
-    defaulty = gsGlobal->StartY;
-
     /* initialize dmaKit */
-    //dmaKit_init(D_CTRL_RELE_OFF, D_CTRL_MFD_OFF, D_CTRL_STS_UNSPEC, D_CTRL_STD_OFF, D_CTRL_RCYC_8);
     dmaKit_init(D_CTRL_RELE_OFF, D_CTRL_MFD_OFF, D_CTRL_STS_UNSPEC, D_CTRL_STD_OFF, D_CTRL_RCYC_8, 1 << DMA_CHANNEL_GIF);
 
     dmaKit_chan_init(DMA_CHANNEL_GIF);
@@ -103,8 +95,6 @@ void SetupGSKit()
 
     // 640x448, ntsc, tv
     // 640x512, pal, tv
-    //gsGlobal->Width  = 640; // No need for it
-
 }
 
 void InitPS2()
@@ -174,56 +164,50 @@ printf("Failed to load module: cdInit2\n");
     mtapPortOpen(0);
 }
 
-void normalize_screen()
-{
-    GS_SET_DISPLAY1(gsGlobal->StartX, // X position in the display area (in VCK unit
-        gsGlobal->StartY,             // Y position in the display area (in Raster u
-        gsGlobal->MagH,               // Horizontal Magnification
-        gsGlobal->MagV,               // Vertical Magnification
-        gsGlobal->DW - 1,             // Display area width
-        gsGlobal->DH - 1);            // Display area height
-
-    GS_SET_DISPLAY2(gsGlobal->StartX, // X position in the display area (in VCK units)
-        gsGlobal->StartY,             // Y position in the display area (in Raster units)
-        gsGlobal->MagH,               // Horizontal Magnification
-        gsGlobal->MagV,               // Vertical Magnification
-        gsGlobal->DW - 1,             // Display area width
-        gsGlobal->DH - 1);            // Display area height
-}
-
 void init_custom_screen()
 {
-    // Init real non-interlaced mode
-    if (Settings.display) {
-        gsGlobal->Mode = GS_MODE_PAL;
-        gsGlobal->Height = 512;
-        defaulty = 72;
-    }
-    else {
+    if (Settings.display == 0) {
         gsGlobal->Mode = GS_MODE_NTSC;
+        gsGlobal->Interlace = GS_INTERLACED;
+        gsGlobal->Field = GS_FIELD;
+        gsGlobal->Width = 640;
         gsGlobal->Height = 448;
-        defaulty = 50;
+        VCK = 4;
     }
-    gsGlobal->Field = GS_FIELD;
-    gsGlobal->Width = 640;
-
-    gsGlobal->StartX = defaultx + Settings.offset_x;
-    gsGlobal->StartY = defaulty + Settings.offset_y;
-
-    if (!Settings.interlace) {
+    else if (Settings.display == 1) {
+        gsGlobal->Mode = GS_MODE_PAL;
+        gsGlobal->Interlace = GS_INTERLACED;
+        gsGlobal->Field = GS_FIELD;
+        gsGlobal->Width = 640;
+        gsGlobal->Height = 512;
+        VCK = 4;
+    }
+    else if (Settings.display == 2) {
+        gsGlobal->Mode = GS_MODE_DTV_480P;
         gsGlobal->Interlace = GS_NONINTERLACED;
-        gsGlobal->Height = gsGlobal->Height / 2;
-        gsGlobal->StartY = gsGlobal->StartY / 2 + 1;
+        gsGlobal->Field = GS_FRAME;
+        gsGlobal->Width = 640;
+        gsGlobal->Height = 480;
+        VCK = 2;
     }
-    //else if (gsGlobal->Mode == GS_MODE_NTSC)
-        //gsGlobal->StartY = gsGlobal->StartY + 22;
 
-//    SetGsCrt(gsGlobal->Interlace, gsGlobal->Mode, gsGlobal->Field);
+    if (Settings.display == 0 || Settings.display == 1) {
+        if (!Settings.interlace) {
+            gsGlobal->Interlace = GS_NONINTERLACED;
+            gsGlobal->Height = gsGlobal->Height / 2;
+            VCK = 2;
+        }
+    }
+
+    gsKit_vram_clear(gsGlobal);
     gsKit_init_screen(gsGlobal); /* Apply settings. */
+    gsKit_set_display_offset(gsGlobal, Settings.offset_x * VCK, Settings.offset_y);
     gsKit_mode_switch(gsGlobal, GS_ONESHOT);
+}
 
-//    normalize_screen();
-
+void SetDisplayOffset()
+{
+    gsKit_set_display_offset(gsGlobal, Settings.offset_x * VCK, Settings.offset_y);
 }
 
 void DrawScreen(GSGLOBAL *gsGlobal)
