@@ -149,6 +149,8 @@ void InitPS2()
     mcInit(MC_TYPE_XMC);
 
 #ifdef CDSUPPORT
+    SifExecModuleBuffer(&cdvd_irx, size_cdvd_irx, 0, NULL, NULL);
+    
     cdInit(CDVD_INIT_INIT);
 printf("Failed to load module: cdInit");
     CDVD_Init();
