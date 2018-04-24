@@ -147,7 +147,7 @@ int RomBrowserInput(int files_too, int inside_menu)
 
 #ifdef CDSUPPORT
 int listcdvd(const char *path, entries *FileEntry) {
-    static struct TocEntry TocEntryList[2048];
+    static struct TocEntry TocEntryList[FILEENTRY_SIZE];
     char dir[1025];
     int i, n, t;
 
@@ -155,7 +155,7 @@ int listcdvd(const char *path, entries *FileEntry) {
     // Directories first...
 
     CDVD_FlushCache();
-    n = CDVD_GetDir(dir, NULL, CDVD_GET_DIRS_ONLY, TocEntryList, 2048, dir);
+    n = CDVD_GetDir(dir, NULL, CDVD_GET_DIRS_ONLY, TocEntryList, FILEENTRY_SIZE, dir);
 
     strcpy(FileEntry[0].filename, "..");
     strcpy(FileEntry[0].displayname, "..");
@@ -173,15 +173,18 @@ int listcdvd(const char *path, entries *FileEntry) {
         strzncpy(FileEntry[t].displayname, FileEntry[t].filename, 63);
         t++;
 
-        if (t >= 2046) {
+        if (t >= FILEENTRY_SIZE - 2) {
             break;
         }
-     }
+    }
+
+    qsort(FileEntry, t, sizeof(entries), comp_entries_by_filename);
+    first_file_index = t;
 
     // Now files only
 
     CDVD_FlushCache();
-    n = CDVD_GetDir(dir, NULL, CDVD_GET_FILES_ONLY, TocEntryList, 2048, dir);
+    n = CDVD_GetDir(dir, NULL, CDVD_GET_FILES_ONLY, TocEntryList, FILEENTRY_SIZE, dir);
 
     for (i = 0; i < n; i++) {
         if (TocEntryList[i].fileProperties & 0x02 && (!strcmp(
@@ -194,10 +197,12 @@ int listcdvd(const char *path, entries *FileEntry) {
         strzncpy(FileEntry[t].displayname, FileEntry[t].filename, 63);
         t++;
 
-        if (t >= 2046) {
+        if (t >= FILEENTRY_SIZE - 2) {
             break;
         }
     }
+
+    qsort(FileEntry + first_file_index, t - first_file_index, sizeof(entries), comp_entries_by_filename);
 
     return t;
 }
@@ -223,14 +228,15 @@ int listdir(char *path, entries *FileEntry, int files_too)
         FileEntry[1].dircheck = 1;
         FileEntry[2].dircheck = 1;
         FileEntry[3].dircheck = 1;
+        n = 4;
+#ifdef CDSUPPORT
         FileEntry[4].dircheck = 1;
         n = 5;
     }
-#ifdef CDSUPPORT
     else if (!strncmp(path, "cdfs", 4)) {
         n = listcdvd(path, FileEntry);
-    }
 #endif
+    }
     else { // It has a /
         dd = fioDopen(path);
         if (dd < 0) {
@@ -310,12 +316,14 @@ int listpfs(char *path, entries *FileEntry, int files_too)
         FileEntry[2].dircheck = 1;
         FileEntry[3].dircheck = 1;
         n = 4;
-    }
 #ifdef CDSUPPORT
+        FileEntry[4].dircheck = 1;
+        n = 5;
+    }
     else if (!strncmp(path, "cdfs", 4)) {
         n = listcdvd(path, FileEntry);
-    }
 #endif
+    }
     else {
         if ((dd = fileXioDopen(path)) < 0) {
             printf("Didn't open!\n");
