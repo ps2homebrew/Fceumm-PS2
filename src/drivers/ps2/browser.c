@@ -35,7 +35,6 @@ extern GSFONTM *gsFontM;
 extern u32 old_pad[4];
 static struct padButtonStatus buttons[2];
 
-extern int defaultx, defaulty;
 int oldselect = -1;
 s8 selected = 0;
 u8 selected_dir = 0;
@@ -44,9 +43,11 @@ extern int FONT_WIDTH;
 char path[4096] = "path";
 int needed_path[2] = { -1, -1 };
 char mpartitions[4][256];
-u16 history[20]; // 20 levels should be enough
+static u16 history[20]; // 20 levels should be enough
 u8 h = 0;
-int first_file_index;
+static int first_file_index;
+
+#define FILEENTRY_SIZE 2048
 
 extern int Browser_Menu();
 
@@ -244,7 +245,7 @@ int listdir(char *path, entries *FileEntry, int files_too)
             FileEntry[0].dircheck = 1;
             n = 1;
             while (fioDread(dd, &buf) > 0) {
-                if (n > 2046) { break; }
+                if (n > FILEENTRY_SIZE - 2) { break; }
                 if ((FIO_SO_ISDIR(buf.stat.mode)) && (!strcmp(buf.name, ".") || !strcmp(buf.name, "..")))
                     continue; // Makes sure no .. or .'s are listed since it's already there
                 if (FIO_SO_ISDIR(buf.stat.mode)) {
@@ -252,7 +253,7 @@ int listdir(char *path, entries *FileEntry, int files_too)
                     strcpy(FileEntry[n].filename, buf.name);
                     strzncpy(FileEntry[n].displayname, FileEntry[n].filename, 63);
                     n++;
-                    if (n >= 2046)
+                    if (n >= FILEENTRY_SIZE - 2)
                         break;
                 }
             }
@@ -266,7 +267,7 @@ int listdir(char *path, entries *FileEntry, int files_too)
                 dd = 0;
                 dd = fioDopen(path);
                 while (fioDread(dd, &buf) > 0) {
-                    if (n > 2046) { break; }
+                    if (n > FILEENTRY_SIZE - 2) { break; }
                     if (FIO_SO_ISREG(buf.stat.mode)) {
                         FileEntry[n].dircheck = 0;
                         strcpy(FileEntry[n].filename, buf.name);
@@ -337,7 +338,7 @@ int listpfs(char *path, entries *FileEntry, int files_too)
                     n++;
                 }
 
-                if (n > 2046) { break; }
+                if (n > FILEENTRY_SIZE - 2) { break; }
             }
             if (dd > 0) {
                 fileXioDclose(dd);
@@ -355,7 +356,7 @@ int listpfs(char *path, entries *FileEntry, int files_too)
                         strzncpy(FileEntry[n].displayname, FileEntry[n].filename, 63);
                         n++;
                     }
-                    if (n > 2046) { break; }
+                    if (n > FILEENTRY_SIZE - 2) { break; }
                 }
                 if (dd >= 0) {
                     fileXioDclose(dd);
@@ -519,8 +520,8 @@ char* Browser(int files_too, int menu_id)
     int text_line = menu_y1 + 40;
 
     oldselect = -1;
-    //entries FileEntry[2048]; // = malloc(sizeof(entries)*2048);
-    entries *FileEntry = calloc(sizeof(entries), 2048);
+    //entries FileEntry[FILEENTRY_SIZE]; // = malloc(sizeof(entries)*FILEENTRY_SIZE);
+    entries *FileEntry = calloc(sizeof(entries), FILEENTRY_SIZE);
 
     int list_offset = text_line;
 
@@ -559,15 +560,20 @@ char* Browser(int files_too, int menu_id)
             button_held = 0;
         }
 
-        if (Settings.display) {
-            max_item = 25;
-        }
-        else {
+        if (Settings.display == 0) {
             max_item = 21;
+            if (gsGlobal->Interlace == GS_NONINTERLACED)
+                max_item = 9;
         }
-        if (gsGlobal->Interlace == GS_NONINTERLACED)
-            max_item = 9;
-
+        else if (Settings.display == 1) {
+            max_item = 25;
+            if (gsGlobal->Interlace == GS_NONINTERLACED)
+                max_item = 9;
+        }
+        else if (Settings.display == 2) {
+            max_item = 23;
+        }
+        
 
         // Scan for direct commands from input function
         if (oldselect == -4) { //  Just pushed triangle so go up a dir
@@ -600,7 +606,7 @@ char* Browser(int files_too, int menu_id)
 
         // List files below
         if (strcmp(path, oldpath) != 0) {
-            first_file_index = 2048;
+            first_file_index = FILEENTRY_SIZE;
             if (!strncmp(path, "hdd0:/", 6)) {
                 if (!strcmp(path, "hdd0:/")) { // hdd0: selected so list partitions
                     n = listpartitions(FileEntry);
@@ -639,7 +645,7 @@ char* Browser(int files_too, int menu_id)
         if (selection != oldselect) {
 
             gsKit_clear(gsGlobal, GS_SETREG_RGBAQ(0x00, 0x00, 0x00, 0x80, 0x00));
-            browser_primitive("FCEUltra PS2 B0.93 [x.3.1]", "Browser", &BG_TEX, menu_x1, menu_y1, menu_x2, menu_y2);
+            browser_primitive("FCEUltra PS2 B0.93 [x.3.2]", "Browser", &BG_TEX, menu_x1, menu_y1, menu_x2, menu_y2);
 
             if (selection > max_item) {
                 list_offset = text_line - (selection - max_item) * FONT_HEIGHT;
@@ -730,6 +736,7 @@ char* Browser(int files_too, int menu_id)
                 }
             }
             else if (!FileEntry[selection].dircheck) { // If file
+                first_file_index = FILEENTRY_SIZE;
                 sprintf(path, "%s%s", path, FileEntry[selection].filename);
                 printf("rompath = %s\n", path);
                 history[h] = selection;

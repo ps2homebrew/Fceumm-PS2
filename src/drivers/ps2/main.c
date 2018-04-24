@@ -887,12 +887,27 @@ void SetupNESGS()
             width = newWidth;
         }
     }
-    else {
+    else if (gsGlobal->Mode == GS_MODE_PAL) {
         v1 = 0;
         v2 = NES_TEX.Height;
         y2 = NES_TEX.Height;
+
+        if (Settings.aspect_ratio == 1) {
+            offsetX = 80;
+            width = 480;
+        }
     }
-    if (gsGlobal->Interlace == GS_INTERLACED)
+    else if (gsGlobal->Mode == GS_MODE_DTV_480P) {
+        v1 = 0;
+        v2 = NES_TEX.Height;
+        y2 = gsGlobal->Height;
+
+        if (Settings.aspect_ratio == 1) {
+            offsetX = 64;
+            width = 512;
+        }
+    }
+    if (gsGlobal->Interlace == GS_INTERLACED && (gsGlobal->Mode == GS_MODE_NTSC || gsGlobal->Mode == GS_MODE_PAL))
         y2 = y2*2;
     //gsKit_prim_sprite_striped_texture(gsGlobal, &NES_TEX,  // Thought this might be needed for different modes, but it just looks bad
 

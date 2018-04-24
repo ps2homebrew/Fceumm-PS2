@@ -12,7 +12,7 @@ typedef struct {
 typedef struct {
     int offset_x;
     int offset_y;
-    u8 display;
+    int display;
     u8 emulation;
     u8 interlace;
     u8 filter;
@@ -42,10 +42,10 @@ typedef struct {
 // Initialization prototypes
 void SetupGSKit();
 void InitPS2();
-void normalize_screen();
 void init_custom_screen();
 void setupPS2Pad();
 
+void SetDisplayOffset();
 void DrawScreen(GSGLOBAL *gsGlobal);
 
 // Text related prototypes

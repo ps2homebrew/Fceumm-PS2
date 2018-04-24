@@ -32,7 +32,7 @@ D-pad: D-pad
 ## Dependencies
 * https://github.com/ps2dev/ps2sdk (use [ps2toolchain](https://github.com/ps2dev/ps2toolchain))
 * https://github.com/ps2dev/gsKit
-* https://github.com/ps2dev/ps2sdk-ports (libjpeg)
+* https://github.com/ps2dev/ps2sdk-ports (libjpeg, libpng, libz)
 * https://github.com/ps2dev/ps2-packer (optinal)
 
 ## Historical note
