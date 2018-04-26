@@ -23,9 +23,7 @@ extern skin FCEUSkin;
 extern u8 menutex;
 extern u8 bgtex;
 // Input
-extern char control_name[256];
 extern char path[4096];
-extern char partitions[4][256];
 extern u8 h;
 
 // Palette for FCEU
@@ -37,14 +35,14 @@ struct st_palettes {
 };
 extern struct st_palettes palettes[];
 
-int statenum = 0;
-u8 power_off = 0;
+static int statenum = 0;
+static u8 power_off = 0;
 
 /************************************/
 /* gsKit Variables                  */
 /************************************/
 extern GSGLOBAL *gsGlobal;
-extern GSFONTM *gsFontM;
+extern GSTEXTURE NES_TEX;
 extern GSTEXTURE BG_TEX;
 extern GSTEXTURE MENU_TEX;
 
@@ -108,7 +106,7 @@ void menu_bgtexture(GSTEXTURE *gsTexture, float x1, float y1, float x2, float y2
         gsTexture->Width,                      /* U2 */
         gsTexture->Height,                     /* V2 */
         z + 1,                                 /* Z  */
-        GS_SETREG_RGBA(0x80, 0x80, 0x80, 0x80) /* RGBA */
+        GS_SETREG_RGBA(0x80, 0x80, 0x80, 0x00) /* RGBA */
     );
 }
 
@@ -142,7 +140,7 @@ void browser_primitive(char *title1, char *title2, GSTEXTURE *gsTexture, float x
     printXY(title2, x2-(strlen(title2)*10), y1+FONT_HEIGHT/2, 3, FCEUSkin.textcolor, 2, 0);
 }
 
-int menu_input(int port, int center_screen)
+static int menu_input(int port, int center_screen)
 {
     int ret[2];
     u32 paddata[2];
@@ -220,16 +218,9 @@ int menu_input(int port, int center_screen)
     return change;
 }
 
-/** Browser Menu
-        Display:         PAL/NTSC
-        Interlace:       On/Off
-        Emulated System: PAL/NTSC
-        Center Screen
-        Configure Save Path: (browse to path)
-        Configure Elf Path: (browse to path)
-        Exit to Elf Path
-        Exit to PS2Browser
-**/
+#define BROWSER_MENU_N 12
+#define BROWSER_MENU_EXIT_I 11
+
 int Browser_Menu()
 {
     char cnfpath[2048];
@@ -243,7 +234,7 @@ int Browser_Menu()
     int menu_y2 = gsGlobal->Height * 0.85 + FONT_HEIGHT;
     int text_line = menu_y1 + 4;
 
-    char options[12][32] = {
+    char options[BROWSER_MENU_N][32] = {
         { "Display: " },
         { "Interlacing: " },
         { "Emulated System: " },
@@ -257,11 +248,11 @@ int Browser_Menu()
         { "Exit to ELF" },
         { "Exit Options Menu" }
     };
-
-    char options_state[12][64] = { { 0 } };
+    char options_state[BROWSER_MENU_N][64] = { { 0 } };
+    char options_buffer[32+64] = { 0 };
 
     // Fill lines with values
-    for (i = 0; i < 12; i++) {
+    for (i = 0; i < BROWSER_MENU_N; i++) {
         switch (i) {
             case 0:
                 if (Settings.display == 0) {
@@ -299,37 +290,33 @@ int Browser_Menu()
         }
     }
 
-
-
     while (1) {
         selected = 0; // Clear selected flag
         selection += menu_input(0, 0);
 
-        if (selection > 11) { selection = 0; }
-        if (selection < 0) { selection = 11; }
+        if (selection >= BROWSER_MENU_N) { selection = 0; }
+        if (selection < 0) { selection = BROWSER_MENU_N - 1; }
         if (selection == 5 && oldselect == 4) { selection++; } // 5 is savepath
         if (selection == 5 && oldselect == 6) { selection--; }
         if (selection == 7 && oldselect == 6) { selection++; } // 7 is elfpath
         if (selection == 7 && oldselect == 8) { selection--; }
 
-
         if ((oldselect != selection) || option_changed) {
 
-            gsKit_clear(gsGlobal, GS_SETREG_RGBAQ(0x00, 0x00, 0x00, 0x80, 0x00));
+            gsKit_clear(gsGlobal, GS_SETREG_RGBAQ(0x00, 0x00, 0x00, 0x00, 0x00));
 
             menu_primitive("Options", &MENU_TEX, menu_x1, menu_y1, menu_x2, menu_y2);
 
-            for (i = 0; i < 12; i++) {
-                char buffer[32+64];
-                strcpy(buffer, options[i]);
-                strcat(buffer, options_state[i]);
+            for (i = 0; i < BROWSER_MENU_N; i++) {
+                strcpy(options_buffer, options[i]);
+                strcat(options_buffer, options_state[i]);
                 if (selection == i) {
                     //font_print(gsGlobal, menu_x1+10.0f, text_line + i*FONT_HEIGHT, 2, DarkYellowFont, options[i]);
-                    printXY(buffer, menu_x1+10, text_line+i*FONT_HEIGHT, 4, FCEUSkin.highlight, 1, 0);
+                    printXY(options_buffer, menu_x1+10, text_line+i*FONT_HEIGHT, 4, FCEUSkin.highlight, 1, 0);
                 }
                 else {
                     //font_print(gsGlobal, menu_x1+10.0f, text_line + i*FONT_HEIGHT, 2, WhiteFont, options[i]);
-                    printXY(buffer, menu_x1+10, text_line + i*FONT_HEIGHT, 4, FCEUSkin.textcolor, 1, 0);
+                    printXY(options_buffer, menu_x1+10, text_line + i*FONT_HEIGHT, 4, FCEUSkin.textcolor, 1, 0);
                 }
             }
 
@@ -352,7 +339,7 @@ int Browser_Menu()
 
         if (selected) {
             if (selected == 2) {
-                selection = 11;
+                selection = BROWSER_MENU_EXIT_I;
             }
             i = selection;
             switch (i) {
@@ -470,23 +457,17 @@ int Browser_Menu()
     }
 }
 
-/** Ingame_Menu
-        State number: 0
-        Save State
-        Load State
-        Display Settings -> Center Screen
-                            Filtering (Bilinear/Nearest)
-                            Interlace Off (can be saved to config.cnf)
-        Set Input "DisplayName" (pushing left or right here cycles though 0-9, which parses the control(number).cnf)
-        Exit Game (Saves Sram)
-**/
 extern void SetupNESGS();
 extern void SetupNESClut();
 
 extern void SND_SetNextSampleRate();
 extern  int SND_GetCurrSampleRate();
 
-void Ingame_Menu_Controls();
+static void Ingame_Menu_Controls();
+
+#define INGAME_MENU_N 11
+#define INGAME_MENU_EXIT_I 9
+#define INGAME_MENU_PALETTE_I 7
 
 void Ingame_Menu()
 {
@@ -502,7 +483,7 @@ void Ingame_Menu()
 
     int text_line = menu_y1 + 4;
 
-    char options[14][32] = {
+    char options[INGAME_MENU_N][32] = {
         { "State number: " },
         { "Save State" },
         { "Load State" },
@@ -510,18 +491,15 @@ void Ingame_Menu()
         { "Aspect Ratio: "},
         { "Sound: " },
         { "Configure Input >" },
-        { "---" },
-        { "---" },
+        { "Pal: " },
         { "Reset Game" },
-        { "Exit Game" },
         { "Exit Menu" },
-        { "Palette:" },
-        { "" }
+        { "Exit Game" },
     };
+    char options_state[INGAME_MENU_N][64] = { { 0 } };
+    char options_buffer[32+64] = { 0 };
 
-    char options_state[14][64] = { { 0 } };
-
-    for (i = 0; i < 14; i++) {
+    for (i = 0; i < INGAME_MENU_N; i++) {
         switch (i) {
             case 0:
                 sprintf(options_state[i], "%d", statenum);
@@ -544,13 +522,7 @@ void Ingame_Menu()
                 else
                     sprintf(options_state[i], "%dHz", SND_GetCurrSampleRate());
                 break;
-            case 6:
-                break;
             case 7:
-                break;
-            case 8:
-                break;
-            case 13:
                 if (Settings.current_palette == 0)
                     strcpy(options_state[i], "Default (FCEU)");
                 else
@@ -569,10 +541,8 @@ void Ingame_Menu()
         selected = 0; // Clear selected flag
         selection += menu_input(0, 0);
 
-        if (selection == 12 && oldselect == 11) { selection++; } // 12 is palette
-        if (selection == 12 && oldselect == 13) { selection--; }
-        if (selection > 13) { selection = 0; }
-        if (selection < 0) { selection = 13; }
+        if (selection >= INGAME_MENU_N) { selection = 0; }
+        if (selection < 0) { selection = INGAME_MENU_N - 1; }
 
         if (oldselect != selection || option_changed) {
             i = 0x10000;
@@ -581,19 +551,31 @@ void Ingame_Menu()
 
             option_changed = 0;
 
-            menu_primitive("Options", &MENU_TEX, menu_x1, menu_y1, menu_x2, menu_y2);
+            if (selection == INGAME_MENU_PALETTE_I) {
+                int y1 = text_line + INGAME_MENU_PALETTE_I*FONT_HEIGHT;
+                int y2 = text_line + (INGAME_MENU_PALETTE_I+1)*FONT_HEIGHT;
+                gsKit_prim_quad_gouraud(gsGlobal,
+                    menu_x1, y1, menu_x2, y1, menu_x1, y2, menu_x2, y2,
+                    2,
+                    FCEUSkin.bgColor1, FCEUSkin.bgColor2, FCEUSkin.bgColor3, FCEUSkin.bgColor4);
+                strcpy(options_buffer, options[INGAME_MENU_PALETTE_I]);
+                strcat(options_buffer, options_state[INGAME_MENU_PALETTE_I]);
+                printXY(options_buffer, menu_x1+10, y1, 4, FCEUSkin.highlight, 1, 0);
+            }
+            else {
+                menu_primitive("Options", &MENU_TEX, menu_x1, menu_y1, menu_x2, menu_y2);
 
-            for (i = 0; i < 14; i++) {
-                char buffer[32+64];
-                strcpy(buffer, options[i]);
-                strcat(buffer, options_state[i]);
-                if (selection == i) {
-                    //font_print(gsGlobal, menu_x1+10.0f, text_line + i*FONT_HEIGHT, 2, DarkYellowFont, options[i]);
-                    printXY(buffer, menu_x1+10, text_line + i*FONT_HEIGHT, 4, FCEUSkin.highlight, 1, 0);
-                }
-                else {
-                    //font_print(gsGlobal, menu_x1+10.0f, text_line + i*FONT_HEIGHT, 2, WhiteFont, options[i]);
-                    printXY(buffer, menu_x1+10, text_line + i*FONT_HEIGHT, 4, FCEUSkin.textcolor, 1, 0);
+                for (i = 0; i < INGAME_MENU_N; i++) {
+                    strcpy(options_buffer, options[i]);
+                    strcat(options_buffer, options_state[i]);
+                    if (selection == i) {
+                        //font_print(gsGlobal, menu_x1+10.0f, text_line + i*FONT_HEIGHT, 2, DarkYellowFont, options[i]);
+                        printXY(options_buffer, menu_x1+10, text_line + i*FONT_HEIGHT, 4, FCEUSkin.highlight, 1, 0);
+                    }
+                    else {
+                        //font_print(gsGlobal, menu_x1+10.0f, text_line + i*FONT_HEIGHT, 2, WhiteFont, options[i]);
+                        printXY(options_buffer, menu_x1+10, text_line + i*FONT_HEIGHT, 4, FCEUSkin.textcolor, 1, 0);
+                    }
                 }
             }
 
@@ -604,13 +586,13 @@ void Ingame_Menu()
 
         if (selected) {
             if (selected == 2) { // Menu combo pressed again
-                selection = 11;
+                selection = INGAME_MENU_EXIT_I;
             }
             i = selection;
             switch (i) {
                 case 0: // State Number
                     statenum++;
-                    if (statenum > 9) { statenum = 0; }
+                    if (statenum >= 10) { statenum = 0; }
                     sprintf(options_state[i], "%d", statenum);
                     FCEUI_SelectState(statenum);
                     option_changed = 1;
@@ -656,11 +638,21 @@ void Ingame_Menu()
                     Ingame_Menu_Controls();
                     break;
                 case 7:
+                    Settings.current_palette++;
+                    if (Settings.current_palette >= MAXPAL) { Settings.current_palette = 0; }
+                    if (Settings.current_palette == 0)
+                        strcpy(options_state[i], "Default (FCEU)");
+                    else
+                        strcpy(options_state[i], palettes[Settings.current_palette - 1].desc);
+                    SetupNESClut();
+                    gsKit_texture_upload(gsGlobal, &NES_TEX);
+                    option_changed = 1;
                     break;
                 case 8:
-                    break;
-                case 9:
                     FCEUI_ResetNES();
+                    SetupNESGS();
+                    return;
+                case 9:
                     SetupNESGS();
                     return;
                 case 10:
@@ -669,25 +661,12 @@ void Ingame_Menu()
                     exitgame = 1;
                     selected = 0;
                     return;
-                case 11:
-                    SetupNESGS();
-                    return;
-                case 13:
-                    Settings.current_palette++;
-                    if (Settings.current_palette >= MAXPAL) { Settings.current_palette = 0; }
-                    if (Settings.current_palette == 0)
-                        strcpy(options_state[i], "Default (FCEU)");
-                    else
-                        strcpy(options_state[i], palettes[Settings.current_palette - 1].desc);
-                    SetupNESClut();
-                    option_changed = 1;
-                    break;
             }
         }
     }
 }
 
-int menu_input_controls(int port, int is_changing_button, u32 *new_button)
+static int menu_input_controls(int port, int is_changing_button, u32 *new_button)
 {
     int ret[2];
     u32 paddata[2];
@@ -735,7 +714,7 @@ int menu_input_controls(int port, int is_changing_button, u32 *new_button)
     return change;
 }
 
-void padbuttonToStr(u16 button, char button_name[9])
+static void padbuttonToStr(u16 button, char button_name[9])
 {
     if (button == 0) {
         strcpy(button_name, "---");
@@ -765,7 +744,7 @@ void padbuttonToStr(u16 button, char button_name[9])
 #define CONTROLS_N 14
 #define CONTROLS_OFFSET (CONTROLS_N - 10)
 
-void Ingame_Menu_Controls()
+static void Ingame_Menu_Controls()
 {
     int i, b, selection = 0;
     oldselect = -1;
@@ -795,8 +774,8 @@ void Ingame_Menu_Controls()
         { "Joy Turbo A | " },
         { "Joy Turbo B | " }
     };
-
     char options_state[CONTROLS_N][16] = { { 0 } };
+    char options_buffer[32+16] = { 0 };
 
     int player = 0;
     int is_changing_button = 0;
@@ -829,16 +808,13 @@ void Ingame_Menu_Controls()
             menu_primitive("Controls", &MENU_TEX, menu_x1, menu_y1, menu_x2, menu_y2);
 
             for (i = 0; i < CONTROLS_N; i++) {
-                char buffer[32+16];
-                strcpy(buffer, options[i]);
-                strcat(buffer, options_state[i]);
+                strcpy(options_buffer, options[i]);
+                strcat(options_buffer, options_state[i]);
                 if (selection == i) {
-                    //font_print(gsGlobal, menu_x1+10.0f, text_line + i*FONT_HEIGHT, 2, DarkYellowFont, options[i]);
-                    printXY(buffer, menu_x1+10, FONT_HEIGHT + text_line + i*FONT_HEIGHT, 4, FCEUSkin.highlight, 1, 0);
+                    printXY(options_buffer, menu_x1+10, FONT_HEIGHT + text_line + i*FONT_HEIGHT, 4, FCEUSkin.highlight, 1, 0);
                 }
                 else {
-                    //font_print(gsGlobal, menu_x1+10.0f, text_line + i*FONT_HEIGHT, 2, WhiteFont, options[i]);
-                    printXY(buffer, menu_x1+10, FONT_HEIGHT + text_line + i*FONT_HEIGHT, 4, FCEUSkin.textcolor, 1, 0);
+                    printXY(options_buffer, menu_x1+10, FONT_HEIGHT + text_line + i*FONT_HEIGHT, 4, FCEUSkin.textcolor, 1, 0);
                 }
             }
 
@@ -848,7 +824,7 @@ void Ingame_Menu_Controls()
         oldselect = selection;
 
         if (selected) {
-            if (selected == 2) { // Menu combo pressed again
+            if (selected == 2) {
                 return;
             }
             i = selection;

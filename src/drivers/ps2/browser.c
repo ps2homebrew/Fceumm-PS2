@@ -27,7 +27,6 @@ extern skin FCEUSkin;
 /************************************/
 extern GSGLOBAL *gsGlobal;
 extern GSTEXTURE BG_TEX;
-extern GSFONTM *gsFontM;
 
 /************************************/
 /* Pad Variables                    */
@@ -42,7 +41,7 @@ extern int FONT_HEIGHT;
 extern int FONT_WIDTH;
 char path[4096] = "path";
 int needed_path[2] = { -1, -1 };
-char mpartitions[4][256];
+extern char mpartitions[4][256];
 static u16 history[20]; // 20 levels should be enough
 u8 h = 0;
 static int first_file_index;
@@ -53,7 +52,7 @@ extern int Browser_Menu();
 
 static inline char* strzncpy(char *d, const char *s, size_t l) { d[0] = 0; return strncat(d, s, l); }
 
-int comp_entries_by_filename(const void *elem1, const void *elem2)
+static int comp_entries_by_filename(const void *elem1, const void *elem2)
 {
     return strcmp(((entries*)elem1)->filename, ((entries*)elem2)->filename);
 }
@@ -652,8 +651,8 @@ char* Browser(int files_too, int menu_id)
         if (selection < 0) { selection = (n-1); }
         if (selection != oldselect) {
 
-            gsKit_clear(gsGlobal, GS_SETREG_RGBAQ(0x00, 0x00, 0x00, 0x80, 0x00));
-            browser_primitive("FCEUltra PS2 B0.93 [x.3.2]", "Browser", &BG_TEX, menu_x1, menu_y1, menu_x2, menu_y2);
+            gsKit_clear(gsGlobal, GS_SETREG_RGBAQ(0x00, 0x00, 0x00, 0x00, 0x00));
+            browser_primitive("FCEUltra PS2 B0.93 [x.3.3]", "Browser", &BG_TEX, menu_x1, menu_y1, menu_x2, menu_y2);
 
             if (selection > max_item) {
                 list_offset = text_line - (selection - max_item) * FONT_HEIGHT;
