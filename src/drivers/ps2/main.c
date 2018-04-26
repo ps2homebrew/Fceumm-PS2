@@ -8,10 +8,9 @@
 #include "../../fceu-types.h"
 
 #include "ps2fceu.h"
-extern unsigned char path[4096];
+extern char path[4096];
 extern vars Settings;
 extern skin FCEUSkin;
-extern u8 partitions[2];
 char mpartitions[4][256];
 int FONT_HEIGHT = 16;
 int FONT_WIDTH = 8;
@@ -539,7 +538,6 @@ struct st_palettes palettes[] = {
 GSTEXTURE NES_TEX;
 GSTEXTURE BG_TEX;
 GSTEXTURE MENU_TEX;
-GSFONTM *gsFontM;
 
 u8 menutex = 0;
 u8 bgtex = 0;
@@ -862,13 +860,13 @@ void SetupNESGS()
         NES_TEX.Filter = GS_FILTER_NEAREST;
     }
 
-//    gsKit_clear(gsGlobal, GS_SETREG_RGBA(0x00, 0x00, 0x00, 0x80));
+//    gsKit_clear(gsGlobal, GS_SETREG_RGBA(0x00, 0x00, 0x00, 0x00));
     FCEUD_GetPalette(0, &r, &g, &b);
 //    r =  (NesPalette[ 0 ] & 0xff0000)>>16;
 //    g =  (NesPalette[ 0 ] & 0xff00  )>> 8;
 //    b =  (NesPalette[ 0 ] & 0xff    )<< 0;
 
-    gsKit_clear(gsGlobal, GS_SETREG_RGBA(r, g, b, 0x80));
+    gsKit_clear(gsGlobal, GS_SETREG_RGBA(r, g, b, 0x00));
     y1 = 0;
     v1 = 0;
     y2 = NES_TEX.Height*2;
@@ -921,7 +919,7 @@ void SetupNESGS()
         NES_TEX.Width,                         /* U2 */
         v2,                                    /* V2 */
         2,                                     /* Z  */
-        GS_SETREG_RGBA(0x80, 0x80, 0x80, 0x80) /* RGBA */
+        GS_SETREG_RGBA(0x80, 0x80, 0x80, 0x00) /* RGBA */
     );
 }
 
