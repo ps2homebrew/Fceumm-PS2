@@ -26,7 +26,7 @@ before_script:
 # Configure ps2sdk
   - docker exec -t $(cat container_id) bash -c "ls -l"
   - docker exec -t $(cat container_id) bash -c "cd /; git clone https://github.com/ps2dev/ps2sdk"
-  - docker exec -t $(cat container_id) bash -c "cd /ps2sdk/; make --silent install"
+  - docker exec -t $(cat container_id) bash -c "cd /ps2sdk/; make -j4 --silent; make install --silent"
 
 # installing ports
   - docker exec -t $(cat container_id) bash -c "cd /; git clone https://github.com/ps2dev/ps2sdk-ports"
@@ -48,6 +48,6 @@ before_script:
 
 script:
   - docker exec -t $(cat container_id) bash -c "cd /Fceumm-PS2/; make -f Makefile.ps2"
-  - docker cp $(cat container_id):/ $TRAVIS_BUILD_DIR 
+  - docker cp $(cat container_id):/Fceumm-PS2/fceu-packed.elf $TRAVIS_BUILD_DIR 
   - zip Fceumm-ps2_$TRAVIS_COMMIT_$CDNAME.zip fceu-packed.elf
   - curl --upload-file Fceumm-ps2_$TRAVIS_COMMIT_$CDNAME.zip https://transfer.sh/Fceumm-ps2_$TRAVIS_COMMIT_$CDNAME.zip | grep transfer
