@@ -1,4 +1,13 @@
 # this is travis script for testing Fceumm-ps2 compilation
+# upload in releases if branch is tagged
+#deploy:
+ # provider: releases
+  #api_key: $APIKEY
+#  file: uLaunchelf_$TRAVIS_COMMIT.zip
+ # skip_cleanup: true
+  #on:
+   # tags: true
+    #all_branches: true
 
 sudo: required
 
@@ -26,7 +35,7 @@ before_script:
 # Configure ps2sdk
   - docker exec -t $(cat container_id) bash -c "ls -l"
   - docker exec -t $(cat container_id) bash -c "cd /; git clone https://github.com/ps2dev/ps2sdk"
-  - docker exec -t $(cat container_id) bash -c "cd /ps2sdk/; make -j4 --silent; make install --silent"
+  - docker exec -t $(cat container_id) bash -c "cd /ps2sdk/; make install --silent"
 
 # installing ports
   - docker exec -t $(cat container_id) bash -c "cd /; git clone https://github.com/ps2dev/ps2sdk-ports"
