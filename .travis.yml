@@ -36,13 +36,12 @@ before_script:
 # Set up the ps2packer
   - docker exec -t $(cat container_id) bash -c "cd /; git clone https://github.com/ps2dev/ps2-packer"
   - docker exec -t $(cat container_id) bash -c "cd /ps2-packer/; make; make install"
+
 # Copy source code
   - cd $TRAVIS_BUILD_DIR
   - docker cp $TRAVIS_BUILD_DIR $(cat container_id):/
 
 script:
   - docker exec -t $(cat container_id) bash -c "cd /Fceumm-PS2/; make -f Makefile.ps2"
-
-after script:
   - zip Fceumm-ps2_$TRAVIS_COMMIT.zip $(cat container_id):/Fceumm-PS2/fceu-packed.elf
   - curl --upload-file Fceumm-ps2_$TRAVIS_COMMIT.zip https://transfer.sh/Fceumm-ps2_$TRAVIS_COMMIT.zip | grep transfer
