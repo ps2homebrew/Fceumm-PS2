@@ -48,5 +48,6 @@ before_script:
 
 script:
   - docker exec -t $(cat container_id) bash -c "cd /Fceumm-PS2/; make -f Makefile.ps2"
-  - zip Fceumm-ps2_$TRAVIS_COMMIT.zip $(cat container_id):/Fceumm-PS2/fceu-packed.elf
-  - curl --upload-file Fceumm-ps2_$TRAVIS_$CDNAME_COMMIT.zip https://transfer.sh/Fceumm-ps2_$TRAVIS_$CDNAME_COMMIT.zip | grep transfer
+  - docker cp $(cat container_id):/ $TRAVIS_BUILD_DIR 
+  - zip Fceumm-ps2_$TRAVIS_COMMIT_$CDNAME.zip fceu-packed.elf
+  - curl --upload-file Fceumm-ps2_$TRAVIS_COMMIT_$CDNAME.zip https://transfer.sh/Fceumm-ps2_$TRAVIS_COMMIT_$CDNAME.zip | grep transfer
