@@ -1,41 +1,9 @@
-#deploy:
-  #provider: releases
-  #api_key:
-    #secure: SPp1uPVV7eUJQbP2e6fM9Mv0FSPDO1xUSX4De1VFUHg8AwIjbfNHVaPTN1ZEX/OQqujwNJYwoW/GwF2ZsIXwElROm3gLLVjL0cTIVZeK/GfQa5fZpCNLDYERug3pr73XIes0W2C7dOn2EuqCMGszTgZuDDjDHkZApgxQ+JKg+LRowzliFeLUkOYkoiBII0umhuQZS9A2Ars92mLpekUl6IQpqHRFJNPVgFgooRGwvsLikVwuRau7C5OQP53iaye4Q6/azg9oAgMJHU9z2KQrshdbecBlYAzICC8EaFsEWyDBvxotGhlKQilyYgQZwYCLkYkwmdoKF6C0NeJhfFjgVX1DhkF4ASdoMd1wOAb+9X6uy+3et7K2L/qgnBt+UUVlYR5/0lA34Sr0f4xdvJXoG15s/H0v/yQmPN7Y35+0AOob0EYNeisArDzVFKWTbii1h7IIbDqOybOyPsAdReOkrAXiP9D03IB2sFGXvi1Kr8VUyB2SM0dhQ5uoBMoCapm2RF0QXhaKWujqhg/QOji0n3/SbnZo44sPcaXQjQNo3YGBZn4H8Y+VbAdaDBKGU74k14YeYjk2s8n8JF8C23PO9hU36lQLGuTk1Oeq/Fv7uMydkxVrdwTwVw6YuMJ9AevKIIYVA10EVN2/s0Jk6eIfQuAsIVYFpveT3zha1lsThkM=
-  #file: test
-  #on:
-#tags: true
-    #repo: AKuHAK/Fceumm-PS2
-    #branch: AKuHAK-patch-1
-
-# this is travis script for testing Fceumm-ps2 compilation
-# upload in releases if branch is tagged
-#deploy:
-#  - provider: releases
-#    api_key: $APIKEY
-#    file: $TRAVIS_BUILD_DIR/fceu-packed.$TRAVIS_COMMIT$CDNAME.elf
- # skip_cleanup: true
-  #on:
-   # tags: true
-    #all_branches: true
-    
-   deploy:
-      provider: releases
-      api_key:
-        secure: SPp1uPVV7eUJQbP2e6fM9Mv0FSPDO1xUSX4De1VFUHg8AwIjbfNHVaPTN1ZEX/OQqujwNJYwoW/GwF2ZsIXwElROm3gLLVjL0cTIVZeK/GfQa5fZpCNLDYERug3pr73XIes0W2C7dOn2EuqCMGszTgZuDDjDHkZApgxQ+JKg+LRowzliFeLUkOYkoiBII0umhuQZS9A2Ars92mLpekUl6IQpqHRFJNPVgFgooRGwvsLikVwuRau7C5OQP53iaye4Q6/azg9oAgMJHU9z2KQrshdbecBlYAzICC8EaFsEWyDBvxotGhlKQilyYgQZwYCLkYkwmdoKF6C0NeJhfFjgVX1DhkF4ASdoMd1wOAb+9X6uy+3et7K2L/qgnBt+UUVlYR5/0lA34Sr0f4xdvJXoG15s/H0v/yQmPN7Y35+0AOob0EYNeisArDzVFKWTbii1h7IIbDqOybOyPsAdReOkrAXiP9D03IB2sFGXvi1Kr8VUyB2SM0dhQ5uoBMoCapm2RF0QXhaKWujqhg/QOji0n3/SbnZo44sPcaXQjQNo3YGBZn4H8Y+VbAdaDBKGU74k14YeYjk2s8n8JF8C23PO9hU36lQLGuTk1Oeq/Fv7uMydkxVrdwTwVw6YuMJ9AevKIIYVA10EVN2/s0Jk6eIfQuAsIVYFpveT3zha1lsThkM=
-      file: $TRAVIS_BUILD_DIR/fceu-packed.$TRAVIS_COMMIT$CDNAME.elf
-      skip_cleanup: true
-      on:
-        tags: true
-        #all_branches: true
-        branch: AKuHAK-patch-1
- 
-
 sudo: required
+language: c
 
-install:
+#install:
  ## Dependencies
-- sudo apt-get install -yqqq gcc-4.4 patch wget make git libc6-dev zlib1g zlib1g-dev libucl1 libucl-dev
+ # -sudo apt-get install -yqqq gcc-4.4 patch wget make git libc6-dev zlib1g zlib1g-dev libucl1 libucl-dev
  ## ps2dev
 
 services:
@@ -43,8 +11,8 @@ services:
   
 env:
   matrix:
-  - CD=0 CDNAME=
-  - CD=1 CDNAME=cdvdsupport
+    - CD=0 CDNAME=
+    - CD=1 CDNAME=cdvdsupport
 
 before_script:
 # Get docker image
@@ -81,3 +49,9 @@ script:
   - docker exec -t $(cat container_id) bash -c "cd /Fceumm-PS2/; make -f Makefile.ps2 CDSUPPORT=$CD"
   - docker cp $(cat container_id):/Fceumm-PS2/fceu-packed.elf $TRAVIS_BUILD_DIR/fceu-packed.$TRAVIS_COMMIT$CDNAME.elf
   - curl --upload-file fceu-packed.$TRAVIS_COMMIT$CDNAME.elf https://transfer.sh/fceu-packed.$TRAVIS_COMMIT$CDNAME.elf | grep transfer
+
+deploy:
+  provider: releases
+  api_key:
+    secure: avYeerQDCmDWGhol50l5yggW4xL6Fx+3pqdPL2Pf+/rvdDhI2kL0I1HVCQ8hAUkWksO851XgnnRY+toZ0Q7wEI7F/diJf6mIKmmfaR/4eueK0UaLeOS6OwxZ7cZaHPvqSjlpk2I178t/lyyJN3bdTwMuMYXL7cpphi2B04DbwnlA4mYPREe/qZjY50C+6aY/jlbFSKUZYqgHYM9fmcLp4KU5LNJzYiE9+ll3p+w7zvjAeSCIldY2xtumJCVr2E85tVD3X2Bzhx0Ze89thATuC0z4sGtscTTI7XNhgiTbk2MXdnmPQ9fXUoAdNiTIiZ90cHQmh8eacYA6elhUXBCboDXbDVWMF8yKtngwFjmJLNX6gRqwwzmYgeaMusisPhnWS+Xu8Uf718LS1yp+BjETxTjUda1Utpj+8NbM+WFBXd0squrLkxRoxE946IyP/w4iPpXQh3sFKk+ftvnl9B8LujBK8W9q7uPpEGzXTr9xSa52i+LVsa9DqP+PIt6GpQL6kpu9pVWdBGRsHlRFLtdd3VL9ehZ6/JRHKkeFyfm3be5sSon5CzXp+7IF6/vcifNYURcwbmsniuhOl/EX5S0DgmScQhNw45+gZ4l/Cnvrm96FLV7ZrfhUelTRUCMcaX5Bvf/P4yZy7lN7iqxzB39ujxI737Fy3N03Eszt0CEXr4s=
+  file: "$TRAVIS_BUILD_DIR/fceu-packed.$TRAVIS_COMMIT$CDNAME.elf"
