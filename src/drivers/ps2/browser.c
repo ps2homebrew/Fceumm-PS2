@@ -624,7 +624,7 @@ char* Browser(int files_too, int menu_id)
         if(selection != oldselect) {
 
             gsKit_clear(gsGlobal,GS_SETREG_RGBAQ(0x00,0x00,0x00,0x80,0x00));
-            browser_primitive("FCEUltra PS2 Beta 0.93","Browser", &BG_TEX, menu_x1, menu_y1, menu_x2, menu_y2);
+            browser_primitive("FCEUltra PS2 B0.93 [x.1.0]","Browser", &BG_TEX, menu_x1, menu_y1, menu_x2, menu_y2);
 
             if(selection > max_item) {
                 list_offset = text_line - (selection - max_item) * FONT_HEIGHT;

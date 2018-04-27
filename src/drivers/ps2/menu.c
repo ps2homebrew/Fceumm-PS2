@@ -560,7 +560,7 @@ void Ingame_Menu(void)
         { "Load State" },
         { "Filtering: "},
         { "LowPass: " },
-        { "Configure Input" },
+        { "4-Players Adaptor: " },
         { "Rapidfire Switch: "},
         { "RapidFire P1: " },
         { "RapidFire P2: " },
@@ -584,6 +584,12 @@ void Ingame_Menu(void)
                 break;
             case 4:
                 if(!Settings.lowpass)
+                    sprintf(options[i],"%s%s",options[i],"Off");
+                else
+                    sprintf(options[i],"%s%s",options[i],"On");
+                break;
+            case 5:
+                if(!Settings.input_4players_adaptor)
                     sprintf(options[i],"%s%s",options[i],"Off");
                 else
                     sprintf(options[i],"%s%s",options[i],"On");
@@ -719,6 +725,22 @@ void Ingame_Menu(void)
                     }
                     else {
                         FCEUI_SetLowPass(Settings.lowpass);
+                        temp = strstr(options[i],"On");
+                        *temp = 0;
+                        strcat(options[i],"Off");
+                    }
+                    option_changed = 1;
+                    break;
+                case 5:
+                    Settings.input_4players_adaptor ^= 1;
+                    if(Settings.input_4players_adaptor) {
+                        FCEUI_SetInputFC(SIFC_4PLAYER, NULL, 0);
+                        temp = strstr(options[i],"Off");
+                        *temp = 0;
+                        strcat(options[i],"On");
+                    }
+                    else {
+                        FCEUI_SetInputFC(SIFC_NONE, NULL, 0);
                         temp = strstr(options[i],"On");
                         *temp = 0;
                         strcat(options[i],"Off");
