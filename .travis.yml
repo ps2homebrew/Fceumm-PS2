@@ -10,6 +10,11 @@ install:
 services:
   - docker
   
+env:
+  matrix:
+    - CDSUPPORT=0 CDNAME=
+    - CDSUPPORT=1 CDNAME=cdvdsupport
+
 before_script:
 # Get docker image
   - docker pull akuhak/ps2toolchain:latest
@@ -44,4 +49,4 @@ before_script:
 script:
   - docker exec -t $(cat container_id) bash -c "cd /Fceumm-PS2/; make -f Makefile.ps2"
   - zip Fceumm-ps2_$TRAVIS_COMMIT.zip $(cat container_id):/Fceumm-PS2/fceu-packed.elf
-  - curl --upload-file Fceumm-ps2_$TRAVIS_COMMIT.zip https://transfer.sh/Fceumm-ps2_$TRAVIS_COMMIT.zip | grep transfer
+  - curl --upload-file Fceumm-ps2_$TRAVIS_$CDNAME_COMMIT.zip https://transfer.sh/Fceumm-ps2_$TRAVIS_$CDNAME_COMMIT.zip | grep transfer

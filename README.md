@@ -1,5 +1,6 @@
 FCEUmm-PS2
 ===========
+[![Build Status](https://travis-ci.org/AKuHAK/Fceumm-PS2.svg?branch=master)](https://travis-ci.org/AKuHAK/Fceumm-PS2)
 [![forthebadge](https://forthebadge.com/images/badges/contains-technical-debt.svg)](https://forthebadge.com)
 
 [Download](https://github.com/infval/Fceumm-PS2/releases) binary release (ELF file).
@@ -36,9 +37,6 @@ D-pad: D-pad
 * https://github.com/ps2dev/ps2-packer (optinal)
 
 ## Historical note
-
-[![Build Status](https://travis-ci.org/AKuHAK/Fceumm-PS2.svg?branch=master)](https://travis-ci.org/AKuHAK/Fceumm-PS2)
-
 
 *(ragnarok2040)
 
