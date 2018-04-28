@@ -1,0 +1,56 @@
+sudo: required
+language: c
+
+services:
+  - docker
+  
+env:
+  matrix:
+    - CD=0 CDNAME=
+    - CD=1 CDNAME=.cdvdsupport
+
+before_script:
+# Get docker image
+  - docker pull akuhak/ps2toolchain:latest
+  - docker ps
+
+# Run DOCKER, run!
+  - docker run -d akuhak/ps2toolchain bash -c "while true; do sleep 5; done" > container_id
+
+# Configure ps2sdk
+  - docker exec -t $(cat container_id) bash -c "ls -l"
+  - docker exec -t $(cat container_id) bash -c "cd /; git clone https://github.com/ps2dev/ps2sdk"
+  - docker exec -t $(cat container_id) bash -c "cd /ps2sdk/; make install --silent"
+
+# installing ports
+  - docker exec -t $(cat container_id) bash -c "cd /; git clone https://github.com/ps2dev/ps2sdk-ports"
+  - docker exec -t $(cat container_id) bash -c "cd /ps2sdk-ports/zlib/; make install"
+  - docker exec -t $(cat container_id) bash -c "cd /ps2sdk-ports/libpng/; make install"
+  - docker exec -t $(cat container_id) bash -c "cd /ps2sdk-ports/libjpeg/; make install"
+
+# Set up the gsKit
+  - docker exec -t $(cat container_id) bash -c "cd /; git clone https://github.com/ps2dev/gsKit /gsKit/"
+  - docker exec -t $(cat container_id) bash -c "cd /gsKit/; make install"
+
+# Set up the ps2packer
+  - docker exec -t $(cat container_id) bash -c "cd /; git clone https://github.com/ps2dev/ps2-packer"
+  - docker exec -t $(cat container_id) bash -c "cd /ps2-packer/; make; make install"
+
+# Copy source code
+  - cd $TRAVIS_BUILD_DIR
+  - docker cp $TRAVIS_BUILD_DIR $(cat container_id):/
+
+script:
+  - docker exec -t $(cat container_id) bash -c "cd /Fceumm-PS2/; make -f Makefile.ps2 CDSUPPORT=$CD"
+  - docker cp $(cat container_id):/Fceumm-PS2/fceu-packed.elf $TRAVIS_BUILD_DIR/fceu-packed.$TRAVIS_TAG$CDNAME.elf
+  - curl --upload-file fceu-packed.$TRAVIS_TAG$CDNAME.elf https://transfer.sh/fceu-packed.$TRAVIS_TAG$CDNAME.elf | grep transfer
+
+deploy:
+  provider: releases
+  api_key:
+    secure: avYeerQDCmDWGhol50l5yggW4xL6Fx+3pqdPL2Pf+/rvdDhI2kL0I1HVCQ8hAUkWksO851XgnnRY+toZ0Q7wEI7F/diJf6mIKmmfaR/4eueK0UaLeOS6OwxZ7cZaHPvqSjlpk2I178t/lyyJN3bdTwMuMYXL7cpphi2B04DbwnlA4mYPREe/qZjY50C+6aY/jlbFSKUZYqgHYM9fmcLp4KU5LNJzYiE9+ll3p+w7zvjAeSCIldY2xtumJCVr2E85tVD3X2Bzhx0Ze89thATuC0z4sGtscTTI7XNhgiTbk2MXdnmPQ9fXUoAdNiTIiZ90cHQmh8eacYA6elhUXBCboDXbDVWMF8yKtngwFjmJLNX6gRqwwzmYgeaMusisPhnWS+Xu8Uf718LS1yp+BjETxTjUda1Utpj+8NbM+WFBXd0squrLkxRoxE946IyP/w4iPpXQh3sFKk+ftvnl9B8LujBK8W9q7uPpEGzXTr9xSa52i+LVsa9DqP+PIt6GpQL6kpu9pVWdBGRsHlRFLtdd3VL9ehZ6/JRHKkeFyfm3be5sSon5CzXp+7IF6/vcifNYURcwbmsniuhOl/EX5S0DgmScQhNw45+gZ4l/Cnvrm96FLV7ZrfhUelTRUCMcaX5Bvf/P4yZy7lN7iqxzB39ujxI737Fy3N03Eszt0CEXr4s=
+  file: "$TRAVIS_BUILD_DIR/fceu-packed.${TRAVIS_TAG}$CDNAME.elf"
+  skip_cleanup: true
+  on:
+    tags: true
+    branch: master
