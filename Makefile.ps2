@@ -134,16 +134,20 @@ $(PS2_DIR)/irx/usbhdfsd_irx.c:
 
 ifeq ($(CDSUPPORT),1)
 $(PS2_DIR)/irx/cdvd_irx.c:
+	$(MAKE) -C libcdvd
 	bin2c libcdvd/lib/cdvd.irx $(PS2_DIR)/irx/cdvd_irx.c cdvd_irx
 endif
 
 $(PS2_DIR)/irx/SMSUTILS_irx.c:
-	bin2c $(PS2_DIR)/irx/SMSUTILS.irx $(PS2_DIR)/irx/SMSUTILS_irx.c SMSUTILS_irx
+	$(MAKE) -C SMSUTILS
+	bin2c SMSUTILS/SMSUTILS.irx $(PS2_DIR)/irx/SMSUTILS_irx.c SMSUTILS_irx
 
 run: $(EE_BIN)
 	ps2client execee host:$(EE_BIN)
 
 clean:
+	$(MAKE) -C libcdvd clean
+	$(MAKE) -C SMSUTILS clean
 	$(RM) $(EE_BIN) $(EE_PACKED_BIN) $(EE_OBJS) $(PS2_DIR)/irx/*.c
 
 #include Makefile.eeglobal
