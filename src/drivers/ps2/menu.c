@@ -262,7 +262,7 @@ int Browser_Menu()
                     strcpy(options_state[i], "PAL");
                 }
                 else if (Settings.display == 2) {
-                    strcpy(options_state[i], "DTV 640x480");
+                    strcpy(options_state[i], "DTV 720x480");
                 }
                 break;
             case 1:
@@ -355,7 +355,7 @@ int Browser_Menu()
                         strcpy(options_state[i], "PAL");
                     }
                     else if (Settings.display == 2) {
-                        strcpy(options_state[i], "DTV 640x480");
+                        strcpy(options_state[i], "DTV 720x480");
                     }
 
                     init_custom_screen();
