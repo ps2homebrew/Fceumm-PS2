@@ -50,14 +50,14 @@ script:
   - docker exec -t $(cat container_id) bash -c "cd /; git clone https://github.com/ps2dev/ps2-packer"
   - docker exec -t $(cat container_id) bash -c "cd /ps2-packer/; make; make install"
   - docker exec -t $(cat container_id) bash -c "cd /work/; make CDSUPPORT=1 NOT_PACKED=1"
-  - docker cp $(cat container_id):/work/fceu-packed.elf $TRAVIS_BUILD_DIR/fceu_$TRAVIS_BUILD_NUMBER.elf
-  - curl --upload-file fceu_$TRAVIS_BUILD_NUMBER.elf https://transfer.sh/fceu_$TRAVIS_BUILD_NUMBER.elf | grep transfer
+  - docker cp $(cat container_id):/work/fceu.elf $TRAVIS_BUILD_DIR/fceu_$TRAVIS_JOB_NUMBER.elf
+  - curl --upload-file fceu_$TRAVIS_JOB_NUMBER.elf https://transfer.sh/fceu_$TRAVIS_JOB_NUMBER.elf | grep transfer
 
 deploy:
   provider: releases
   api_key:
     secure: avYeerQDCmDWGhol50l5yggW4xL6Fx+3pqdPL2Pf+/rvdDhI2kL0I1HVCQ8hAUkWksO851XgnnRY+toZ0Q7wEI7F/diJf6mIKmmfaR/4eueK0UaLeOS6OwxZ7cZaHPvqSjlpk2I178t/lyyJN3bdTwMuMYXL7cpphi2B04DbwnlA4mYPREe/qZjY50C+6aY/jlbFSKUZYqgHYM9fmcLp4KU5LNJzYiE9+ll3p+w7zvjAeSCIldY2xtumJCVr2E85tVD3X2Bzhx0Ze89thATuC0z4sGtscTTI7XNhgiTbk2MXdnmPQ9fXUoAdNiTIiZ90cHQmh8eacYA6elhUXBCboDXbDVWMF8yKtngwFjmJLNX6gRqwwzmYgeaMusisPhnWS+Xu8Uf718LS1yp+BjETxTjUda1Utpj+8NbM+WFBXd0squrLkxRoxE946IyP/w4iPpXQh3sFKk+ftvnl9B8LujBK8W9q7uPpEGzXTr9xSa52i+LVsa9DqP+PIt6GpQL6kpu9pVWdBGRsHlRFLtdd3VL9ehZ6/JRHKkeFyfm3be5sSon5CzXp+7IF6/vcifNYURcwbmsniuhOl/EX5S0DgmScQhNw45+gZ4l/Cnvrm96FLV7ZrfhUelTRUCMcaX5Bvf/P4yZy7lN7iqxzB39ujxI737Fy3N03Eszt0CEXr4s=
-  file: "$TRAVIS_BUILD_DIR/fceu_$TRAVIS_BUILD_NUMBER.elf"
+  file: "$TRAVIS_BUILD_DIR/fceu_$TRAVIS_JOB_NUMBER.elf"
   skip_cleanup: true
   on:
     tags: true
