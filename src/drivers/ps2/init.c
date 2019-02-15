@@ -144,7 +144,6 @@ void InitPS2()
     SifExecModuleBuffer(&ps2hdd_irx, size_ps2hdd_irx, sizeof(hddarg), hddarg, NULL);
     SifExecModuleBuffer(&ps2fs_irx, size_ps2fs_irx, sizeof(pfsarg), pfsarg, NULL);
 
-    mcInit(MC_TYPE_XMC);
 
 #ifdef CDSUPPORT
     SifExecModuleBuffer(&cdvd_irx, size_cdvd_irx, 0, NULL, NULL);
@@ -155,6 +154,8 @@ void InitPS2()
 #ifdef SOUND_ON
     audsrv_init();
 #endif
+
+    mcInit(MC_TYPE_XMC);
 
     mtapInit();
     padInit(0);
