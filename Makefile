@@ -65,8 +65,8 @@ endif
 DRIVER_OBJS += freesio2_irx.o mcman_irx.o mcserv_irx.o freemtap_irx.o freepad_irx.o
 DRIVER_OBJS := $(DRIVER_OBJS:%=$(PS2_DIR)/irx/%)
 DRIVER_OBJS += $(PS2_DIR)/SMS_Utils.o
-DRIVER_CFLAGS := -D_EE -DSOUND_ON -O2 -G0 -Wall $(PLATFORM_DEFINES)
-#DRIVER_CFLAGS := -D_EE -O2 -G0 -Wall $(PLATFORM_DEFINES)
+#DRIVER_CFLAGS := -D_EE -DSOUND_ON -O2 -G0 -Wall $(PLATFORM_DEFINES)
+DRIVER_CFLAGS := -D_EE -O2 -G0 -Wall $(PLATFORM_DEFINES)
 ifeq ($(CDSUPPORT),1)
 	DRIVER_CFLAGS += -DCDSUPPORT
 	DRIVER_OBJS  += $(PS2_DIR)/cd/cd.o
