@@ -741,6 +741,7 @@ int main(int argc, char *argv[])
         printf("FCEUltra did not initialize.\n");
         return 0;
     }
+        printf("FCEUltra initialized REMOVE ME\n");
 
     // Setup FCEUltra here
     FCEUI_SetVidSystem(Settings.emulation); // 0 = ntsc, 1 = pal
