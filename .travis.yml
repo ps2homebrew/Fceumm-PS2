@@ -46,7 +46,7 @@ before_script:
   - docker cp $TRAVIS_BUILD_DIR/. $(cat container_id):/work/
 
 script:
-  - docker exec -t $(cat container_id) bash -c "cd /work/; make CDSUPPORT=1 NOT_PACKED=1"
+  - docker exec -t $(cat container_id) bash -c "cd /work/; make CDSUPPORT=0 NOT_PACKED=1"
   - docker cp $(cat container_id):/work/fceu.elf $TRAVIS_BUILD_DIR/fceu_$TRAVIS_JOB_NUMBER.elf
   - curl --upload-file fceu_$TRAVIS_JOB_NUMBER.elf https://transfer.sh/fceu_$TRAVIS_JOB_NUMBER.elf | grep transfer
 
