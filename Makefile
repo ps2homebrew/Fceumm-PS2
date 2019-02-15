@@ -10,6 +10,9 @@ ZLIB_DIR := ./src/zlib
 ENDIANNESS_DEFINES = -DLSB_FIRST -DLOCAL_LE=1
 PLATFORM_DEFINES = -D__PS2__ -DHAVE_ASPRINTF -Dmemcpy=mips_memcpy -Dmemset=mips_memset
 
+#Nor stripping neither compressing binary ELF after compiling.
+NOT_PACKED ?= 0
+
 ifeq ($(DEBUG), 1)
 	PLATFORM_DEFINES += -O0 -g
 else
@@ -43,7 +46,9 @@ default: all
 
 all: $(EE_BIN)
 	$(EE_STRIP) $(EE_BIN)
+ifneq ($(NOT_PACKED),1)
 	ps2-packer $(EE_BIN) $(EE_PACKED_BIN)
+endif
 
 PS2_DIR := ./src/drivers/ps2
 IRX_DIR=$(PS2SDK)/iop/irx
