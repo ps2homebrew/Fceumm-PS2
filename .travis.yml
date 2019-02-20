@@ -12,20 +12,20 @@ matrix:
   fast_finish: false
   include:
     - env:
+      - MATRIX_EVAL="PS2DOCKER=akuhak/ps2toolchain PS2DOCKER_TAG=latest PS2FORK=ps2dev PS2BRANCH=master"
+    - env:
       - MATRIX_EVAL="PS2DOCKER=ps2homebrew/ps2toolchain PS2DOCKER_TAG=latest PS2FORK=ps2homebrew PS2BRANCH=test1"
     - env:
       - MATRIX_EVAL="PS2DOCKER=akuhak/ps2toolchain PS2DOCKER_TAG=gcc5 PS2FORK=ps2homebrew PS2BRANCH=test1"
     - env:
-      - MATRIX_EVAL="PS2DOCKER=akuhak/ps2toolchain PS2DOCKER_TAG=latest PS2FORK=ps2dev PS2BRANCH=master"
-    - env:
-      - MATRIX_EVAL="PS2DOCKER=akuhak/ps2toolchain PS2DOCKER_TAG=newlib250 PS2FORK=ps2dev PS2BRANCH=master"
+      - MATRIX_EVAL="PS2DOCKER=akuhak/ps2toolchain PS2DOCKER_TAG=newlib250 PS2FORK=ps2homebrew PS2BRANCH=test1"
   allow_failures:
     - env:
       - MATRIX_EVAL="PS2DOCKER=ps2homebrew/ps2toolchain PS2DOCKER_TAG=latest PS2FORK=ps2homebrew PS2BRANCH=test1"
     - env:
       - MATRIX_EVAL="PS2DOCKER=akuhak/ps2toolchain PS2DOCKER_TAG=gcc5 PS2FORK=ps2homebrew PS2BRANCH=test1"
-   - env:
-      - MATRIX_EVAL="PS2DOCKER=akuhak/ps2toolchain PS2DOCKER_TAG=newlib250 PS2FORK=ps2dev PS2BRANCH=master"
+    - env:
+      - MATRIX_EVAL="PS2DOCKER=akuhak/ps2toolchain PS2DOCKER_TAG=newlib250 PS2FORK=ps2homebrew PS2BRANCH=test1"
 
 before_install:
     - eval "${MATRIX_EVAL}"
