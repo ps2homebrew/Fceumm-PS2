@@ -32,7 +32,7 @@ before_script:
   - docker ps
 
   # Run DOCKER, run!
-  - docker run -d ${PS2DOCKER} bash -c "while true; do sleep 5; done" > container_id
+  - docker run -d ${PS2DOCKER}:${PS2DOCKER_TAG} bash -c "while true; do sleep 5; done" > container_id
 
   # Configure ps2sdk
   - docker exec -t $(cat container_id) bash -c "ls -l"
