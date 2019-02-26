@@ -21,6 +21,8 @@ matrix:
       - MATRIX_EVAL="PS2DOCKER=akuhak/ps2toolchain PS2DOCKER_TAG=newlib250 PS2FORK=ps2homebrew PS2BRANCH=test1"
     - env:
       - MATRIX_EVAL="PS2DOCKER=akuhak/ps2toolchain PS2DOCKER_TAG=gcc6_nl3 PS2FORK=ps2homebrew PS2BRANCH=test1"
+     - env:
+      - MATRIX_EVAL="PS2DOCKER=akuhak/ps2toolchain PS2DOCKER_TAG=gcc7 PS2FORK=ps2homebrew PS2BRANCH=test1"
   allow_failures:
     - env:
       - MATRIX_EVAL="PS2DOCKER=ps2homebrew/ps2toolchain PS2DOCKER_TAG=latest PS2FORK=ps2homebrew PS2BRANCH=test1"
@@ -30,7 +32,9 @@ matrix:
       - MATRIX_EVAL="PS2DOCKER=akuhak/ps2toolchain PS2DOCKER_TAG=newlib250 PS2FORK=ps2homebrew PS2BRANCH=test1"
     - env:
       - MATRIX_EVAL="PS2DOCKER=akuhak/ps2toolchain PS2DOCKER_TAG=gcc6_nl3 PS2FORK=ps2homebrew PS2BRANCH=test1"
-
+    - env:
+      - MATRIX_EVAL="PS2DOCKER=akuhak/ps2toolchain PS2DOCKER_TAG=gcc7 PS2FORK=ps2homebrew PS2BRANCH=test1"
+ 
 before_install:
     - eval "${MATRIX_EVAL}"
 
