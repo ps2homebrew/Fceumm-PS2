@@ -9,8 +9,10 @@
 #include <string.h>
 #include <fileio.h>
 #include <sys/stat.h>
+#define NEWLIB_PORT_AWARE
 #include <fileXio_rpc.h>
-#include <sys/fcntl.h>
+//#include <sys/fcntl.h>
+#include <io_common.h>
 
 // ELF-loading stuff
 #define ELF_MAGIC		0x464c457f

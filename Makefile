@@ -2,13 +2,13 @@
 # GCC 3.2.3 / PS2SDK 1.2 / GSKIT / JPG / PNG
 #------------------------------------------------------------------
 #no cdfs support, 1 - have support
-CDSUPPORT = 0
+CDSUPPORT = 1
 DEBUG = 0
 EE_BIN = fceu.elf
 EE_PACKED_BIN = fceu-packed.elf
 ZLIB_DIR := ./src/zlib
 ENDIANNESS_DEFINES = -DLSB_FIRST -DLOCAL_LE=1
-PLATFORM_DEFINES = -D__PS2__ -DHAVE_ASPRINTF -Dmemcpy=mips_memcpy -Dmemset=mips_memset
+PLATFORM_DEFINES = -D__PS2__ -DHAVE_ASPRINTF
 
 #Nor stripping neither compressing binary ELF after compiling.
 NOT_PACKED ?= 0
@@ -58,13 +58,12 @@ FCEU_DIR := ./src
 DRIVER_OBJS += iomanX_irx.o fileXio_irx.o ps2dev9_irx.o \
     ps2atad_irx.o ps2hdd_irx.o ps2fs_irx.o \
     poweroff_irx.o freesd_irx.o audsrv_irx.o usbd_irx.o \
-    usbhdfsd_irx.o SMSUTILS_irx.o
+    usbhdfsd_irx.o
 ifeq ($(CDSUPPORT),1)	
 	DRIVER_OBJS  += cdvd_irx.o
 endif
 DRIVER_OBJS += freesio2_irx.o mcman_irx.o mcserv_irx.o freemtap_irx.o freepad_irx.o
 DRIVER_OBJS := $(DRIVER_OBJS:%=$(PS2_DIR)/irx/%)
-DRIVER_OBJS += $(PS2_DIR)/SMS_Utils.o
 DRIVER_CFLAGS := -D_EE -DSOUND_ON -O2 -G0 -Wall $(PLATFORM_DEFINES)
 #DRIVER_CFLAGS := -D_EE -O2 -G0 -Wall $(PLATFORM_DEFINES)
 ifeq ($(CDSUPPORT),1)
@@ -143,16 +142,11 @@ $(PS2_DIR)/irx/cdvd_irx.c:
 	bin2c libcdvd/lib/cdvd.irx $(PS2_DIR)/irx/cdvd_irx.c cdvd_irx
 endif
 
-$(PS2_DIR)/irx/SMSUTILS_irx.c:
-	$(MAKE) -C SMSUTILS
-	bin2c SMSUTILS/SMSUTILS.irx $(PS2_DIR)/irx/SMSUTILS_irx.c SMSUTILS_irx
-
 run: $(EE_BIN)
 	ps2client execee host:$(EE_BIN)
 
 clean:
 	$(MAKE) -C libcdvd clean
-	$(MAKE) -C SMSUTILS clean
 	$(RM) $(EE_BIN) $(EE_PACKED_BIN) $(EE_OBJS) $(PS2_DIR)/irx/*.c
 
 #include Makefile.eeglobal

@@ -3,6 +3,9 @@
 #include <string.h>
 #include <libjpg.h>
 
+#include <malloc.h>
+#define NEWLIB_PORT_AWARE
+
 // FCEUltra headers
 #include "../../driver.h"
 #include "../../fceu-types.h"

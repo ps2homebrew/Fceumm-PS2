@@ -435,7 +435,7 @@ int Browser_Menu()
                     selected = 0;
                     break;
                 case 8: // Save CNF
-                    fioMkdir("mc0:FCEUMM");
+                    mkdir("mc0:FCEUMM", 0777);
                     Save_Global_CNF("mc0:/FCEUMM/FCEUltra.cnf");
                     break;
                 case 9: // Power Off

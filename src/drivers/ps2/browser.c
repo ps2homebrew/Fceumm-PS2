@@ -1,4 +1,7 @@
 #include <stdio.h>
+#include <malloc.h>
+#define NEWLIB_PORT_AWARE
+#include <stdlib.h>
 #include <fileio.h>
 #include <fileXio.h>
 #include <fileXio_rpc.h>
@@ -11,13 +14,10 @@
 #include <gsKit.h>
 #ifdef CDSUPPORT
 #include <cdvd_rpc.h>
-//#include <SMS_CDVD.h>
-//#include "../smscdvd/iop/SMSCDVD/SMSCDVD.h"
 #include "cd/cd.h"
 #endif
 
 #include "ps2fceu.h"
-
 
 extern vars Settings;
 extern skin FCEUSkin;
@@ -210,7 +210,9 @@ int listcdvd(const char *path, entries *FileEntry) {
 int listdir(char *path, entries *FileEntry, int files_too)
 {
     int dd, n = 0;
-    fio_dirent_t buf;
+//    fio_dirent_t buf;
+    iox_dirent_t buf; // TODO: I am not sure if this is valid replacement
+//warning: passing arg 2 of `fioDread' from incompatible pointer type
 
     if (!(strchr(path, '/'))) { // If path is not valid then load default device menu
         strcpy(FileEntry[0].displayname, "mc0:");

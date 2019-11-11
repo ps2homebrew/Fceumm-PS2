@@ -1,7 +1,11 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <libpad.h>
-#include <fileXio_rpc.h>
+#include <malloc.h>
+#define NEWLIB_PORT_AWARE
+//#include <fileXio_rpc.h>
+#include <io_common.h>
 
 #include "ps2fceu.h"
 #include "../../driver.h"
@@ -137,16 +141,16 @@ void Load_Global_CNF(char *CNF_path_p)
             strcpy(CNF_path_p, partpath);
 
             printf("partpath: %s\n", CNF_path_p);
-            fd = fileXioOpen(CNF_path_p, O_RDONLY, 0);
+            fd = open(CNF_path_p, O_RDONLY, 0);
         }
     }
     else {
-        fd = fioOpen(CNF_path_p, O_RDONLY);
+        fd = open(CNF_path_p, O_RDONLY);
     }
     if (fd < 0) {
         printf("Load_CNF %s Open failed %d.\r\n", CNF_path_p, fd);
         strcpy(CNF_path_p, "mc0:/FCEUMM/FCEUltra.cnf");
-        fd = fioOpen(CNF_path_p, O_RDONLY);
+        fd = open(CNF_path_p, O_RDONLY);
         if (fd < 0) {
             printf("Load_CNF %s Open failed %d.\r\n", CNF_path_p, fd);
             return;
@@ -160,15 +164,15 @@ void Load_Global_CNF(char *CNF_path_p)
     // The above cuts away the cnf filename from CNF_path_p and last '/', leaving a pure path
     FCEUI_SetBaseDirectory(CNF_path_p);
 
-    CNF_size = fioLseek(fd, 0, SEEK_END);
-    fioLseek(fd, 0, SEEK_SET);
+    CNF_size = lseek(fd, 0, SEEK_END);
+    lseek(fd, 0, SEEK_SET);
     CNF_p = (RAM_p = malloc(CNF_size + 1));
     if (CNF_p == NULL) {
         printf("Load_CNF failed malloc(%d).\r\n", CNF_size);
         return;
     }
-    fioRead(fd, CNF_p, CNF_size);
-    fioClose(fd);
+    read(fd, CNF_p, CNF_size);
+    close(fd);
     CNF_p[CNF_size] = '\0';
 
     for (var_cnt = 0; get_CNF_string(&CNF_p, &name, &value); var_cnt++) {
@@ -317,20 +321,20 @@ void Load_Skin_CNF(char *CNF_path_p)
     size_t CNF_size;
     char  *RAM_p, *CNF_p, *name, *value;
 
-    fd = fioOpen(CNF_path_p, O_RDONLY);
+    fd = open(CNF_path_p, O_RDONLY);
     if (fd < 0) {
         printf("Load_CNF %s Open failed %d.\r\n", CNF_path_p, fd);
         return;
     }
-    CNF_size = fioLseek(fd, 0, SEEK_END);
-    fioLseek(fd, 0, SEEK_SET);
+    CNF_size = lseek(fd, 0, SEEK_END);
+    lseek(fd, 0, SEEK_SET);
     CNF_p = (RAM_p = malloc(CNF_size + 1));
     if (CNF_p == NULL) {
         printf("Load_CNF failed malloc(%d).\r\n", CNF_size);
         return;
     }
-    fioRead(fd, CNF_p, CNF_size);
-    fioClose(fd);
+    read(fd, CNF_p, CNF_size);
+    close(fd);
     CNF_p[CNF_size] = '\0';
 
     for (var_cnt = 0; get_CNF_string(&CNF_p, &name, &value); var_cnt++) {
@@ -392,14 +396,14 @@ void Save_Skin_CNF(char *CNF_path_p)
         FCEUSkin.bgMenu,
         &CNF_size);
     // Note that the final argument above measures accumulated string size,
-    // used for fioWrite below, so it's not one of the config variables.
+    // used for write below, so it's not one of the config variables.
 
-    fd = fioOpen(CNF_path_p, O_CREAT | O_WRONLY | O_TRUNC);
+    fd = open(CNF_path_p, O_CREAT | O_WRONLY | O_TRUNC);
     if (fd >= 0) {
-        if (CNF_size == fioWrite(fd, CNF_p, CNF_size))
+        if (CNF_size == write(fd, CNF_p, CNF_size))
             CNF_edited = false;
 
-        fioClose(fd);
+        close(fd);
     }
 
     free(CNF_p);
@@ -575,14 +579,14 @@ void Save_Global_CNF(char *CNF_path_p)
         Settings.PlayerInput[3][14],
         &CNF_size);
     // Note that the final argument above measures accumulated string size,
-    // used for fioWrite below, so it's not one of the config variables.
+    // used for write below, so it's not one of the config variables.
 
-    fd = fioOpen(CNF_path_p, O_CREAT | O_WRONLY | O_TRUNC);
+    fd = open(CNF_path_p, O_CREAT | O_WRONLY | O_TRUNC);
     if (fd >= 0) {
-        if (CNF_size == fioWrite(fd, CNF_p, CNF_size))
+        if (CNF_size == write(fd, CNF_p, CNF_size))
             CNF_edited = false;
 
-        fioClose(fd);
+        close(fd);
     }
     
     free(CNF_p);

@@ -3,6 +3,8 @@
 
 #include <gsKit.h>
 #include <dmaKit.h>
+#include <malloc.h>
+#define NEWLIB_PORT_AWARE
 
 #include "ps2fceu.h"
 
@@ -65,16 +67,16 @@ int font_init(GSGLOBAL *gsGlobal)
     fontdata.CharWidth = FONT_TEX.Width / 16;
     fontdata.CharHeight = FONT_TEX.Height / 16;
 
-    int File = fioOpen(datpath, O_RDONLY);
+    int File = open(datpath, O_RDONLY);
     //fontdata.Additional=malloc( 0x100 );
     u16 temp_buffer[512];
     if (File > 0) {
-        fioLseek(File, 0, SEEK_SET);
-        if(fioRead(File, &temp_buffer, 0x200) <= 0) {
+        lseek(File, 0, SEEK_SET);
+        if(read(File, &temp_buffer, 0x200) <= 0) {
             printf("Could not load font sizes: %s\n", datpath);
             return -1;
         }
-        fioClose(File);
+        close(File);
         for (i = 0; i < 0x100; i++) {
             fontdata.Additional[i] = temp_buffer[i];
         }

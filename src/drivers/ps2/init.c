@@ -10,7 +10,6 @@
 #include <sbv_patches.h>
 #ifdef CDSUPPORT
 #include <cdvd_rpc.h>
-//#include <SMS_CDVD.h>
 #include "cd/cd.h"
 #endif
 #include <gsKit.h>
@@ -67,8 +66,6 @@ extern unsigned int size_usbhdfsd_irx;
 extern unsigned char cdvd_irx;
 extern unsigned int size_cdvd_irx;
 #endif
-extern unsigned char SMSUTILS_irx;
-extern unsigned int size_SMSUTILS_irx;
 
 static int VCK;
 
@@ -130,7 +127,6 @@ void InitPS2()
     SifExecModuleBuffer(&freesd_irx, size_freesd_irx, 0, NULL, NULL);
     SifExecModuleBuffer(&audsrv_irx, size_audsrv_irx, 0, NULL, NULL);
 #endif
-    SifExecModuleBuffer(&SMSUTILS_irx, size_SMSUTILS_irx, 0, NULL, NULL);
     SifExecModuleBuffer(&usbd_irx, size_usbd_irx, 0, NULL, NULL);
     SifExecModuleBuffer(&usbhdfsd_irx, size_usbhdfsd_irx, 0, NULL, NULL);
     for (i = 0; i < 3; i++) { // Taken from ulaunchelf

@@ -4,7 +4,6 @@
 #include <sifrpc.h>
 #include <sys/fcntl.h>
 #include <cdvd_rpc.h>
-//#include <SMS_CDVD.h>
 #include "cd.h"
 
 
