@@ -7,7 +7,7 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    container: akuhak/ps2dev:v1.0
+    container: ps2dev/ps2dev:v1.0
     steps:
     - name: Install dependencies
       run: |
