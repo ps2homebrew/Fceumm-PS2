@@ -1,4 +1,4 @@
-name: CI
+name: CI-compile
 
 on:
   push:
@@ -8,29 +8,38 @@ jobs:
   build:
     runs-on: ubuntu-latest
     container: ps2dev/ps2dev:v1.0
+    # instead of "latest" you can use different tags, for example for old projects you can use "v1.0"
     steps:
     - name: Install dependencies
       run: |
         apk add build-base git zip
-
+        
     - uses: actions/checkout@v2
     - run: |
         git fetch --prune --unshallow
-
+        
     - name: Compile project
       run: |
         make CDSUPPORT=1 NOT_PACKED=1
-    
+        # commands for compiling your project
+        
     - name: Get short SHA
       id: slug
       run: echo "::set-output name=sha8::$(echo ${GITHUB_SHA} | cut -c1-8)"
 
+    - name: Get repository name
+      id: repname
+      run: |
+        echo ::set-output name=REPOSITORY_NAME::$(echo "$GITHUB_REPOSITORY" | awk -F / '{print $2}' | sed -e "s/:refs//")
+        
     - name: Upload artifacts
       if: ${{ success() }}
       uses: actions/upload-artifact@v2
       with:
-        name: Fceumm-PS2-${{ steps.slug.outputs.sha8 }}
-        path: fceu.elf
+        name: ${{ steps.repname.outputs.REPOSITORY_NAME }}-${{ steps.slug.outputs.sha8 }}
+        path: './**/*.elf'
+    # 'path' will create artifact with all *.elf in working directory
+    # you can change this
 
     - name: Create release
       if: github.ref == 'refs/heads/master'
@@ -39,4 +48,7 @@ jobs:
         repo_token: "${{ secrets.GITHUB_TOKEN }}"
         automatic_release_tag: "latest"
         title: "Latest development build"
-        files: fceu.elf
+        files: './**/*.elf'
+    # 'files' will create release with all *.elf in working directory
+    # you can change this
+ 
