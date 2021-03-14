@@ -2,7 +2,7 @@
 # GCC 3.2.3 / PS2SDK 1.2 / GSKIT / JPG / PNG
 #------------------------------------------------------------------
 #no cdfs support, 1 - have support
-CDSUPPORT = 0
+CDSUPPORT = 1
 DEBUG = 0
 EE_BIN = fceu.elf
 EE_PACKED_BIN = fceu-packed.elf
@@ -11,7 +11,7 @@ ENDIANNESS_DEFINES = -DLSB_FIRST -DLOCAL_LE=1
 PLATFORM_DEFINES = -D__PS2__ -DHAVE_ASPRINTF -Dmemcpy=mips_memcpy -Dmemset=mips_memset
 
 #Nor stripping neither compressing binary ELF after compiling.
-NOT_PACKED ?= 0
+NOT_PACKED ?= 1
 
 ifeq ($(DEBUG), 1)
 	PLATFORM_DEFINES += -O0 -g
