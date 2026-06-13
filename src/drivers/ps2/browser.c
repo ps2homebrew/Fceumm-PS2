@@ -1,4 +1,6 @@
 #include <stdio.h>
+#include <stdlib.h>
+#define NEWLIB_PORT_AWARE
 #include <fileio.h>
 #include <fileXio.h>
 #include <fileXio_rpc.h>
@@ -210,7 +212,7 @@ int listcdvd(const char *path, entries *FileEntry) {
 int listdir(char *path, entries *FileEntry, int files_too)
 {
     int dd, n = 0;
-    fio_dirent_t buf;
+    io_dirent_t buf;
 
     if (!(strchr(path, '/'))) { // If path is not valid then load default device menu
         strcpy(FileEntry[0].displayname, "mc0:");

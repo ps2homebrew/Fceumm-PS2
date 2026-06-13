@@ -1,6 +1,9 @@
 #include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
 #include <libpad.h>
+#define NEWLIB_PORT_AWARE
+#include <fileio.h>
 #include <fileXio_rpc.h>
 
 #include "ps2fceu.h"
@@ -62,8 +65,6 @@ extern int mountPartition(char *name);
 //---------------------------------------------------------------------------
 **/
 
-int true = 1;
-int false = 0;
 int CNF_edited = 0;
 
 int get_CNF_string(char **CNF_p_p, char **name_p_p, char **value_p_p)
