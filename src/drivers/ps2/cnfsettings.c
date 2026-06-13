@@ -106,6 +106,19 @@ start_line:
     return true;                            // return control to caller
 }  // Ends get_CNF_string
 
+/* Strip any trailing slash from Settings.savepath, set it as the emulator
+   base directory, and override the state-file directory to point directly
+   at savepath so save states are written there instead of to a non-existent
+   "fcs" subdirectory. */
+static void apply_savepath(void)
+{
+    int len = strlen(Settings.savepath);
+    if (len > 0 && (Settings.savepath[len - 1] == '/' || Settings.savepath[len - 1] == '\\'))
+        Settings.savepath[len - 1] = '\0';
+    FCEUI_SetBaseDirectory(Settings.savepath);
+    FCEUI_SetDirOverride(FCEUIOD_STATE, Settings.savepath);
+}
+
 //---------------------------------------------------------------------------
 void Load_Global_CNF(char *CNF_path_p)
 {
@@ -296,10 +309,10 @@ void Load_Global_CNF(char *CNF_path_p)
 
     // End hdd path mounting
 
-    // If default config is loaded
-    if (!strcmp(CNF_path_p, "mc0:/FCEUMM")) {
-        FCEUI_SetBaseDirectory(Settings.savepath);
-    }
+    // Always apply Settings.savepath as the state-save directory so that
+    // save states are stored in the user-configured location regardless of
+    // where the config file itself was loaded from.
+    apply_savepath();
 
     if (strlen(CNF_p))  //Was there any unprocessed CNF remainder ?
         CNF_edited = false;  //false == current settings match CNF file
@@ -617,7 +630,7 @@ void Save_Global_CNF(char *CNF_path_p)
                 printf("partpath: %s\n", Settings.savepath);
             }
         }
-        FCEUI_SetBaseDirectory(Settings.savepath);
+        apply_savepath();
     }
 
 
@@ -638,7 +651,7 @@ void Default_Global_CNF()
     Settings.current_palette  = 0; // 0 - Default
     strcpy(Settings.elfpath,  "mc0:/BOOT/BOOT.ELF");
     strcpy(Settings.savepath, "mc0:/FCEUMM/");
-    FCEUI_SetBaseDirectory(Settings.savepath);
+    apply_savepath();
     strcpy(Settings.skinpath, "mc0:/FCEUMM/skin.cnf");
 
     int player;
