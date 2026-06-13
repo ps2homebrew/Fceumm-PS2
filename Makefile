@@ -26,11 +26,11 @@ FCEU_DEFINES := -DPATH_MAX=1024 -DINLINE=inline -DPSS_STYLE=1 -DFCEU_VERSION_NUM
 #EE_CFLAGS += -finline-functions -funroll-loops
 EE_CFLAGS += -ffast-math  -funroll-loops -fomit-frame-pointer -fstrict-aliasing -funsigned-char -fno-builtin-printf
 EE_CFLAGS += $(FCEU_DEFINES) $(ENDIANNESS_DEFINES)
-EE_LDFLAGS = -L$(GSKIT)/lib
+EE_LDFLAGS = -L$(GSKIT)/lib -Wl,--allow-multiple-definition
 
 EE_INCS = -I$(PS2SDK)/ee/include -I$(PS2SDK)/sbv/include -I$(PS2SDK)/ports/include \
 	-I$(GSKIT)/include -I$(GSKIT)/ee/dma/include -I$(GSKIT)/ee/gs/include -I$(GSKIT)/ee/toolkit/include
-EE_LIBS = -lgskit_toolkit -lgskit -ldmakit -ljpeg -lpng -lz -lm -lfileXio -lhdd -lmc -lpadx -lc -lmtap -laudsrv -lpoweroff -lpatches -ldebug
+EE_LIBS = -lgskit_toolkit -lgskit -ldmakit -ljpeg_ps2_addons -ljpeg -lpng -lz -lm -lfileXio -lhdd -lmc -lpadx -lc -lmtap -laudsrv -lpoweroff -lpatches -ldebug
 
 ifeq ($(CDSUPPORT),1)
 	EE_INCS += -Ilibcdvd/ee

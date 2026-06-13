@@ -36,6 +36,12 @@
 #include "input.h"
 #include "endian.h"
 
+/* Forward declarations for platform network functions (defined outside NETWORK guard in driver.h) */
+void FCEUD_NetworkClose(void);
+int FCEUD_SendData(void *data, uint32 len);
+int FCEUD_RecvData(void *data, uint32 len);
+void FCEUD_NetplayText(uint8 *text);
+
 #if !defined(__LIBRETRO__) && !defined(__PS2__)
 #define NETPLAY_ENABLED
 #endif

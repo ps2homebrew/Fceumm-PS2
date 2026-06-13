@@ -1,7 +1,10 @@
 #include <stdio.h>
+#include <stdlib.h>
+#include <malloc.h>
+#define NEWLIB_PORT_AWARE
 #include <fileio.h>
 #include <string.h>
-#include <libjpg.h>
+#include <libjpg_ps2_addons.h>
 
 // FCEUltra headers
 #include "../../driver.h"
@@ -675,9 +678,8 @@ int main(int argc, char *argv[])
         //if (gsKit_texture_jpeg(gsGlobal, &BG_TEX, FCEUSkin.bgTexture) < 0) {
         FILE *File = fopen(FCEUSkin.bgTexture, "r");
         if (File != NULL) {
-            Jpg = jpgOpenFILE(File, JPG_WIDTH_FIX); // > 0)
-            ImgData = malloc(Jpg->width * Jpg->height * (Jpg->bpp / 8)); // > 0)
-            jpgReadImage(Jpg, ImgData);
+            Jpg = jpgFromFILE(File, JPG_WIDTH_FIX);
+            ImgData = Jpg->buffer;
             BG_TEX.PSM = GS_PSM_CT24;
             BG_TEX.Clut = NULL;
             BG_TEX.VramClut = 0;
@@ -712,9 +714,8 @@ int main(int argc, char *argv[])
         //if (gsKit_texture_jpeg(gsGlobal, &MENU_TEX, FCEUSkin.bgMenu) < 0) { // Apparently didn't like the "myps2" libjpg
         FILE *File = fopen(FCEUSkin.bgMenu, "r");
         if (File != NULL) {
-            Jpg = jpgOpenFILE(File, JPG_WIDTH_FIX); // > 0)
-            ImgData = malloc(Jpg->width * Jpg->height * (Jpg->bpp / 8)); // > 0)
-            jpgReadImage(Jpg, ImgData);
+            Jpg = jpgFromFILE(File, JPG_WIDTH_FIX);
+            ImgData = Jpg->buffer;
             MENU_TEX.PSM = GS_PSM_CT24;
             MENU_TEX.Clut = NULL;
             MENU_TEX.VramClut = 0;

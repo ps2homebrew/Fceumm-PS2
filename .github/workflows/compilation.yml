@@ -10,7 +10,7 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-latest
-    container: ghcr.io/ps2homebrew/ps2homebrew:latest
+    container: ghcr.io/ps2homebrew/ps2homebrew:main
     steps:
     - name: Install dependencies
       run: |

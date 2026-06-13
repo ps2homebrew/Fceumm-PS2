@@ -7,6 +7,7 @@
 #include <kernel.h>
 #include <sifrpc.h>
 #include <string.h>
+#define NEWLIB_PORT_AWARE
 #include <fileio.h>
 #include <sys/stat.h>
 #include <fileXio_rpc.h>

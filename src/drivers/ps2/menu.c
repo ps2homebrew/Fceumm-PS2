@@ -1,4 +1,5 @@
 #include <stdio.h>
+#define NEWLIB_PORT_AWARE
 #include <fileio.h>
 #include <io_common.h>
 #include <sys/stat.h>

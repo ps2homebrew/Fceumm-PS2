@@ -40,7 +40,11 @@
 #include  "unif.h"
 #include  "cheat.h"
 #include  "palette.h"
+#include  "driver.h"
 #include  "state.h"
+
+/* Forward declaration for platform drivers that define this outside NETWORK guard */
+void FCEUD_NetworkClose(void);
 #include  "movie.h"
 #include  "video.h"
 #include  "input.h"
