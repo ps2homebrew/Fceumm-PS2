@@ -14,7 +14,7 @@ jobs:
       run: |
         apk add build-base git zip
         
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v6
     - run: |
         git fetch --prune --unshallow
         
@@ -34,7 +34,7 @@ jobs:
         
     - name: Upload artifacts
       if: ${{ success() }}
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v7
       with:
         name: ${{ steps.repname.outputs.REPOSITORY_NAME }}-${{ steps.slug.outputs.sha8 }}
         path: './**/*.elf'
@@ -43,7 +43,7 @@ jobs:
 
     - name: Create release
       if: github.ref == 'refs/heads/master'
-      uses: marvinpinto/action-automatic-releases@latest
+      uses: mathieucarbou/marvinpinto-action-automatic-releases@latest
       with:
         repo_token: "${{ secrets.GITHUB_TOKEN }}"
         automatic_release_tag: "latest"
