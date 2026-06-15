@@ -191,6 +191,7 @@ void init_custom_screen()
     if (Settings.display == 0 || Settings.display == 1) {
         if (!Settings.interlace) {
             gsGlobal->Interlace = GS_NONINTERLACED;
+            gsGlobal->Field = GS_FRAME;
             gsGlobal->Height = gsGlobal->Height / 2;
             VCK = 2;
         }
