@@ -33,14 +33,14 @@ void FCEUD_SetEmulationSpeed(int cmd)
 
 // Sound related functions
 // could be implemented, but no real reason to
-static int soundvolume = 1024;
+static int soundvolume = 100;
 void FCEUD_SoundVolumeAdjust(int adjust)
 {
     switch(adjust)
     {
-    case -1: soundvolume -=  50; if (soundvolume <    0) soundvolume =    0; break; // Lower volume
-    case  0: soundvolume = 1024; break;
-    case  1: soundvolume +=  50; if (soundvolume > 1024) soundvolume = 1024; break; // Raise volume
+    case -1: soundvolume -=   5; if (soundvolume <   0) soundvolume =   0; break; // Lower volume
+    case  0: soundvolume = 100; break;
+    case  1: soundvolume +=   5; if (soundvolume > 100) soundvolume = 100; break; // Raise volume
     }
     FCEUI_SetSoundVolume(soundvolume);
     FCEU_DispMessage("Sound volume %d.", soundvolume);
