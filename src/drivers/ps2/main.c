@@ -1006,7 +1006,7 @@ static void DoFun()
 static void SND_Init()
 {
 #ifdef SOUND_ON
-    FCEUI_SetSoundVolume(1024);
+    FCEUI_SetSoundVolume(100);
 #else
     FCEUI_SetSoundVolume(0);
 #endif
