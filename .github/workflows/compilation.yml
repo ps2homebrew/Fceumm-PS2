@@ -7,30 +7,21 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    container: ps2dev/ps2dev:v1.0
-    # instead of "latest" you can use different tags, for example for old projects you can use "v1.0"
     steps:
-    - name: Install dependencies
-      run: |
-        apk add build-base git zip
-        
-    - uses: actions/checkout@v6
-    - run: |
-        git fetch --prune --unshallow
-        
+    - name: Checkout repository
+      uses: actions/checkout@v6
+      
     - name: Compile project
       run: |
-        make CDSUPPORT=1 NOT_PACKED=1
-        # commands for compiling your project
+        docker run --rm -v ${{ github.workspace }}:/workspace -w /workspace ps2dev/ps2dev:v1.0 sh -c "apk add build-base git zip && make CDSUPPORT=1 NOT_PACKED=1"
         
     - name: Get short SHA
       id: slug
-      run: echo "::set-output name=sha8::$(echo ${GITHUB_SHA} | cut -c1-8)"
+      run: echo "sha8=$(echo ${GITHUB_SHA} | cut -c1-8)" >> $GITHUB_OUTPUT
 
     - name: Get repository name
       id: repname
-      run: |
-        echo ::set-output name=REPOSITORY_NAME::$(echo "$GITHUB_REPOSITORY" | awk -F / '{print $2}' | sed -e "s/:refs//")
+      run: echo "REPOSITORY_NAME=$(echo "$GITHUB_REPOSITORY" | awk -F / '{print $2}' | sed -e 's/:refs//')" >> $GITHUB_OUTPUT
         
     - name: Upload artifacts
       if: ${{ success() }}
@@ -38,8 +29,6 @@ jobs:
       with:
         name: ${{ steps.repname.outputs.REPOSITORY_NAME }}-${{ steps.slug.outputs.sha8 }}
         path: './**/*.elf'
-    # 'path' will create artifact with all *.elf in working directory
-    # you can change this
 
     - name: Create release
       if: github.ref == 'refs/heads/master'
@@ -49,6 +38,3 @@ jobs:
         automatic_release_tag: "latest"
         title: "Latest development build"
         files: './**/*.elf'
-    # 'files' will create release with all *.elf in working directory
-    # you can change this
- 
