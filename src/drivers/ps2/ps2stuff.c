@@ -27,7 +27,11 @@ FILE *FCEUD_UTF8fopen(const char *fn, const char *mode)
             if (len < sizeof(dir)) {
                 strncpy(dir, fn, len);
                 dir[len] = '\0';
+#ifdef __PS2__
+                mkdir(dir); /* PS2 SDK mkdir takes only one argument */
+#else
                 mkdir(dir, 0755); /* ignore return – dir may already exist */
+#endif
                 fp = fopen(fn, mode);
             }
         }
