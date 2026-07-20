@@ -1,4 +1,6 @@
 #include <stdio.h>
+#include <string.h>
+#include <sys/stat.h>
 #include "../../fceu-types.h"
 #include "../../driver.h"
 
@@ -12,7 +14,25 @@ struct pcpal {
 // Main
 FILE *FCEUD_UTF8fopen(const char *fn, const char *mode)
 {
-    return(fopen(fn, mode));
+    FILE *fp = fopen(fn, mode);
+    /* When opening for writing/appending, if the open fails (e.g. because
+       the parent directory doesn't exist yet), try to create the directory
+       and retry once.  This ensures saves work even when the save directory
+       has not been manually created on the storage device. */
+    if (fp == NULL && (mode[0] == 'w' || mode[0] == 'a')) {
+        const char *p = strrchr(fn, '/');
+        if (p != NULL && p != fn) {
+            char dir[1024];
+            size_t len = (size_t)(p - fn);
+            if (len < sizeof(dir)) {
+                strncpy(dir, fn, len);
+                dir[len] = '\0';
+                mkdir(dir, 0755); /* ignore return – dir may already exist */
+                fp = fopen(fn, mode);
+            }
+        }
+    }
+    return fp;
 }
 
 // Functions to display messages differently
