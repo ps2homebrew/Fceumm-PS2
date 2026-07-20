@@ -99,16 +99,6 @@ char *FCEU_MakeFName(int type, int id1, char *cd1) {
 			asprintf(&ret, "%s"PSS "%s.fc%d", odirs[FCEUIOD_STATE], FileBase, id1);
 		else
 			asprintf(&ret, "%s"PSS "fcs"PSS "%s.fc%d", BaseDirectory, FileBase, id1);
-		if (stat(ret, &tmpstat) == -1) {
-//          if(odirs[FCEUIOD_STATE])
-//           asprintf(&ret,"%s"PSS"%s.%s.fc%d",odirs[FCEUIOD_STATE],FileBase,md5_asciistr(GameInfo->MD5),id1);
-//          else
-//           asprintf(&ret,"%s"PSS"fcs"PSS"%s.%s.fc%d",BaseDirectory,FileBase,md5_asciistr(GameInfo->MD5),id1);
-			if (odirs[FCEUIOD_STATE])
-				asprintf(&ret, "%s"PSS "%s.fc%d", odirs[FCEUIOD_STATE], FileBase, id1);
-			else
-				asprintf(&ret, "%s"PSS "fcs"PSS "%s.fc%d", BaseDirectory, FileBase, id1);
-		}
 		break;
 	case FCEUMKF_SNAP:
 		if (FSettings.SnapName) {

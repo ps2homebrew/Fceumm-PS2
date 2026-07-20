@@ -220,30 +220,45 @@ int CurrentState = 0;
 extern int geniestage;
 
 int FCEUSS_SaveFP(MEM_TYPE *st) {
-	static uint32 totalsize;
+	uint32 totalsize;
 	uint8 header[16] = { 0 };
 
 	header[0] = 'F';
 	header[1] = 'C';
 	header[2] = 'S';
 	header[3] = 0xFF;
-
-	header[3] = 0xFF;
 	FCEU_en32lsb(header + 8, FCEU_VERSION_NUMERIC);
-	fwrite(header, 1, 16, st);
+
+	/* Prepare PPU/SND state variables before size calculation and writing. */
 	FCEUPPU_SaveState();
 	FCEUSND_SaveState();
-	totalsize = WriteStateChunk(st, 1, SFCPU);
-	totalsize += WriteStateChunk(st, 2, SFCPUC);
-	totalsize += WriteStateChunk(st, 3, FCEUPPU_STATEINFO);
-	totalsize += WriteStateChunk(st, 4, FCEUCTRL_STATEINFO);
-	totalsize += WriteStateChunk(st, 5, FCEUSND_STATEINFO);
-	if (SPreSave) SPreSave();
-	totalsize += WriteStateChunk(st, 0x10, SFMDATA);
-	if (SPreSave) SPostSave();
 
-	fseek(st, 4, SEEK_SET);
-	write32le(totalsize, st);
+	/* Pre-calculate the total size of all state chunks so we can write the
+	   correct value in the header upfront, avoiding a seek-back which may
+	   not work reliably on all PS2 file-system drivers (mc0:, mass:). */
+	if (SPreSave) SPreSave();
+	totalsize  = SubWrite(0, SFCPU) + 5;
+	totalsize += SubWrite(0, SFCPUC) + 5;
+	totalsize += SubWrite(0, FCEUPPU_STATEINFO) + 5;
+	totalsize += SubWrite(0, FCEUCTRL_STATEINFO) + 5;
+	totalsize += SubWrite(0, FCEUSND_STATEINFO) + 5;
+	totalsize += SubWrite(0, SFMDATA) + 5;
+	if (SPostSave) SPostSave();
+
+	/* Write the header with the correct total size embedded. */
+	FCEU_en32lsb(header + 4, totalsize);
+	fwrite(header, 1, 16, st);
+
+	/* Write all state chunks. */
+	WriteStateChunk(st, 1, SFCPU);
+	WriteStateChunk(st, 2, SFCPUC);
+	WriteStateChunk(st, 3, FCEUPPU_STATEINFO);
+	WriteStateChunk(st, 4, FCEUCTRL_STATEINFO);
+	WriteStateChunk(st, 5, FCEUSND_STATEINFO);
+	if (SPreSave) SPreSave();
+	WriteStateChunk(st, 0x10, SFMDATA);
+	if (SPostSave) SPostSave();
+
 	return(1);
 }
 
@@ -295,7 +310,7 @@ int FCEUSS_LoadFP(MEM_TYPE *st) {
 	else
 		stateversion = header[3] * 100;
 
-	x = ReadStateChunks(st, *(uint32*)(header + 4));
+	x = ReadStateChunks(st, FCEU_de32lsb(header + 4));
 	if (stateversion < 9500) X.IRQlow = 0;
 
 	if (GameStateRestore) GameStateRestore(stateversion);
